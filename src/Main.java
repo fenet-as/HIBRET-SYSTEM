@@ -9,8 +9,7 @@ public class Main {
   public static void main(String[] args) {
     // Application entry point
     System.out.println("HIBRET-SYSTEM Starting...");
-    DatabaseInitializer.init();
 
-    System.out.println("🚀 System Ready");
+
   }
 }
