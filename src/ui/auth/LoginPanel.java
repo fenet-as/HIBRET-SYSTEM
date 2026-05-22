@@ -86,7 +86,7 @@ public class LoginPanel extends JPanel {
         lblForgot.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                JOptionPane.showMessageDialog(null, "Redirecting to password recovery...");
+                parentFrame.showPage("forgot"); // Switches main window context
             }
 
             @Override

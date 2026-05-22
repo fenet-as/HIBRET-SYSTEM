@@ -1,7 +1,4 @@
-
 package ui.auth;
-
-
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,12 +17,15 @@ public class LoginFrame extends JFrame {
         cardLayout = new CardLayout();
         mainContainer = new JPanel(cardLayout);
 
-        // FIX: removed "this" because LoginPanel/RegisterPanel don't accept it
+        // 1. Declare and initialize all three panels first
         LoginPanel loginPanel = new LoginPanel(this);
         RegisterPanel registerPanel = new RegisterPanel(this);
+        ForgotPasswordPanel forgotPanel = new ForgotPasswordPanel(this); // <-- MAKE SURE THIS LINE EXISTS
 
+        // 2. Add them to the CardLayout container
         mainContainer.add(loginPanel, "login");
         mainContainer.add(registerPanel, "register");
+        mainContainer.add(forgotPanel, "forgot"); // <-- Now Java knows what 'forgotPanel' is!
 
         add(mainContainer);
         setVisible(true);
