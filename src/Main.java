@@ -8,7 +8,7 @@ public class Main {
 
     SwingUtilities.invokeLater(() -> {
       LoginFrame frame = new LoginFrame();
-      frame.setVisible(true); // <-- This is the missing link!
+      frame.setVisible(true); 
     });
   }
 }
