@@ -1,5 +1,5 @@
-import ui.auth.LoginFrame;
 
+import ui.auth.LoginFrame;
 import javax.swing.*;
 
 public class Main {
@@ -7,7 +7,8 @@ public class Main {
   public static void main(String[] args) {
 
     SwingUtilities.invokeLater(() -> {
-      new LoginFrame();
+      LoginFrame frame = new LoginFrame();
+      frame.setVisible(true); // <-- This is the missing link!
     });
   }
 }

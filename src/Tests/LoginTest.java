@@ -1,37 +1,52 @@
-package ui.auth;
+package Tests;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.RoundRectangle2D;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
-public class LoginPanel extends JPanel {
+public class LoginTest extends JFrame {
+
     private Image backgroundImage;
 
-    public LoginPanel() {
-        // Load the background image
+    public LoginTest() {
+        // Try to load the generated background image
         try {
+            // Adjust the path if you place it in a resource folder, e.g., getClass().getResource("/background.png")
             backgroundImage = ImageIO.read(new File("src/resources/images/LoginBg.png"));
         } catch (IOException e) {
             System.err.println("Could not load background image. Using fallback color.");
+            e.printStackTrace();
         }
 
-        // GridBagLayout centers its components automatically if no weights are specified
-        setLayout(new GridBagLayout());
+        setTitle("Hibret System - Login Screen");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(900, 650); // Balanced resolution for the image aspect ratio
+        setLocationRelativeTo(null);
+        setResizable(true);
 
-        // --- Center Container ---
-        // This holds both the invisible spacing (for the artwork side) and the login fields side-by-side
-        JPanel centerCard = new JPanel(new GridLayout(1, 2, 40, 0));
-        centerCard.setOpaque(false);
-        // Explicitly set a preferred size for the layout block to hold its shape
-        centerCard.setPreferredSize(new Dimension(750, 450));
+        // 1. Custom Background Panel
+        JPanel mainBackgroundPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (backgroundImage != null) {
+                    // Draw image scaled to fill the entire frame smoothly
+                    g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+                } else {
+                    // Fallback background color if image is missing
+                    g.setColor(new Color(245, 238, 220));
+                    g.fillRect(0, 0, getWidth(), getHeight());
+                }
+            }
+        };
 
-        // Left Side: Spacer Panel (Keeps the space clear so the coffee pot shows perfectly)
-        JPanel leftSpacer = new JPanel();
-        leftSpacer.setOpaque(false);
+        // Use GridBagLayout to position the login card cleanly on the right half
+        mainBackgroundPanel.setLayout(new GridBagLayout());
 
-        // Right Side: Form Container
+        // 2. Right-side Form Container (Transparent to let the background show through)
         JPanel formPanel = new JPanel();
         formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
         formPanel.setOpaque(false);
@@ -39,12 +54,12 @@ public class LoginPanel extends JPanel {
         // --- Brand Typography ---
         JLabel lblTitle = new JLabel("HIBRET");
         lblTitle.setFont(new Font("Serif", Font.BOLD, 46));
-        lblTitle.setForeground(new Color(101, 53, 15));
+        lblTitle.setForeground(new Color(101, 53, 15)); // Cultured Dark Brown
         lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel lblSubTitle = new JLabel("SYSTEM");
         lblSubTitle.setFont(new Font("SansSerif", Font.BOLD, 38));
-        lblSubTitle.setForeground(new Color(34, 112, 43));
+        lblSubTitle.setForeground(new Color(34, 112, 43)); // Vibrant Green
         lblSubTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel lblTagline = new JLabel("Equb & Edir Community Management");
@@ -90,17 +105,17 @@ public class LoginPanel extends JPanel {
         btnEng.setFocusPainted(false);
 
         JButton btnAmh = new JButton("አማርኛ");
-        btnAmh.setFont(new Font("Nyala", Font.PLAIN, 14));
+        btnAmh.setFont(new Font("Nyala", Font.PLAIN, 14)); // Nyala handles Amharic well on Windows
         btnAmh.setFocusPainted(false);
 
         langPanel.add(btnEng);
         langPanel.add(btnAmh);
 
-        // --- Form Assembly ---
+        // --- Component Assembly ---
         formPanel.add(lblTitle);
         formPanel.add(lblSubTitle);
         formPanel.add(lblTagline);
-        formPanel.add(Box.createVerticalStrut(30));
+        formPanel.add(Box.createVerticalStrut(35)); // Spacer
         formPanel.add(lblUser);
         formPanel.add(Box.createVerticalStrut(5));
         formPanel.add(txtUsername);
@@ -110,32 +125,30 @@ public class LoginPanel extends JPanel {
         formPanel.add(txtPassword);
         formPanel.add(Box.createVerticalStrut(25));
         formPanel.add(btnLogin);
-        formPanel.add(Box.createVerticalStrut(25));
+        formPanel.add(Box.createVerticalStrut(30));
         formPanel.add(langPanel);
 
-        // Combine left spacer and right form into the center card
-        centerCard.add(leftSpacer);
-        centerCard.add(formPanel);
-
-        // Standard centering constraints
+        // Layout Constraints: Shift layout window dynamically to the right side
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        // Insets: top, left, bottom, right. Pushes components rightward away from the coffee pot image
+        gbc.insets = new Insets(60, 420, 40, 20);
+        gbc.anchor = GridBagConstraints.WEST;
 
-        add(centerCard, gbc);
+        mainBackgroundPanel.add(formPanel, gbc);
+        add(mainBackgroundPanel);
     }
 
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        if (backgroundImage != null) {
-            // Draws and rescales dynamically to whatever size the user stretches the frame to
-            g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
-        } else {
-            g.setColor(new Color(245, 238, 220));
-            g.fillRect(0, 0, getWidth(), getHeight());
-        }
+    public static void main(String[] args) {
+        // Set system look and feel for cleaner base text fields
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception ignored) {}
+
+        SwingUtilities.invokeLater(() -> new LoginTest().setVisible(true));
     }
 }
 
