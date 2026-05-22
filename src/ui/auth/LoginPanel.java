@@ -1,15 +1,25 @@
+
 package ui.auth;
+
+
+import ui.auth.components.RoundedButton;
+import ui.auth.components.RoundedPasswordField;
+import ui.auth.components.RoundedTextField;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
 public class LoginPanel extends JPanel {
+    private final LoginFrame parentFrame;
     private Image backgroundImage;
 
-    public LoginPanel() {
+    public LoginPanel(LoginFrame frame) {
+        this.parentFrame = frame;
         // Load the background image
         try {
             backgroundImage = ImageIO.read(new File("src/resources/images/LoginBg.png"));
@@ -17,26 +27,19 @@ public class LoginPanel extends JPanel {
             System.err.println("Could not load background image. Using fallback color.");
         }
 
-        // GridBagLayout centers its components automatically if no weights are specified
         setLayout(new GridBagLayout());
 
-        // --- Center Container ---
-        // This holds both the invisible spacing (for the artwork side) and the login fields side-by-side
         JPanel centerCard = new JPanel(new GridLayout(1, 2, 40, 0));
         centerCard.setOpaque(false);
-        // Explicitly set a preferred size for the layout block to hold its shape
-        centerCard.setPreferredSize(new Dimension(750, 450));
+        centerCard.setPreferredSize(new Dimension(750, 500));
 
-        // Left Side: Spacer Panel (Keeps the space clear so the coffee pot shows perfectly)
         JPanel leftSpacer = new JPanel();
         leftSpacer.setOpaque(false);
 
-        // Right Side: Form Container
         JPanel formPanel = new JPanel();
         formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
         formPanel.setOpaque(false);
 
-        // --- Brand Typography ---
         JLabel lblTitle = new JLabel("HIBRET");
         lblTitle.setFont(new Font("Serif", Font.BOLD, 46));
         lblTitle.setForeground(new Color(101, 53, 15));
@@ -52,7 +55,6 @@ public class LoginPanel extends JPanel {
         lblTagline.setForeground(new Color(80, 80, 80));
         lblTagline.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // --- Input Controls ---
         JLabel lblUser = new JLabel("Username");
         lblUser.setFont(new Font("SansSerif", Font.BOLD, 13));
         lblUser.setForeground(new Color(70, 70, 70));
@@ -71,7 +73,35 @@ public class LoginPanel extends JPanel {
         txtPassword.setMaximumSize(new Dimension(320, 42));
         txtPassword.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // --- Action Button ---
+        JPanel forgotPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        forgotPanel.setOpaque(false);
+        forgotPanel.setMaximumSize(new Dimension(320, 20));
+        forgotPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel lblForgot = new JLabel("Forgot Password?");
+        lblForgot.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        lblForgot.setForeground(new Color(101, 53, 15));
+        lblForgot.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        lblForgot.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                JOptionPane.showMessageDialog(null, "Redirecting to password recovery...");
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                lblForgot.setText("<html><u>Forgot Password?</u></html>");
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                lblForgot.setText("Forgot Password?");
+            }
+        });
+
+        forgotPanel.add(lblForgot);
+
         JButton btnLogin = new RoundedButton("LOGIN", new Color(34, 112, 43));
         btnLogin.setForeground(Color.WHITE);
         btnLogin.setFont(new Font("SansSerif", Font.BOLD, 14));
@@ -79,7 +109,41 @@ public class LoginPanel extends JPanel {
         btnLogin.setAlignmentX(Component.LEFT_ALIGNMENT);
         btnLogin.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // --- Language Toggle Panel ---
+        JPanel registerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
+        registerPanel.setOpaque(false);
+        registerPanel.setMaximumSize(new Dimension(320, 25));
+        registerPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel lblNoAccount = new JLabel("Don't have an account?");
+        lblNoAccount.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        lblNoAccount.setForeground(new Color(100, 100, 100));
+
+        JLabel lblRegister = new JLabel("Sign Up");
+        lblRegister.setFont(new Font("SansSerif", Font.BOLD, 13));
+        lblRegister.setForeground(new Color(34, 112, 43));
+        lblRegister.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        // FIXED: only ONE listener (no parentFrame, no duplicates)
+        lblRegister.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                parentFrame.showPage("register");
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                lblRegister.setText("<html><u>Sign Up</u></html>");
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                lblRegister.setText("Sign Up");
+            }
+        });
+
+        registerPanel.add(lblNoAccount);
+        registerPanel.add(lblRegister);
+
         JPanel langPanel = new JPanel(new GridLayout(1, 2));
         langPanel.setOpaque(false);
         langPanel.setMaximumSize(new Dimension(160, 35));
@@ -96,11 +160,10 @@ public class LoginPanel extends JPanel {
         langPanel.add(btnEng);
         langPanel.add(btnAmh);
 
-        // --- Form Assembly ---
         formPanel.add(lblTitle);
         formPanel.add(lblSubTitle);
         formPanel.add(lblTagline);
-        formPanel.add(Box.createVerticalStrut(30));
+        formPanel.add(Box.createVerticalStrut(25));
         formPanel.add(lblUser);
         formPanel.add(Box.createVerticalStrut(5));
         formPanel.add(txtUsername);
@@ -108,16 +171,18 @@ public class LoginPanel extends JPanel {
         formPanel.add(lblPass);
         formPanel.add(Box.createVerticalStrut(5));
         formPanel.add(txtPassword);
-        formPanel.add(Box.createVerticalStrut(25));
+        formPanel.add(Box.createVerticalStrut(6));
+        formPanel.add(forgotPanel);
+        formPanel.add(Box.createVerticalStrut(20));
         formPanel.add(btnLogin);
+        formPanel.add(Box.createVerticalStrut(15));
+        formPanel.add(registerPanel);
         formPanel.add(Box.createVerticalStrut(25));
         formPanel.add(langPanel);
 
-        // Combine left spacer and right form into the center card
         centerCard.add(leftSpacer);
         centerCard.add(formPanel);
 
-        // Standard centering constraints
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -130,7 +195,6 @@ public class LoginPanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         if (backgroundImage != null) {
-            // Draws and rescales dynamically to whatever size the user stretches the frame to
             g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
         } else {
             g.setColor(new Color(245, 238, 220));
@@ -139,78 +203,4 @@ public class LoginPanel extends JPanel {
     }
 }
 
-// ==========================================
-//   CUSTOM COMPONENT UI CORNER ROUNDING
-// ==========================================
 
-class RoundedTextField extends JTextField {
-    public RoundedTextField(String placeholder, int columns) {
-        super(columns);
-        setText(placeholder);
-        setForeground(Color.GRAY);
-        setOpaque(false);
-        setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-    }
-    @Override
-    protected void paintComponent(Graphics g) {
-        Graphics2D g2 = (Graphics2D) g.create();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setColor(Color.WHITE);
-        g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
-        super.paintComponent(g2);
-        g2.dispose();
-    }
-    @Override
-    protected void paintBorder(Graphics g) {
-        Graphics2D g2 = (Graphics2D) g.create();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setColor(new Color(200, 200, 200));
-        g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
-        g2.dispose();
-    }
-}
-
-class RoundedPasswordField extends JPasswordField {
-    public RoundedPasswordField(int columns) {
-        super(columns);
-        setOpaque(false);
-        setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-    }
-    @Override
-    protected void paintComponent(Graphics g) {
-        Graphics2D g2 = (Graphics2D) g.create();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setColor(Color.WHITE);
-        g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
-        super.paintComponent(g2);
-        g2.dispose();
-    }
-    @Override
-    protected void paintBorder(Graphics g) {
-        Graphics2D g2 = (Graphics2D) g.create();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setColor(new Color(200, 200, 200));
-        g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
-        g2.dispose();
-    }
-}
-
-class RoundedButton extends JButton {
-    private final Color backgroundColor;
-    public RoundedButton(String label, Color bg) {
-        super(label);
-        this.backgroundColor = bg;
-        setContentAreaFilled(false);
-        setFocusPainted(false);
-        setBorderPainted(false);
-    }
-    @Override
-    protected void paintComponent(Graphics g) {
-        Graphics2D g2 = (Graphics2D) g.create();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setColor(backgroundColor);
-        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
-        super.paintComponent(g2);
-        g2.dispose();
-    }
-}
