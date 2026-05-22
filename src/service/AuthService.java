@@ -1,5 +1,8 @@
 package service;
 
+import model.User;
+
 public interface AuthService {
-  // Business logic contract for authentication
+
+    User login(String username, String password);
 }
