@@ -5,19 +5,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5b7356a4-aa8c-4987-80a5-fc90f559eb29" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/resources/images/DashboardBg.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/resources/images/Jebena.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/dao/UserDAO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dao/UserDAO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/dao/impl/UserDAOImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dao/impl/UserDAOImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/model/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/model/User.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/service/AuthService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/AuthService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/service/impl/AuthServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/impl/AuthServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/auth/ForgotPasswordPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/auth/ForgotPasswordPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/dao/UserDAO.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/dao/UserDAO.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/dao/impl/UserDAOImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/dao/impl/UserDAOImpl.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/model/User.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/model/User.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/service/AuthService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/AuthService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/AuthServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/impl/AuthServiceImpl.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/auth/ForgotPasswordPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/auth/ForgotPasswordPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/auth/LoginPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/auth/LoginPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/core/ContentPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/core/ContentPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/core/MainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/core/MainFrame.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/core/SidebarPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/core/SidebarPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/core/TopBarPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/core/TopBarPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/auth/LoginPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/auth/LoginPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/core/ContentPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/core/ContentPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/core/MainFrame.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/core/MainFrame.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/core/SidebarPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/core/SidebarPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/core/TopBarPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/core/TopBarPanel.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

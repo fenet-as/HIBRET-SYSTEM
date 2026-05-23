@@ -1,6 +1,9 @@
-
 package ui.auth;
 
+import service.AuthService;
+import service.impl.AuthServiceImpl;
+import model.User;
+import ui.core.MainFrame; // Make sure MainFrame is properly imported if it sits in a different package
 
 import ui.auth.components.RoundedButton;
 import ui.auth.components.RoundedPasswordField;
@@ -17,6 +20,9 @@ import javax.imageio.ImageIO;
 public class LoginPanel extends JPanel {
     private final LoginFrame parentFrame;
     private Image backgroundImage;
+
+    // --- State-Driven Business Services ---
+    private final AuthService authService = new AuthServiceImpl();
 
     public LoginPanel(LoginFrame frame) {
         this.parentFrame = frame;
@@ -109,6 +115,28 @@ public class LoginPanel extends JPanel {
         btnLogin.setAlignmentX(Component.LEFT_ALIGNMENT);
         btnLogin.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
+        // --- Connected Live Database Authentication Event ---
+        btnLogin.addActionListener(e -> {
+            String username = txtUsername.getText().trim();
+            String password = new String(txtPassword.getPassword());
+
+            // Simple validation catch
+            if (username.isEmpty() || username.equals("  Enter username") || password.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please enter both username and password.", "Login Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Fetch validated authentication entity from Database Layer
+            User user = authService.login(username, password);
+
+            if (user != null) {
+                parentFrame.dispose();       // Safely tear down login window stage
+                new MainFrame(user);         // Launch application ecosystem dashboard frame
+            } else {
+                JOptionPane.showMessageDialog(this, "Invalid credentials! Please try again.", "Authentication Failed", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
         JPanel registerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
         registerPanel.setOpaque(false);
         registerPanel.setMaximumSize(new Dimension(320, 25));
@@ -123,7 +151,6 @@ public class LoginPanel extends JPanel {
         lblRegister.setForeground(new Color(34, 112, 43));
         lblRegister.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // FIXED: only ONE listener (no parentFrame, no duplicates)
         lblRegister.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -202,5 +229,3 @@ public class LoginPanel extends JPanel {
         }
     }
 }
-
-
