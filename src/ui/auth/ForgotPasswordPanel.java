@@ -1,5 +1,9 @@
 package ui.auth;
 
+import service.AuthService;
+import service.impl.AuthServiceImpl;
+import model.User;
+
 import ui.auth.components.RoundedButton;
 import ui.auth.components.RoundedPasswordField;
 import ui.auth.components.RoundedTextField;
@@ -17,6 +21,10 @@ public class ForgotPasswordPanel extends JPanel {
     private final LoginFrame parentFrame;
     private CardLayout formCardLayout;
     private JPanel dynamicFormContainer;
+
+    // --- State-Driven Business Services ---
+    private final AuthService authService = new AuthServiceImpl();
+    private User currentUser;
 
     public ForgotPasswordPanel(LoginFrame frame) {
         this.parentFrame = frame;
@@ -84,6 +92,8 @@ public class ForgotPasswordPanel extends JPanel {
         lblLogin.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                // Clear user session cache state
+                currentUser = null;
                 formCardLayout.show(dynamicFormContainer, "step1");
                 parentFrame.showPage("login");
             }
@@ -99,7 +109,7 @@ public class ForgotPasswordPanel extends JPanel {
         backPanel.add(lblRemember);
         backPanel.add(lblLogin);
 
-        // --- Language Toggle Panel (ADDED) ---
+        // --- Language Toggle Panel ---
         JPanel langPanel = new JPanel(new GridLayout(1, 2));
         langPanel.setOpaque(false);
         langPanel.setMaximumSize(new Dimension(160, 35));
@@ -116,15 +126,15 @@ public class ForgotPasswordPanel extends JPanel {
         langPanel.add(btnEng);
         langPanel.add(btnAmh);
 
-        // --- Assembly ---
+        // Assembly
         baseFormPanel.add(lblTitle);
         baseFormPanel.add(lblSubTitle);
         baseFormPanel.add(Box.createVerticalStrut(20));
         baseFormPanel.add(dynamicFormContainer);
         baseFormPanel.add(Box.createVerticalStrut(15));
         baseFormPanel.add(backPanel);
-        baseFormPanel.add(Box.createVerticalStrut(25)); // Spacing before language selector
-        baseFormPanel.add(langPanel);                 // Added to the bottom
+        baseFormPanel.add(Box.createVerticalStrut(25));
+        baseFormPanel.add(langPanel);
 
         centerCard.add(leftSpacer);
         centerCard.add(baseFormPanel);
@@ -184,12 +194,38 @@ public class ForgotPasswordPanel extends JPanel {
         btnVerify.setAlignmentX(Component.LEFT_ALIGNMENT);
         btnVerify.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
+        // Connected Backend Logic Implementation
         btnVerify.addActionListener(e -> {
-            if (txtUser.getText().trim().isEmpty() || comboQuestions.getSelectedIndex() == 0 || txtAnswer.getText().trim().isEmpty()) {
+            String username = txtUser.getText().trim();
+            String selectedQuestion = (String) comboQuestions.getSelectedItem();
+            String answer = txtAnswer.getText().trim();
+
+            if (username.isEmpty() || comboQuestions.getSelectedIndex() == 0 || answer.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Please fulfill all security requirements.", "Error", JOptionPane.ERROR_MESSAGE);
-            } else {
-                formCardLayout.show(dynamicFormContainer, "step2");
+                return;
             }
+
+            // FETCH USER FROM DB
+            currentUser = authService.findUser(username);
+
+            if (currentUser == null) {
+                JOptionPane.showMessageDialog(this, "User not found!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // CHECK QUESTION + ANSWER FROM DB
+            if (!currentUser.getSecurityQuestion().equals(selectedQuestion)) {
+                JOptionPane.showMessageDialog(this, "Security question mismatch!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (!currentUser.getSecurityAnswer().equalsIgnoreCase(answer)) {
+                JOptionPane.showMessageDialog(this, "Wrong answer!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // SUCCESS → MOVE TO STEP 2
+            formCardLayout.show(dynamicFormContainer, "step2");
         });
 
         panel.add(lblUser);
@@ -240,19 +276,38 @@ public class ForgotPasswordPanel extends JPanel {
         btnReset.setAlignmentX(Component.LEFT_ALIGNMENT);
         btnReset.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
+        // Connected Backend Logic Implementation
         btnReset.addActionListener(e -> {
             String newPassword = new String(txtNewPass.getPassword());
             String confirmPassword = new String(txtConfirmPass.getPassword());
 
             if (newPassword.isEmpty() || confirmPassword.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Fields cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
-            } else if (!newPassword.equals(confirmPassword)) {
-                JOptionPane.showMessageDialog(this, "Passwords do not match!", "Error", JOptionPane.ERROR_MESSAGE);
-            } else {
-                JOptionPane.showMessageDialog(this, "Password updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                formCardLayout.show(dynamicFormContainer, "step1");
-                parentFrame.showPage("login");
+                return;
             }
+
+            if (!newPassword.equals(confirmPassword)) {
+                JOptionPane.showMessageDialog(this, "Passwords do not match!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (currentUser == null) {
+                JOptionPane.showMessageDialog(this, "Session expired. Restart process.", "Error", JOptionPane.ERROR_MESSAGE);
+                formCardLayout.show(dynamicFormContainer, "step1");
+                return;
+            }
+
+            // ACTUAL DB UPDATE EXECUTION
+            authService.resetPassword(currentUser.getUsername(), newPassword);
+
+            JOptionPane.showMessageDialog(this, "Password updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+            // Clean inputs, reset flow state, and route to login panel
+            txtNewPass.setText("");
+            txtConfirmPass.setText("");
+            currentUser = null;
+            formCardLayout.show(dynamicFormContainer, "step1");
+            parentFrame.showPage("login");
         });
 
         panel.add(lblNewPass);
