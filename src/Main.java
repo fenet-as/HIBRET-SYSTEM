@@ -1,5 +1,7 @@
 
 import ui.auth.LoginFrame;
+
+
 import javax.swing.*;
 
 public class Main {
@@ -8,7 +10,10 @@ public class Main {
 
     SwingUtilities.invokeLater(() -> {
       LoginFrame frame = new LoginFrame();
-      frame.setVisible(true); 
+      frame.setVisible(true);
     });
+
+
+
   }
 }

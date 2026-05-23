@@ -5,19 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5b7356a4-aa8c-4987-80a5-fc90f559eb29" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/resources/images/DashboardBg.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/resources/images/Jebena.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/auth/LoginPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/auth/LoginPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/core/ContentPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/core/ContentPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/core/MainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/core/MainFrame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/core/SidebarPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/core/SidebarPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/core/TopBarPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/core/TopBarPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/auth/LoginPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/auth/LoginPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/core/ContentPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/core/ContentPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/core/MainFrame.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/core/MainFrame.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/core/SidebarPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/core/SidebarPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/core/TopBarPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/core/TopBarPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/util/DBConnection.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/util/DBConnection.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/util/DatabaseInitializer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/util/DatabaseInitializer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Main.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Main.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/util/DBConnection.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/util/DBConnection.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
