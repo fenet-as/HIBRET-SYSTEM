@@ -1,5 +1,12 @@
 package service;
 
+import model.User;
+
 public interface AuthService {
-  // Business logic contract for authentication
+
+    User login(String username, String password);
+
+    User findUser(String username);
+
+    void resetPassword(String username, String newPassword);
 }

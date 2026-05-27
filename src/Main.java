@@ -1,11 +1,19 @@
-/**
- * HIBRET-SYSTEM - Entry Point
- * Main class to start the application
- */
+
+import ui.auth.LoginFrame;
+
+
+import javax.swing.*;
+
 public class Main {
 
   public static void main(String[] args) {
-    // Application entry point
-    System.out.println("HIBRET-SYSTEM Starting...");
+
+    SwingUtilities.invokeLater(() -> {
+      LoginFrame frame = new LoginFrame();
+      frame.setVisible(true);
+    });
+
+
+
   }
 }

@@ -1,5 +1,20 @@
 package session;
 
+import model.User;
+
 public class Session {
-  // Login state and session management
+
+    private static User currentUser;
+
+    public static void setCurrentUser(User user) {
+        currentUser = user;
+    }
+
+    public static User getCurrentUser() {
+        return currentUser;
+    }
+
+    public static void clearSession() {
+        currentUser = null;
+    }
 }

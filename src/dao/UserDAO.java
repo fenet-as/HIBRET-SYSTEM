@@ -1,5 +1,12 @@
 package dao;
 
+import model.User;
+
 public interface UserDAO {
-  // Database contract for User operations
+
+    User login(String username, String password);
+
+    User findByUsername(String username);
+
+    void updatePassword(String username, String newPassword);
 }
