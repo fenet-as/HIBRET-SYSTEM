@@ -157,8 +157,26 @@ public class ForgotPasswordPanel extends JPanel {
         lblUser.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JTextField txtUser = new RoundedTextField("  Enter your username", 20);
-        txtUser.setMaximumSize(new Dimension(320, 42));
+        txtUser.setForeground(Color.GRAY);
+        txtUser.setMaximumSize(new Dimension(320, 38));
         txtUser.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        txtUser.addFocusListener(new java.awt.event.FocusListener() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent e) {
+                if (txtUser.getText().equals("  Enter your username")) {
+                    txtUser.setText("");
+                    txtUser.setForeground(Color.BLACK);
+                }
+            }
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) {
+                if (txtUser.getText().trim().isEmpty()) {
+                    txtUser.setText("  Enter your username");
+                    txtUser.setForeground(Color.GRAY);
+                }
+            }
+        });
 
         JLabel lblQuestion = new JLabel("Security Question");
         lblQuestion.setFont(new Font("SansSerif", Font.BOLD, 13));
@@ -184,8 +202,30 @@ public class ForgotPasswordPanel extends JPanel {
         lblAnswer.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JTextField txtAnswer = new RoundedTextField("  Type your answer", 20);
+        txtAnswer.setForeground(Color.GRAY); // Set the text color to gray for the placeholder
         txtAnswer.setMaximumSize(new Dimension(320, 42));
         txtAnswer.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+// Add the listener to make the text disappear/reappear automatically
+        txtAnswer.addFocusListener(new java.awt.event.FocusListener() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent e) {
+                // If the user clicks into the field and it still has the placeholder text, clear it
+                if (txtAnswer.getText().equals("  Type your answer")) {
+                    txtAnswer.setText("");
+                    txtAnswer.setForeground(Color.BLACK); // Change color to standard black text
+                }
+            }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) {
+                // If the user clicks away and left the field empty, bring the placeholder back
+                if (txtAnswer.getText().trim().isEmpty()) {
+                    txtAnswer.setText("  Type your answer");
+                    txtAnswer.setForeground(Color.GRAY); // Turn it gray again
+                }
+            }
+        });
 
         JButton btnVerify = new RoundedButton("VERIFY ANSWER", new Color(34, 112, 43));
         btnVerify.setForeground(Color.WHITE);

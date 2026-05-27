@@ -67,8 +67,30 @@ public class LoginPanel extends JPanel {
         lblUser.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JTextField txtUsername = new RoundedTextField("  Enter username", 20);
+        txtUsername.setForeground(Color.GRAY); // Set placeholder text color initially
         txtUsername.setMaximumSize(new Dimension(320, 42));
         txtUsername.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+// Add focus listener to handle auto-clearing/restoring the placeholder text
+        txtUsername.addFocusListener(new java.awt.event.FocusListener() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent e) {
+                if (txtUsername.getText().equals("  Enter username")) {
+                    txtUsername.setText("");
+                    txtUsername.setForeground(Color.BLACK); // Change color to standard typing text
+                }
+            }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) {
+                if (txtUsername.getText().trim().isEmpty()) {
+                    txtUsername.setText("  Enter username");
+                    txtUsername.setForeground(Color.GRAY); // Revert to placeholder color
+                }
+            }
+        });
+
+
 
         JLabel lblPass = new JLabel("Password");
         lblPass.setFont(new Font("SansSerif", Font.BOLD, 13));

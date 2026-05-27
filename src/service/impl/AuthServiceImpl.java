@@ -23,4 +23,9 @@ public class AuthServiceImpl implements AuthService {
     public void resetPassword(String username, String newPassword) {
         userDAO.updatePassword(username, newPassword);
     }
+
+    @Override
+    public boolean register(User user) {
+        return userDAO.registerUser(user);
+    }
 }
