@@ -5,14 +5,80 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5b7356a4-aa8c-4987-80a5-fc90f559eb29" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/util/DBConnection.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/util/DBConnection.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/util/DatabaseInitializer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/util/DatabaseInitializer.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/Main.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Main.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/dao/impl/GroupDAOImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/dao/impl/GroupDAOImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/dao/impl/GroupMemberDAOImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/dao/impl/GroupMemberDAOImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/dao/impl/MemberDAOImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/dao/impl/MemberDAOImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/dao/impl/TransactionDAOImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/dao/impl/TransactionDAOImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/dao/impl/UserDAOImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/dao/impl/UserDAOImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/model/Group.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/model/Group.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/model/GroupMember.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/model/GroupMember.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/model/Member.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/model/Member.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/model/Transaction.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/model/Transaction.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/model/User.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/model/User.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/AuthServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/impl/AuthServiceImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/DashboardServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/impl/DashboardServiceImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/EdirServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/impl/EdirServiceImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/EqubServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/impl/EqubServiceImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/GroupServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/impl/GroupServiceImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/MemberServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/impl/MemberServiceImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/ReportServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/impl/ReportServiceImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/TransactionServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/impl/TransactionServiceImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/session/Session.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/session/Session.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/auth/ChangePasswordPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/auth/ChangePasswordPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/auth/ForgotPasswordPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/auth/ForgotPasswordPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/auth/LoginPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/auth/LoginPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/common/ButtonBar.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/common/ButtonBar.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/common/FormPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/common/FormPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/common/ModalDialog.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/common/ModalDialog.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/common/SearchBar.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/common/SearchBar.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/common/TableComponent.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/common/TableComponent.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/core/ContentPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/core/ContentPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/core/MainFrame.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/core/MainFrame.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/core/SidebarPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/core/SidebarPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/core/TopBarPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/core/TopBarPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/dashboard/DashboardPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/dashboard/DashboardPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/dashboard/StatsCard.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/dashboard/StatsCard.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/CreateEdirGroupPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/CreateEdirGroupPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/DistributeFundPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/DistributeFundPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EdirContributionPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/EdirContributionPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EdirGroupDetailPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/EdirGroupDetailPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EdirGroupReportPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/EdirGroupReportPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EdirHomePanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/EdirHomePanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EdirMembersPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/EdirMembersPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EmergencyApprovalPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/EmergencyApprovalPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EmergencyCasePanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/EmergencyCasePanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/equb/CreateEqubGroupPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/equb/CreateEqubGroupPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/equb/EqubGroupDetailPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/equb/EqubGroupDetailPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/equb/EqubGroupReportPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/equb/EqubGroupReportPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/equb/EqubHomePanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/equb/EqubHomePanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/equb/EqubMembersPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/equb/EqubMembersPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/equb/EqubPaymentPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/equb/EqubPaymentPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/equb/EqubPayoutPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/equb/EqubPayoutPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/equb/EqubRotationPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/equb/EqubRotationPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/members/AddMemberPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/members/AddMemberPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/members/EditMemberPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/members/EditMemberPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/members/MemberDetailPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/members/MemberDetailPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/members/MemberListPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/members/MemberListPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/reports/EdirReportPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/reports/EdirReportPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/reports/EqubReportPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/reports/EqubReportPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/reports/MemberReportPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/reports/MemberReportPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/reports/ReportHomePanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/reports/ReportHomePanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/reports/SystemReportPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/reports/SystemReportPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/settings/BackupRestorePanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/settings/BackupRestorePanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/settings/ChangePasswordPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/settings/ChangePasswordPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/settings/LanguagePanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/settings/LanguagePanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/settings/ProfilePanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/settings/ProfilePanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/settings/SettingsPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/settings/SettingsPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/settings/SystemConfigPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/settings/SystemConfigPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/transactions/AddTransactionPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/transactions/AddTransactionPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/transactions/TransactionHistoryPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/transactions/TransactionHistoryPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/util/AppConstants.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/util/AppConstants.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/util/DBConnection.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/util/DBConnection.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/util/LanguageManager.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/util/LanguageManager.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/util/PasswordHasher.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/util/PasswordHasher.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/util/Validator.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/util/Validator.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
