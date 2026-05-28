@@ -1,6 +1,7 @@
 package ui.core;
 
 import model.User;
+import service.ReportService; // Added import for ReportService
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -10,6 +11,7 @@ public class MainFrame extends JFrame {
     private JPanel centerViewportContainer;
     private CardLayout secondaryCardRouter;
     private SidebarPanel sidebar;
+    private final ReportService reportService; // Added private final field to hold service
 
     // Single Source of Truth for the active page route
     private String activeRoute = "Dashboard";
@@ -21,10 +23,14 @@ public class MainFrame extends JFrame {
     private int currentWidth = MAX_WIDTH;
     private boolean isExpanded = true;
 
-    public MainFrame(User user) {
+    // Modified constructor to accept ReportService parameter
+    public MainFrame(User user, ReportService reportService) {
+        this.reportService = reportService; // Assigned ReportService instance
+
         setTitle("Hibret System - Dashboard");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+        // Make window open full screen by default
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setMinimumSize(new Dimension(1050, 700));
         setLocationRelativeTo(null);
@@ -44,12 +50,16 @@ public class MainFrame extends JFrame {
         contentScroll.setOpaque(false);
         contentScroll.getViewport().setOpaque(false);
         contentScroll.setBorder(null);
-        contentScroll.getVerticalScrollBar().setUnitIncrement(16);
+        contentScroll.getVerticalScrollBar().setUnitIncrement(16); // Smooth scrolling
 
+        // Views Routing System Matrix
         centerViewportContainer.add(contentScroll, "Dashboard");
         centerViewportContainer.add(createPlaceholderPanel("Equb Management View"), "Equb");
         centerViewportContainer.add(createPlaceholderPanel("Edir Management View"), "Edir");
-        centerViewportContainer.add(createPlaceholderPanel("Reports View"), "Reports");
+
+        // WIRED BACKEND HOOK: Injected both MainFrame reference and ReportService backend
+        centerViewportContainer.add(new ui.reports.ReportHomePanel(this, reportService), "Reports");
+
         centerViewportContainer.add(createPlaceholderPanel("Settings View"), "Settings");
 
         masterBackgroundCanvas.add(topBar, BorderLayout.NORTH);
@@ -87,18 +97,16 @@ public class MainFrame extends JFrame {
         animationTimer.start();
     }
 
-    // Dynamic global view routing mechanism
+    // Centralized route switcher framework
     public void switchDashboardView(String cardRouteIdentifier) {
-        this.activeRoute = cardRouteIdentifier; // Keep tracking updated state
+        this.activeRoute = cardRouteIdentifier;
         secondaryCardRouter.show(centerViewportContainer, cardRouteIdentifier);
 
-        // Force the sidebar component to repaint itself to refresh highlight highlights
         if (sidebar != null) {
-            sidebar.repaint();
+            sidebar.repaint(); // Triggers sidebar menu items background recolor highlights
         }
     }
 
-    // Getter so SidebarPanel can check what page is currently visible
     public String getActiveRoute() {
         return this.activeRoute;
     }
