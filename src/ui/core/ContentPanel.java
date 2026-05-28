@@ -7,14 +7,20 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 public class ContentPanel extends JPanel {
+    private final MainFrame parentFrame; // Added to handle navigation routes
     private Image jebenaImageAsset;
 
-    public ContentPanel() {
+    private final Color TEXT_DARK_BROWN = new Color(101, 53, 15);
+    private final Color TEXT_MUTED_GRAY = new Color(130, 125, 115);
+
+    // Updated Constructor to accept MainFrame
+    public ContentPanel(MainFrame frame) {
+        this.parentFrame = frame;
+
         setOpaque(false);
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        setBorder(BorderFactory.createEmptyBorder(25, 30, 40, 30));
+        setBorder(BorderFactory.createEmptyBorder(25, 35, 40, 35));
 
-        // Load isolated coffee pot art asset
         try {
             jebenaImageAsset = ImageIO.read(new File("src/resources/images/Jebena.png"));
         } catch (IOException e) {
@@ -23,40 +29,54 @@ public class ContentPanel extends JPanel {
 
         // --- View Header Title ---
         JLabel lblHeader = new JLabel("Dashboard");
-        lblHeader.setFont(new Font("Serif", Font.BOLD, 28));
-        lblHeader.setForeground(new Color(101, 53, 15));
+        lblHeader.setFont(new Font("Serif", Font.BOLD, 32));
+        lblHeader.setForeground(TEXT_DARK_BROWN);
         lblHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
         add(lblHeader);
         add(Box.createVerticalStrut(20));
 
-        // --- Metric Informative Cards Row ---
-        JPanel metricsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 14, 0));
-        metricsPanel.setOpaque(false);
-        metricsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        // --- Metric Cards Section (Responsive Grid) ---
+        JPanel metricsContainer = new JPanel(new GridLayout(0, 3, 15, 15)) {
+            @Override
+            public Dimension getMaximumSize() {
+                return new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
+            }
+        };
+        metricsContainer.setOpaque(false);
+        metricsContainer.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        metricsPanel.add(createInfoCard("Total Members", "120", new Color(40, 40, 40)));
-        metricsPanel.add(createInfoCard("Equb Groups", "3", new Color(160, 40, 20)));
-        metricsPanel.add(createInfoCard("Edir Groups", "2", new Color(160, 40, 20)));
-        metricsPanel.add(createInfoCard("Total Funds", "350,000 birr", new Color(34, 112, 43)));
-        metricsPanel.add(createInfoCard("Pending Payments", "18", new Color(160, 40, 20)));
+        metricsContainer.add(createInfoCard("👤", "Total Members", "120", new Color(40, 40, 40)));
+        metricsContainer.add(createInfoCard("👥", "Equb Groups", "3", new Color(160, 40, 20)));
+        metricsContainer.add(createInfoCard("🤝", "Edir Groups", "2", new Color(160, 40, 20)));
+        metricsContainer.add(createInfoCard("💰", "Total Funds", "350,000 birr", new Color(34, 112, 43)));
+        metricsContainer.add(createInfoCard("📋", "Pending Payments", "18", new Color(160, 40, 20)));
 
-        add(metricsPanel);
-        add(Box.createVerticalStrut(40));
+        JPanel emptyGridSpacer = new JPanel();
+        emptyGridSpacer.setOpaque(false);
+        metricsContainer.add(emptyGridSpacer);
 
-        // --- Bottom Operation Management Modules ---
-        JPanel modulesGrid = new JPanel(new FlowLayout(FlowLayout.LEFT, 16, 0));
+        add(metricsContainer);
+        add(Box.createVerticalStrut(30));
+
+        // --- Bottom Module Management Section (Responsive Row Grid) ---
+        JPanel modulesGrid = new JPanel(new GridLayout(1, 4, 18, 0)) {
+            @Override
+            public Dimension getMaximumSize() {
+                return new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
+            }
+        };
         modulesGrid.setOpaque(false);
         modulesGrid.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        modulesGrid.add(createModuleTile("Equb\nManagement", new Color(46, 117, 59)));
-        modulesGrid.add(createModuleTile("Edir\nManagement", new Color(184, 91, 23)));
-        modulesGrid.add(createModuleTile("Reports", new Color(207, 142, 19)));
-        modulesGrid.add(createModuleTile("Settings", new Color(33, 91, 166)));
+        // Added targets matching your routing system strings ("Equb", "Edir", "Reports", "Settings")
+        modulesGrid.add(createModuleTile("🏘️", "Equb\nManagement", "Equb", new Color(46, 117, 59)));
+        modulesGrid.add(createModuleTile("❤️", "Edir\nManagement", "Edir", new Color(184, 91, 23)));
+        modulesGrid.add(createModuleTile("📊", "Reports", "Reports", new Color(207, 142, 19)));
+        modulesGrid.add(createModuleTile("⚙️", "Settings", "Settings", new Color(33, 91, 166)));
 
         add(modulesGrid);
     }
 
-    // Paint component handles drawing the corner graphic elements safely
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -64,7 +84,6 @@ public class ContentPanel extends JPanel {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 
-            // Anchors illustration cleanly to the bottom-right corner without stretching
             int imgWidth = 240;
             int imgHeight = 240;
             int xPosition = getWidth() - imgWidth - 10;
@@ -75,59 +94,98 @@ public class ContentPanel extends JPanel {
         }
     }
 
-    private JPanel createInfoCard(String title, String value, Color valueColor) {
+    private JPanel createInfoCard(String iconSymbol, String title, String value, Color valueColor) {
         JPanel card = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                g2.setColor(new Color(0, 0, 0, 12));
+                g2.fillRoundRect(2, 2, getWidth() - 4, getHeight() - 4, 14, 14);
+
                 g2.setColor(Color.WHITE);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
-                g2.setColor(new Color(230, 225, 210));
-                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
+                g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 3, 14, 14);
+
+                g2.setColor(new Color(235, 230, 215));
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 3, 14, 14);
                 g2.dispose();
             }
         };
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setPreferredSize(new Dimension(162, 80));
-        card.setMaximumSize(new Dimension(162, 80));
+        card.setLayout(new BorderLayout(12, 0));
         card.setOpaque(false);
-        card.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        card.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 12));
+        card.setPreferredSize(new Dimension(200, 95));
+        card.setMinimumSize(new Dimension(120, 85));
+
+        JLabel lblIcon = new JLabel(iconSymbol);
+        lblIcon.setFont(new Font("SansSerif", Font.PLAIN, 28));
+        lblIcon.setForeground(valueColor);
+        card.add(lblIcon, BorderLayout.WEST);
+
+        JPanel textStack = new JPanel();
+        textStack.setOpaque(false);
+        textStack.setLayout(new BoxLayout(textStack, BoxLayout.Y_AXIS));
 
         JLabel lblTitle = new JLabel(title);
-        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 11));
-        lblTitle.setForeground(new Color(130, 125, 115));
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 12));
+        lblTitle.setForeground(TEXT_MUTED_GRAY);
+        lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel lblValue = new JLabel(value);
-        lblValue.setFont(new Font("SansSerif", Font.BOLD, 22));
+        lblValue.setFont(new Font("SansSerif", Font.BOLD, 20));
         lblValue.setForeground(valueColor);
+        lblValue.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        card.add(lblTitle);
-        card.add(Box.createVerticalStrut(6));
-        card.add(lblValue);
+        textStack.add(lblTitle);
+        textStack.add(Box.createVerticalStrut(4));
+        textStack.add(lblValue);
+
+        card.add(textStack, BorderLayout.CENTER);
         return card;
     }
 
-    private JButton createModuleTile(String title, Color bgTheme) {
-        JButton tile = new JButton("<html><center>" + title.replaceAll("\n", "<br>") + "</center></html>") {
+    // Accepts a target card route identifier parameter string now
+    private JButton createModuleTile(String iconSymbol, String title, String targetRoute, Color bgTheme) {
+        String formattedTitle = "<html><center>" + title.replaceAll("\n", "<br>") + "</center></html>";
+
+        JButton tile = new JButton(formattedTitle) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
                 g2.setColor(bgTheme);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
+
+                g2.setFont(new Font("SansSerif", Font.PLAIN, 42));
+                FontMetrics fm = g2.getFontMetrics();
+                int iconX = (getWidth() - fm.stringWidth(iconSymbol)) / 2;
+                int iconY = (getHeight() / 2) - 10;
+                g2.drawString(iconSymbol, iconX, iconY);
+
                 super.paintComponent(g2);
                 g2.dispose();
             }
         };
 
-        tile.setFont(new Font("SansSerif", Font.BOLD, 14));
+        tile.setFont(new Font("SansSerif", Font.BOLD, 15));
         tile.setForeground(Color.WHITE);
         tile.setContentAreaFilled(false);
         tile.setBorderPainted(false);
         tile.setFocusPainted(false);
-        tile.setPreferredSize(new Dimension(168, 155));
+
+        tile.setPreferredSize(new Dimension(165, 160));
+        tile.setMinimumSize(new Dimension(110, 120));
         tile.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        tile.setVerticalAlignment(SwingConstants.BOTTOM);
+        tile.setHorizontalAlignment(SwingConstants.CENTER);
+        tile.setBorder(BorderFactory.createEmptyBorder(0, 5, 20, 5));
+
+        // Redirects application view layout container via MainFrame reference
+        tile.addActionListener(e -> parentFrame.switchDashboardView(targetRoute));
+
         return tile;
     }
 }

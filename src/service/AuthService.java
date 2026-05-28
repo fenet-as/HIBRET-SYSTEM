@@ -9,4 +9,6 @@ public interface AuthService {
     User findUser(String username);
 
     void resetPassword(String username, String newPassword);
+
+    boolean register(User user);
 }

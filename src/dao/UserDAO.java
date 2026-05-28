@@ -9,4 +9,6 @@ public interface UserDAO {
     User findByUsername(String username);
 
     void updatePassword(String username, String newPassword);
+
+    boolean registerUser(User user);
 }
