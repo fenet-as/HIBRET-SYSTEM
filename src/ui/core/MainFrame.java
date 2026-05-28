@@ -1,7 +1,9 @@
 package ui.core;
 
 import model.User;
-import service.ReportService; // Added import for ReportService
+import service.ReportService;
+import service.EqubService;         // ⭐ ADDED BACKEND DEPENDENCY HOOK
+import ui.equb.EqubHomePanel;       // ⭐ IMPORT THE HOME VIEW GRID MODULE
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -11,7 +13,8 @@ public class MainFrame extends JFrame {
     private JPanel centerViewportContainer;
     private CardLayout secondaryCardRouter;
     private SidebarPanel sidebar;
-    private final ReportService reportService; // Added private final field to hold service
+    private final ReportService reportService;
+    private final EqubService equbService;   // ⭐ FIELD STORAGE REGISTERED
 
     // Single Source of Truth for the active page route
     private String activeRoute = "Dashboard";
@@ -23,11 +26,12 @@ public class MainFrame extends JFrame {
     private int currentWidth = MAX_WIDTH;
     private boolean isExpanded = true;
 
-    // Modified constructor to accept ReportService parameter
-    public MainFrame(User user, ReportService reportService) {
-        this.reportService = reportService; // Assigned ReportService instance
+    // ⭐ UPDATED CONSTRUCTOR TO ACCEPT EQUBSERVICE INSTANCE AS WELL
+    public MainFrame(User user, ReportService reportService, EqubService equbService) {
+        this.reportService = reportService;
+        this.equbService = equbService;      // ✅ ASSIGNED DEPENDENCY TRACE
 
-        setTitle("Hibret System - Dashboard");
+        setTitle("Hibret System - Integrated Management Framework");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         // Make window open full screen by default
@@ -52,9 +56,21 @@ public class MainFrame extends JFrame {
         contentScroll.setBorder(null);
         contentScroll.getVerticalScrollBar().setUnitIncrement(16); // Smooth scrolling
 
-        // Views Routing System Matrix
+        // --- VIEWS ROUTING MATRIX INTEGRATION LAYER ---
         centerViewportContainer.add(contentScroll, "Dashboard");
-        centerViewportContainer.add(createPlaceholderPanel("Equb Management View"), "Equb");
+
+        // ⭐ REMOVED PLACEHOLDER: INJECTING DYNAMIC CARD CONTAINER BASE LAYER FOR EQUB
+        JPanel equbModuleCardWrapper = new JPanel(new CardLayout());
+        equbModuleCardWrapper.setOpaque(false);
+
+        // Build the landing grid panel passing our sub-routing container & backend services
+        EqubHomePanel equbGridLandingScreen = new EqubHomePanel(equbModuleCardWrapper, equbService);
+        equbModuleCardWrapper.add(equbGridLandingScreen, "EqubHome");
+
+        // Register the dynamic Equb wrapper directly onto the root viewport switcher
+        centerViewportContainer.add(equbModuleCardWrapper, "Equb");
+
+        // Remaining placeholders/modules wired up
         centerViewportContainer.add(createPlaceholderPanel("Edir Management View"), "Edir");
 
         // WIRED BACKEND HOOK: Injected both MainFrame reference and ReportService backend
@@ -100,6 +116,22 @@ public class MainFrame extends JFrame {
     // Centralized route switcher framework
     public void switchDashboardView(String cardRouteIdentifier) {
         this.activeRoute = cardRouteIdentifier;
+
+        // ⭐ AUTO-REFRESH TRIGGER: When switching to Equb, force data to reload immediately
+        if (cardRouteIdentifier.equalsIgnoreCase("Equb")) {
+            for (Component viewComponent : centerViewportContainer.getComponents()) {
+                if (viewComponent instanceof JPanel && ((JPanel) viewComponent).getLayout() instanceof CardLayout) {
+                    JPanel wrapperPanel = (JPanel) viewComponent;
+                    for (Component subComp : wrapperPanel.getComponents()) {
+                        if (subComp instanceof EqubHomePanel) {
+                            ((EqubHomePanel) subComp).loadEqubGroupsData(); // Refreshes grid rows
+                            ((CardLayout) wrapperPanel.getLayout()).show(wrapperPanel, "EqubHome"); // Resets state back to home grid
+                        }
+                    }
+                }
+            }
+        }
+
         secondaryCardRouter.show(centerViewportContainer, cardRouteIdentifier);
 
         if (sidebar != null) {

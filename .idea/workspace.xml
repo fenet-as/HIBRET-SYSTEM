@@ -4,7 +4,41 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5b7356a4-aa8c-4987-80a5-fc90f559eb29" name="Changes" comment="" />
+    <list default="true" id="5b7356a4-aa8c-4987-80a5-fc90f559eb29" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/dao/EqubDAO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/dao/impl/EqubDAOImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/model/Group.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/model/Group.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/model/Member.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/model/Member.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/model/Transaction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/model/Transaction.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/service/EqubService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/EqubService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/service/impl/EqubServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/impl/EqubServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/auth/LoginPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/auth/LoginPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/core/MainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/core/MainFrame.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/equb/CreateEqubGroupPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/CreateEqubGroupPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/equb/EqubGroupDetailPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/EqubGroupDetailPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/equb/EqubGroupReportPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/EqubGroupReportPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/equb/EqubHomePanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/EqubHomePanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/equb/EqubMembersPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/EqubMembersPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/equb/EqubPaymentPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/EqubPaymentPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/equb/EqubPayoutPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/EqubPayoutPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/equb/EqubRotationPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/EqubRotationPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/model/Group.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/model/Group.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/model/Member.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/model/Member.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/model/Transaction.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/model/Transaction.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/service/EqubService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/EqubService.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/EqubServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/impl/EqubServiceImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/auth/LoginPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/auth/LoginPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/core/MainFrame.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/core/MainFrame.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/equb/CreateEqubGroupPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/equb/CreateEqubGroupPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/equb/EqubGroupDetailPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/equb/EqubGroupDetailPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/equb/EqubGroupReportPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/equb/EqubGroupReportPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/equb/EqubHomePanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/equb/EqubHomePanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/equb/EqubMembersPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/equb/EqubMembersPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/equb/EqubPaymentPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/equb/EqubPaymentPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/equb/EqubPayoutPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/equb/EqubPayoutPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/equb/EqubRotationPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/equb/EqubRotationPanel.class" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -29,23 +63,23 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Application.LoginTest.executor": "Run",
-    "Application.Main.executor": "Run",
-    "Application.TestDB.executor": "Run",
-    "Application.TestLogin.executor": "Run",
-    "Application.Tests.executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "p4-core-system",
-    "ignore.virus.scanning.warn.message": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/Student4/OneDrive/Documents/java/OOP project/HIBRET-SYSTEM/src/resources/images"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.LoginTest.executor&quot;: &quot;Run&quot;,
+    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
+    &quot;Application.TestDB.executor&quot;: &quot;Run&quot;,
+    &quot;Application.TestLogin.executor&quot;: &quot;Run&quot;,
+    &quot;Application.Tests.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;p4-core-system&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Student4/OneDrive/Documents/java/OOP project/HIBRET-SYSTEM/src/resources/images&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\Student4\OneDrive\Documents\java\OOP project\HIBRET-SYSTEM\src\resources\images" />
@@ -88,7 +122,15 @@
       <option name="project" value="LOCAL" />
       <updated>1779901857867</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002">
+      <option name="closed" value="true" />
+      <created>1779965267803</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1779965267803</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
 </project>

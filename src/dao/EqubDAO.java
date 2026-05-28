@@ -1,22 +1,19 @@
-package service;
+package dao;
 
 import model.Group;
 import model.Member;
 import model.Transaction;
 import java.util.List;
 
-public interface EqubService {
+public interface EqubDAO {
     void createEqubGroup(String name, double contributionAmount);
     List<Group> getAllEqubGroups();
-    void deleteGroup(int groupId);
+    void deleteEqubGroup(int groupId);
     List<Member> getMembersInGroup(int groupId);
     void addMemberToGroup(int groupId, int memberId);
     void recordPayment(int groupId, int memberId, double amount, String date, String note);
     void recordPayout(int groupId, int memberId, double amount, String date, String description);
     List<Transaction> getRecentPaymentsForGroup(int groupId);
     Member triggerRandomRotationalDraw(int groupId);
-    List<Member> getAllSystemMembers();
-    // Inside service.EqubService interface:
     int createNewSystemMember(Member member);
-    // For adding new members to the dropdown
 }
