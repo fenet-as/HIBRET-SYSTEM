@@ -4,40 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5b7356a4-aa8c-4987-80a5-fc90f559eb29" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/dao/ReportDAO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/dao/impl/ReportDAOImpl.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/model/ReportDataModels.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/model/Transaction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/model/Transaction.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/service/ReportService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/ReportService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/service/impl/ReportServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/impl/ReportServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/auth/LoginPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/auth/LoginPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/core/MainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/core/MainFrame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/dashboard/DashboardPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/dashboard/DashboardPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/edir/EdirHomePanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/EdirHomePanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/equb/EqubHomePanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/EqubHomePanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/reports/EdirReportPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/reports/EdirReportPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/reports/EqubReportPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/reports/EqubReportPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/reports/MemberReportPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/reports/MemberReportPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/reports/ReportHomePanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/reports/ReportHomePanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/reports/SystemReportPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/reports/SystemReportPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/settings/SettingsPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/settings/SettingsPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/model/Transaction.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/model/Transaction.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/service/ReportService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/ReportService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/ReportServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/impl/ReportServiceImpl.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/auth/LoginPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/auth/LoginPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/core/MainFrame.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/core/MainFrame.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/dashboard/DashboardPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/dashboard/DashboardPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EdirHomePanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/EdirHomePanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/equb/EqubHomePanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/equb/EqubHomePanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/reports/EdirReportPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/reports/EdirReportPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/reports/EqubReportPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/reports/EqubReportPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/reports/MemberReportPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/reports/MemberReportPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/reports/ReportHomePanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/reports/ReportHomePanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/reports/SystemReportPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/reports/SystemReportPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/settings/SettingsPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/settings/SettingsPanel.class" afterDir="false" />
-    </list>
+    <list default="true" id="5b7356a4-aa8c-4987-80a5-fc90f559eb29" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
