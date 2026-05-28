@@ -1,45 +1,40 @@
 package ui;
-import ui.equb.EqubPayoutPanel;
-import ui.equb.EqubGroupReportPanel;
-import ui.SidebarPanel;
-import ui.equb.EqubGroupDetailPanel;
-import ui.equb.CreateEqubGroupPanel;
-import ui.equb.EqubHomePanel;
-import ui.equb.EqubPaymentPanel;
-import ui.equb.EqubRotationPanel;
+
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * Main application window using CardLayout for navigation.
+ */
 public class MainFrame extends JFrame {
-
-    private CardLayout layout;
     private JPanel mainPanel;
+    private CardLayout cardLayout;
 
     public MainFrame() {
-
-        setTitle("HIBRET SYSTEM");
-        setSize(1100,700);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setTitle("HIBRET SYSTEM - Community Management");
+        setSize(1200, 800);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        layout = new CardLayout();
-        mainPanel = new JPanel(layout);
+        cardLayout = new CardLayout();
+        mainPanel = new JPanel(cardLayout);
 
-        mainPanel.add(new EqubHomePanel(this), "home");
-        mainPanel.add(new CreateEqubGroupPanel(this), "create");
-        mainPanel.add(new EqubPaymentPanel(this), "payment");
-        mainPanel.add(new EqubRotationPanel(this), "rotation");
-        mainPanel.add(new EqubGroupDetailPanel(this), "detail");
-        mainPanel.add(new EqubPayoutPanel(this), "payout");
-
+        // Add layout components
         setLayout(new BorderLayout());
         add(new SidebarPanel(this), BorderLayout.WEST);
         add(mainPanel, BorderLayout.CENTER);
+    }
 
-        layout.show(mainPanel, "home");
+    public void addScreen(JPanel panel, String name) {
+        mainPanel.add(panel, name);
     }
 
     public void showScreen(String name) {
-        layout.show(mainPanel, name);
+        cardLayout.show(mainPanel, "create");
+    }
+
+    public void refreshHome() {
+        // Logic to refresh dashboard statistics
+        System.out.println("Refreshing dashboard...");
     }
 }

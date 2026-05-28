@@ -1,5 +1,9 @@
 package dao;
 
+import model.Transaction;
+import java.util.List;
+
 public interface TransactionDAO {
-  // Database contract for Transaction operations
+    void saveTransaction(Transaction transaction);
+    List<Transaction> getAllTransactions();
 }

@@ -4,7 +4,73 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5b7356a4-aa8c-4987-80a5-fc90f559eb29" name="Changes" comment="" />
+    <list default="true" id="5b7356a4-aa8c-4987-80a5-fc90f559eb29" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/dao/GroupDAO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dao/GroupDAO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/dao/TransactionDAO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dao/TransactionDAO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/dao/impl/GroupDAOImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dao/impl/GroupDAOImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/dao/impl/MemberDAOImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dao/impl/MemberDAOImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/dao/impl/TransactionDAOImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dao/impl/TransactionDAOImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/model/EqubGroup.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/model/EqubGroup.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/model/GroupStore.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/model/GroupStore.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/model/Member.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/model/Member.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/model/SelectedGroup.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/model/SelectedGroup.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/model/Transaction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/model/Transaction.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/service/EdirService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/EdirService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/service/EqubService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/EqubService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/service/impl/EqubServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/impl/EqubServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/MainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/MainFrame.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/SidebarPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/SidebarPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/equb/CreateEqubGroupPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/CreateEqubGroupPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/equb/EqubGroupDetailPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/EqubGroupDetailPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/equb/EqubGroupReportPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/EqubGroupReportPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/equb/EqubHomePanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/EqubHomePanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/equb/EqubPaymentPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/EqubPaymentPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/equb/EqubPayoutPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/EqubPayoutPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/equb/EqubRotationPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/EqubRotationPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/util/Validator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/util/Validator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Main.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/dao/GroupDAO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/dao/GroupMemberDAO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/dao/MemberDAO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/dao/UserDAO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/dao/impl/GroupDAOImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/dao/impl/GroupMemberDAOImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/model/Member.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/model/Transaction.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/model/User.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/service/AuthService.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/service/DashboardService.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/service/EqubService.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/service/GroupService.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/service/MemberService.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/service/ReportService.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/service/TransactionService.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/AuthServiceImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/EdirServiceImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/GroupServiceImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/MemberServiceImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/auth/ChangePasswordPanel.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/auth/LoginPanel.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/common/FormPanel.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/common/SearchBar.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/core/ContentPanel.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/core/MainFrame.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/core/SidebarPanel.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EdirGroupDetailPanel.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EdirGroupReportPanel.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EmergencyApprovalPanel.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/equb/EqubGroupDetailPanel.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/members/AddMemberPanel.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/reports/EqubReportPanel.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/settings/BackupRestorePanel.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/settings/ChangePasswordPanel.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/settings/ProfilePanel.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/settings/SettingsPanel.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/util/DBConnection.class" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -40,14 +106,21 @@
     "Application.TestLogin.executor": "Run",
     "Application.Tests.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.MCP Project settings loaded": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "equb-module",
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/Student4/OneDrive/Documents/java/OOP project/HIBRET-SYSTEM/src/resources/images",
-    "node.js.selected.package.tslint": "(autodetect)"
+    "last_opened_file_path": "C:/Users/Dell/Desktop/java project/HIBRET-SYSTEM",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
   <component name="RecentsManager">
@@ -72,7 +145,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-30f59d01ecdd-2fc7cc6b9a17-intellij.indexing.shared.core-IU-253.30387.90" />
+        <option value="bundled-jdk-30f59d01ecdd-37e91769500f-intellij.indexing.shared.core-IU-261.24374.151" />
+        <option value="bundled-js-predefined-d6986cc7102b-31caf2ab9e3c-JavaScript-IU-261.24374.151" />
       </set>
     </attachedChunks>
   </component>
@@ -83,7 +157,11 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1779472828268</updated>
+      <workItem from="1779934405440" duration="5516000" />
     </task>
     <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
   </component>
 </project>

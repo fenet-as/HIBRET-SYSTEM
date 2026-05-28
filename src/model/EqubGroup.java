@@ -6,7 +6,6 @@ import java.util.List;
 public class EqubGroup {
 
     private String name;
-    private int membersCount;
     private double contribution;
 
     private int currentCycle = 1;
@@ -14,53 +13,64 @@ public class EqubGroup {
 
     private List<Member> members = new ArrayList<>();
 
-    public EqubGroup(String name, int membersCount, double contribution) {
+    public EqubGroup(String name, double contribution) {
         this.name = name;
-        this.membersCount = membersCount;
         this.contribution = contribution;
     }
 
-    // ================= MEMBER MANAGEMENT =================
-    public void addMember(Member m) {
-        members.add(m);
-    }
-
-    public List<Member> getMembersList() {
-        return members;
-    }
+    // ================= GETTERS =================
 
     public String getName() {
         return name;
-    }
-
-    public int getMembersCount() {
-        return members.size();
     }
 
     public double getContribution() {
         return contribution;
     }
 
-    public double getTotal() {
-        return getMembersCount() * contribution;
-    }
-
     public int getCurrentCycle() {
         return currentCycle;
     }
 
-    public String getCurrentWinner() {
-        if (members.isEmpty()) return "No Members";
-        return members.get(winnerIndex).getName();
+    public List<Member> getMembersList() {
+        return members;
+    }
+
+    public double getTotal() {
+        return members.size() * contribution;
+    }
+
+    // ================= MEMBER =================
+
+    public void addMember(Member member) {
+        members.add(member);
+    }
+
+    public int getMembersCount() {
+        return members.size();
+    }
+
+    // ================= WINNER =================
+
+    public Member getCurrentWinner() {
+
+        if (members.isEmpty()) {
+            return null;
+        }
+
+        return members.get(winnerIndex);
     }
 
     // ================= ROTATION =================
+
     public void nextCycle() {
 
         currentCycle++;
 
         if (!members.isEmpty()) {
+
             winnerIndex++;
+
             if (winnerIndex >= members.size()) {
                 winnerIndex = 0;
             }

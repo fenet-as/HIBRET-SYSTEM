@@ -1,33 +1,37 @@
 package ui;
 
-import ui.equb.*;
-import util.UIStyle;
-
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * Dark-themed navigation sidebar.
+ */
 public class SidebarPanel extends JPanel {
-
     public SidebarPanel(MainFrame frame) {
+        setPreferredSize(new Dimension(250, 800));
+        setBackground(new Color(44, 62, 80));
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-        setPreferredSize(new Dimension(220,700));
-        setBackground(new Color(45,30,20));
-        setLayout(new GridLayout(0,1,10,10));
+        JLabel title = new JLabel("HIBRET SYSTEM");
+        title.setForeground(Color.WHITE);
+        title.setAlignmentX(Component.CENTER_ALIGNMENT);
+        title.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        add(title);
 
-        JLabel logo = new JLabel("HIBRET SYSTEM");
-        logo.setForeground(Color.WHITE);
+        JButton btnDashboard = createNavButton("Dashboard", e -> frame.showScreen("Dashboard"));
+        JButton btnCreateGroup = createNavButton("Create Equb Group", e -> frame.showScreen("CreateGroup"));
 
-        JButton home = new JButton("Dashboard");
-        JButton create = new JButton("Create Group");
+        add(btnDashboard);
+        add(btnCreateGroup);
+    }
 
-        UIStyle.styleButton(home);
-        UIStyle.styleButton(create);
-
-        home.addActionListener(e -> frame.showScreen("home"));
-        create.addActionListener(e -> frame.showScreen("create"));
-
-        add(logo);
-        add(home);
-        add(create);
+    private JButton createNavButton(String text, java.awt.event.ActionListener action) {
+        JButton btn = new JButton(text);
+        btn.setMaximumSize(new Dimension(230, 40));
+        btn.setForeground(Color.WHITE);
+        btn.setBackground(new Color(52, 73, 94));
+        btn.setFocusPainted(false);
+        btn.addActionListener(action);
+        return btn;
     }
 }

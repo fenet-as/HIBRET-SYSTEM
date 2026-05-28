@@ -1,8 +1,12 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class GroupStore {
 
-    public static ArrayList<EqubGroup> groups = new ArrayList<>();
+    // Stores all Equb groups in memory
+    public static List<EqubGroup> groups =
+            new ArrayList<>();
+
 }
