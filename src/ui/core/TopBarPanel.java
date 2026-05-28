@@ -6,15 +6,14 @@ import java.awt.*;
 
 public class TopBarPanel extends JPanel {
 
-    public TopBarPanel(User user) {
-        // Enforcing solid styling rules natively
+    // Modified constructor to accept MainFrame
+    public TopBarPanel(User user, MainFrame frame) {
         setBackground(Color.WHITE);
         setOpaque(true);
         setLayout(new BorderLayout());
         setPreferredSize(new Dimension(1150, 65));
         setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(225, 220, 205)));
 
-        // Left Branding Section
         JPanel leftContainer = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 12));
         leftContainer.setOpaque(false);
 
@@ -26,6 +25,9 @@ public class TopBarPanel extends JPanel {
         btnMenu.setFocusPainted(false);
         btnMenu.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
+        // Connect the button to trigger our smooth animation loop
+        btnMenu.addActionListener(e -> frame.toggleSidebar());
+
         JLabel lblBrand = new JLabel("HIBRET SYSTEM");
         lblBrand.setFont(new Font("SansSerif", Font.BOLD, 20));
         lblBrand.setForeground(new Color(34, 112, 43));
@@ -33,7 +35,6 @@ public class TopBarPanel extends JPanel {
         leftContainer.add(btnMenu);
         leftContainer.add(lblBrand);
 
-        // Right Profiles and Dropdown Operations
         JPanel rightContainer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 12));
         rightContainer.setOpaque(false);
 

@@ -1,9 +1,12 @@
 package ui.auth;
 
+import dao.impl.ReportDAOImpl;
 import service.AuthService;
 import service.impl.AuthServiceImpl;
+import service.ReportService; // 1. Added import for ReportService
+import service.impl.ReportServiceImpl; // Import implementation class (adjust package name if different)
 import model.User;
-import ui.core.MainFrame; // Make sure MainFrame is properly imported if it sits in a different package
+import ui.core.MainFrame;
 
 import ui.auth.components.RoundedButton;
 import ui.auth.components.RoundedPasswordField;
@@ -23,6 +26,7 @@ public class LoginPanel extends JPanel {
 
     // --- State-Driven Business Services ---
     private final AuthService authService = new AuthServiceImpl();
+    private final ReportService reportService = new ReportServiceImpl(new ReportDAOImpl()); // 2. Declared and instantiated ReportService
 
     public LoginPanel(LoginFrame frame) {
         this.parentFrame = frame;
@@ -67,8 +71,27 @@ public class LoginPanel extends JPanel {
         lblUser.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JTextField txtUsername = new RoundedTextField("  Enter username", 20);
+        txtUsername.setForeground(Color.GRAY);
         txtUsername.setMaximumSize(new Dimension(320, 42));
         txtUsername.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        txtUsername.addFocusListener(new java.awt.event.FocusListener() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent e) {
+                if (txtUsername.getText().equals("  Enter username")) {
+                    txtUsername.setText("");
+                    txtUsername.setForeground(Color.BLACK);
+                }
+            }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) {
+                if (txtUsername.getText().trim().isEmpty()) {
+                    txtUsername.setText("  Enter username");
+                    txtUsername.setForeground(Color.GRAY);
+                }
+            }
+        });
 
         JLabel lblPass = new JLabel("Password");
         lblPass.setFont(new Font("SansSerif", Font.BOLD, 13));
@@ -92,7 +115,7 @@ public class LoginPanel extends JPanel {
         lblForgot.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                parentFrame.showPage("forgot"); // Switches main window context
+                parentFrame.showPage("forgot");
             }
 
             @Override
@@ -120,18 +143,16 @@ public class LoginPanel extends JPanel {
             String username = txtUsername.getText().trim();
             String password = new String(txtPassword.getPassword());
 
-            // Simple validation catch
             if (username.isEmpty() || username.equals("  Enter username") || password.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Please enter both username and password.", "Login Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            // Fetch validated authentication entity from Database Layer
             User user = authService.login(username, password);
 
             if (user != null) {
-                parentFrame.dispose();       // Safely tear down login window stage
-                new MainFrame(user);         // Launch application ecosystem dashboard frame
+                parentFrame.dispose();
+                new MainFrame(user, reportService); // 3. Correctly passes both arguments now
             } else {
                 JOptionPane.showMessageDialog(this, "Invalid credentials! Please try again.", "Authentication Failed", JOptionPane.ERROR_MESSAGE);
             }

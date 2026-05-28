@@ -1,7 +1,17 @@
 package ui.dashboard;
 
-import javax.swing.JPanel;
+import javax.swing.*;
+import java.awt.*;
 
 public class DashboardPanel extends JPanel {
-  // Main dashboard home screen
+
+    public DashboardPanel() {
+
+        setLayout(new BorderLayout());
+
+        JLabel label = new JLabel("DASHBOARD MODULE");
+        label.setHorizontalAlignment(SwingConstants.CENTER);
+
+        add(label, BorderLayout.CENTER);
+    }
 }
