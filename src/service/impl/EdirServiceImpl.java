@@ -1,6 +1,9 @@
-package service;
+package service.impl;
 
 import dao.EdirDAO;
+import dao.impl.EdirDAOImpl;
+import service.EdirService;
+
 import java.util.List;
 import java.util.Map;
 
@@ -65,9 +68,15 @@ public class EdirServiceImpl implements EdirService {
     public List<Map<String, String>> getPendingClaimsByGroup(String groupName) {
         // Safe check block: If mapped via EdirDAO interface pattern, forward directly.
         // Otherwise, downcast explicitly to the compiled EdirDAOImpl structural class.
-        if (edirDAO instanceof dao.EdirDAOImpl) {
-            return ((dao.EdirDAOImpl) edirDAO).getPendingClaimsByGroup(groupName);
+        if (edirDAO instanceof EdirDAOImpl) {
+            return ((EdirDAOImpl) edirDAO).getPendingClaimsByGroup(groupName);
         }
         return edirDAO.getPendingClaimsByGroup(groupName);
+    }
+
+    @Override
+    public List<Map<String, String>> getGroupTransactionLedger(String groupName) {
+        // If your EdirDAO interface has this method, call it directly:
+        return edirDAO.getGroupTransactionLedger(groupName);
     }
 }

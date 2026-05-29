@@ -1,5 +1,6 @@
-package dao;
+package dao.impl;
 
+import dao.EdirDAO;
 import util.DBConnection;
 import java.sql.*;
 import java.util.ArrayList;
@@ -10,13 +11,12 @@ import java.util.Map;
 public class EdirDAOImpl implements EdirDAO {
 
     public EdirDAOImpl() {
-        // Core initialization interacting with your live PostgreSQL instance
+        // Core DB Initialization Hook
     }
 
     @Override
     public List<Map<String, String>> getAllGroups() {
         List<Map<String, String>> list = new ArrayList<>();
-        // Fixed to reference contribution_amount column
         String sql = "SELECT g.id, g.name, eg.contribution_amount AS group_fee, " +
                 "(SELECT COUNT(DISTINCT t.member_id) FROM transactions t WHERE t.group_id = g.id) AS member_count, " +
                 "COALESCE((SELECT SUM(amount) FROM transactions WHERE group_id = g.id AND type = 'CONTRIBUTION'), 0) - " +
@@ -50,7 +50,7 @@ public class EdirDAOImpl implements EdirDAO {
         String sqlInitialTransaction = "INSERT INTO transactions (group_id, group_type, amount, type, description) VALUES (?, 'EDIR', ?, 'CONTRIBUTION', 'Initial reserves deposit pool')";
 
         try (Connection conn = DBConnection.getConnection()) {
-            conn.setAutoCommit(false); // Begin ACID Transaction Block
+            conn.setAutoCommit(false);
 
             int generatedGroupId = -1;
             try (PreparedStatement psGroup = conn.prepareStatement(sqlGroup)) {
@@ -134,7 +134,6 @@ public class EdirDAOImpl implements EdirDAO {
     @Override
     public Map<String, String> getGroupDetails(String groupName) {
         Map<String, String> map = new HashMap<>();
-        // Fully updated to count active 'PENDING_CLAIM' configurations dynamically
         String sql = "SELECT g.id, " +
                 "COALESCE((SELECT SUM(amount) FROM transactions WHERE group_id = g.id AND type = 'CONTRIBUTION'), 0) - " +
                 "COALESCE((SELECT SUM(amount) FROM transactions WHERE group_id = g.id AND type = 'PAYOUT'), 0) as fund_balance, " +
@@ -269,22 +268,34 @@ public class EdirDAOImpl implements EdirDAO {
 
     @Override
     public List<Map<String, String>> getRecentContributions(String groupName) {
+        return getGroupTransactionLedger(groupName);
+    }
+
+    // ✅ FIXED COLUMN ALIGNMENTS (Populates 'member_name' and 'month' explicitly for backward compatibility)
+    @Override
+    public List<Map<String, String>> getGroupTransactionLedger(String groupName) {
         List<Map<String, String>> list = new ArrayList<>();
-        String sql = "SELECT m.full_name, t.amount, t.description " +
+        String sql = "SELECT COALESCE(m.full_name, 'SYSTEM/OFFICER') as party_name, t.amount, t.type, t.description " +
                 "FROM transactions t " +
-                "JOIN members m ON t.member_id = m.id " +
+                "LEFT JOIN members m ON t.member_id = m.id " +
                 "JOIN groups g ON t.group_id = g.id " +
-                "WHERE g.name = ? AND t.type = 'CONTRIBUTION' " +
-                "ORDER BY t.id DESC LIMIT 5";
+                "WHERE g.name = ? AND t.type IN ('CONTRIBUTION', 'PENDING_CLAIM', 'APPROVED_CLAIM', 'PAYOUT', 'REGISTRATION') " +
+                "ORDER BY t.id DESC LIMIT 15";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, groupName);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     Map<String, String> map = new HashMap<>();
-                    map.put("member_name", rs.getString("full_name"));
+                    String partyName = rs.getString("party_name");
+                    String desc = rs.getString("description");
+
+                    map.put("party_name", partyName);
+                    map.put("member_name", partyName); // Duplicate mapping to protect label lookups
                     map.put("amount", String.valueOf(rs.getDouble("amount")));
-                    map.put("month", rs.getString("description"));
+                    map.put("type", rs.getString("type"));
+                    map.put("description", desc);
+                    map.put("month", desc); // Backwards compatibility for table models expecting 'month' column key
                     list.add(map);
                 }
             }
@@ -325,7 +336,7 @@ public class EdirDAOImpl implements EdirDAO {
         }
     }
 
-    // New Data Acquisition API Hook specifically mapping pending cases to the distribution layout
+    @Override
     public List<Map<String, String>> getPendingClaimsByGroup(String groupName) {
         List<Map<String, String>> list = new ArrayList<>();
         String sql = "SELECT t.id, m.full_name, t.amount, t.description " +
@@ -361,7 +372,7 @@ public class EdirDAOImpl implements EdirDAO {
                 "((SELECT member_id FROM transactions WHERE id = ?), ?, 'EDIR', ?, 'PAYOUT', ?)";
 
         try (Connection conn = DBConnection.getConnection()) {
-            conn.setAutoCommit(false); // Begin multi-step structural commit transaction
+            conn.setAutoCommit(false);
             int groupId = -1;
             try (PreparedStatement psG = conn.prepareStatement(sqlFindGroup)) {
                 psG.setString(1, groupName);
@@ -371,13 +382,11 @@ public class EdirDAOImpl implements EdirDAO {
 
             int claimId = Integer.parseInt(caseTxId);
 
-            // 1. Move old state from pending claim status out of the queue
             try (PreparedStatement psUp = conn.prepareStatement(sqlUpdateClaim)) {
                 psUp.setInt(1, claimId);
                 psUp.executeUpdate();
             }
 
-            // 2. Insert absolute deduction debit entry line row
             try (PreparedStatement psTx = conn.prepareStatement(sqlInsertPayout)) {
                 psTx.setInt(1, claimId);
                 psTx.setInt(2, groupId);

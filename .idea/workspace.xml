@@ -12,16 +12,13 @@
       <change beforePath="$PROJECT_DIR$/src/service/impl/EdirServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/impl/EdirServiceImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ui/auth/LoginPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/auth/LoginPanel.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ui/core/MainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/core/MainFrame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/edir/AddMemberPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/AddMemberPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/edir/DistributeFundPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/DistributeFundPanel.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ui/edir/EdirGroupDetailPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/EdirGroupDetailPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/edir/EmergencyCasePanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/EmergencyCasePanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/equb/EqubRotationPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/EqubRotationPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/settings/SettingsPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/settings/SettingsPanel.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/service/EdirService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/EdirService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/EdirServiceImpl.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/auth/LoginPanel.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/DistributeFundPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/DistributeFundPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/auth/LoginPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/auth/LoginPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/core/MainFrame.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/core/MainFrame.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EdirGroupDetailPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/EdirGroupDetailPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EmergencyCasePanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/EmergencyCasePanel.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

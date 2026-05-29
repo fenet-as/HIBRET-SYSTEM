@@ -16,4 +16,6 @@ public interface EdirDAO {
     boolean authorizePayout(String groupName, String caseId, double amount, String approvedBy, String notes);
     List<Map<String, String>> getPendingClaimsByGroup(String groupName);
 
+    List<Map<String, String>> getGroupTransactionLedger(String groupName);
+
 }

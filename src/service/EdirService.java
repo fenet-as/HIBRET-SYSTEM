@@ -30,4 +30,6 @@ public interface EdirService {
      * Tied explicitly to the Distribute Payout screen drop-down lookup grid.
      */
     List<Map<String, String>> getPendingClaimsByGroup(String groupName);
+
+    List<Map<String, String>> getGroupTransactionLedger(String groupName);
 }

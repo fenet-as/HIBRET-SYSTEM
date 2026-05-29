@@ -4,9 +4,10 @@ import model.User;
 import service.ReportService;
 import service.EqubService;
 import service.EdirService;          // ⭐ HOOKED EDIR SERVICE INTERFACE
-//import service.impl.EdirServiceImpl; // ⭐ HOOKED EDIR SERVICE IMPLEMENTATION
 import ui.equb.EqubHomePanel;
 import ui.edir.EdirHomePanel;       // ⭐ IMPORTED EDIR HOME PANEL MODULE
+import ui.settings.SettingsPanel;   // ✅ IMPORTED NEW SETTINGS MODULE
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -72,23 +73,26 @@ public class MainFrame extends JFrame {
         centerViewportContainer.add(equbModuleCardWrapper, "Equb");
 
         // --- ⭐ EDIR MODULE DYNAMIC CARD CONTAINER ROUTING WRAPPER ---
-
         JPanel edirModuleCardWrapper = new JPanel(new CardLayout());
         edirModuleCardWrapper.setOpaque(false);
 
         // Build the landing screen panel passing the sub-routing wrapper container
-
-
         EdirHomePanel edirGridLandingScreen = new EdirHomePanel(edirModuleCardWrapper, edirService);
         edirModuleCardWrapper.add(edirGridLandingScreen, "EdirHome");
 
         // Register the dynamic Edir wrapper directly onto the root viewport switcher (Replacing placeholder)
-
         centerViewportContainer.add(edirModuleCardWrapper, "Edir");
 
         // Remaining placeholders/modules wired up
         centerViewportContainer.add(new ui.reports.ReportHomePanel(this, reportService), "Reports");
-        centerViewportContainer.add(createPlaceholderPanel("Settings View"), "Settings");
+
+        // --- ✅ CONNECTED LIVE SETTINGS PANEL (REPLACED PLACEHOLDER) ---
+//        SettingsPanel liveSettingsView = new SettingsPanel(centerViewportContainer);
+//        centerViewportContainer.add(liveSettingsView, "Settings");
+
+        // --- ✅ CONNECTED LIVE SETTINGS PANEL (WITH USER CONTEXT PASSED) ---
+        SettingsPanel liveSettingsView = new SettingsPanel(centerViewportContainer, user); // 👈 Change this line
+        centerViewportContainer.add(liveSettingsView, "Settings");
 
         masterBackgroundCanvas.add(topBar, BorderLayout.NORTH);
         masterBackgroundCanvas.add(sidebar, BorderLayout.WEST);
@@ -151,7 +155,7 @@ public class MainFrame extends JFrame {
                     JPanel wrapperPanel = (JPanel) viewComponent;
                     for (Component subComp : wrapperPanel.getComponents()) {
                         if (subComp instanceof EdirHomePanel) {
-                            ((EdirHomePanel) subComp).loadGroups(); // Refreshes table rows straight from MySQL
+                            ((EdirHomePanel) subComp).loadGroups(); // Refreshes table rows straight from PostgreSQL
                             ((CardLayout) wrapperPanel.getLayout()).show(wrapperPanel, "EdirHome"); // Resets layout back to grid home view
                         }
                     }

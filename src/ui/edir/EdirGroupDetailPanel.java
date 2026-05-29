@@ -2,7 +2,6 @@ package ui.edir;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 import java.util.List;
@@ -14,7 +13,6 @@ public class EdirGroupDetailPanel extends JPanel {
     private final EdirService edirService;
     private final String groupName;
 
-    // Direct UI label references for type-safe real-time data binding
     private JLabel lblMembersValue;
     private JLabel lblBalanceValue;
     private JLabel lblCasesValue;
@@ -38,53 +36,71 @@ public class EdirGroupDetailPanel extends JPanel {
         add(Box.createVerticalStrut(30));
         initRecentContributions();
 
-        // Trigger an initial data load from PostgreSQL tables on creation
         refreshDashboardMetricsAndLedger();
     }
 
-    // Explicit service getter helper hook for AddMemberPanel to resolve queries
     public EdirService getEdirService() {
         return this.edirService;
     }
 
-    /**
-     * Core refresh function invoked automatically upon construction
-     * and whenever returning from form panels (Add Member, Contribution, etc.)
-     */
+    // ✅ FIXED LOOKUP MAP HOOK KEYS
     public void refreshDashboardMetricsAndLedger() {
-        // 1. Fetch dynamic aggregated values from database service
         Map<String, String> metrics = edirService.getGroupDetails(groupName);
 
         if (metrics != null && !metrics.isEmpty()) {
-            // Update stats cards text instantly with real DB results
             lblMembersValue.setText(metrics.getOrDefault("total_members", "0") + " Active");
-
             double balance = 0.0;
             try {
                 balance = Double.parseDouble(metrics.getOrDefault("fund_balance", "0.0"));
-            } catch (NumberFormatException e) {
-                // Safe parsing fallback flag
-            }
+            } catch (NumberFormatException e) {}
             lblBalanceValue.setText(String.format("%,.2f ETB", balance));
             lblCasesValue.setText(metrics.getOrDefault("active_cases", "0") + " Request(s)");
         }
 
-        // 2. Clear and reload the live Recent Transaction Ledger from database
         ledgerTableModel.setRowCount(0);
-        List<Map<String, String>> contributions = edirService.getRecentContributions(groupName);
 
-        for (Map<String, String> c : contributions) {
+        List<Map<String, String>> ledgerRows = edirService.getGroupTransactionLedger(groupName);
+
+        for (Map<String, String> row : ledgerRows) {
             double amt = 0.0;
             try {
-                amt = Double.parseDouble(c.getOrDefault("amount", "0"));
-            } catch (NumberFormatException e) {
-                // Safe parsing fallback flag
+                amt = Double.parseDouble(row.getOrDefault("amount", "0"));
+            } catch (NumberFormatException e) {}
+
+            String type = row.getOrDefault("type", "UNKNOWN");
+            String displayUser = row.getOrDefault("member_name", "SYSTEM/OFFICER");
+            String descriptionText = row.getOrDefault("description", "No details logged");
+            String formattedAmount;
+            String status;
+
+            switch (type) {
+                case "PAYOUT":
+                    formattedAmount = String.format("-%,.2f ETB", amt);
+                    status = "Disbursed";
+                    break;
+                case "PENDING_CLAIM":
+                    formattedAmount = String.format("%,.2f ETB", amt);
+                    status = "🚨 Pending Claim";
+                    break;
+                case "APPROVED_CLAIM":
+                    formattedAmount = String.format("%,.2f ETB", amt);
+                    status = "Approved Case";
+                    break;
+                case "REGISTRATION":
+                    formattedAmount = "0.00 ETB";
+                    status = "Enrolled";
+                    break;
+                default: // CONTRIBUTION
+                    formattedAmount = String.format("+%,.2f ETB", amt);
+                    status = "Cleared";
+                    break;
             }
+
             ledgerTableModel.addRow(new Object[]{
-                    c.get("member_name"),
-                    String.format("%,.2f birr", amt),
-                    c.getOrDefault("month", "N/A"), // Displays parsed description data
-                    "Cleared"
+                    displayUser,
+                    formattedAmount,
+                    descriptionText,
+                    status
             });
         }
 
@@ -116,7 +132,6 @@ public class EdirGroupDetailPanel extends JPanel {
         btnBack.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         btnBack.addActionListener(e -> {
-            // Refresh main home table before returning to keep everything synced up
             for (Component comp : parentWrapper.getComponents()) {
                 if (comp instanceof EdirHomePanel) {
                     ((EdirHomePanel) comp).loadGroups();
@@ -145,7 +160,6 @@ public class EdirGroupDetailPanel extends JPanel {
         cardsPanel.setOpaque(false);
         cardsPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, 110));
 
-        // ✅ FIX: Instantiate variables explicitly to avoid index out of bounds or ClassCastExceptions
         lblMembersValue = new JLabel("0 Active");
         JPanel card1 = createStatCard("Registered Members", lblMembersValue, new Color(44, 122, 123));
 
@@ -177,17 +191,14 @@ public class EdirGroupDetailPanel extends JPanel {
         JButton btnDistribute = createModuleButton("Disbursed Payout", "📤");
         JButton btnViewMembers = createModuleButton("View Members", "👥");
 
-        // Add Member callback configuration mapping
         btnAddMember.addActionListener(e -> {
             model.EdirGroup genericGroupObj = new model.EdirGroup();
             genericGroupObj.setName(groupName);
-
             AddMemberPanel p = new AddMemberPanel(parentWrapper, genericGroupObj, this);
             parentWrapper.add(p, "AddMember");
             ((CardLayout) parentWrapper.getLayout()).show(parentWrapper, "AddMember");
         });
 
-        // ✅ REAL-TIME WORKPLACE: Instantiates an on-the-fly component view pulling data directly from database
         btnViewMembers.addActionListener(e -> {
             JPanel membersPanel = new JPanel(new BorderLayout(15, 15));
             membersPanel.setBackground(new Color(253, 247, 237));
@@ -274,13 +285,13 @@ public class EdirGroupDetailPanel extends JPanel {
         JPanel container = new JPanel(new BorderLayout());
         container.setOpaque(false);
 
-        JLabel lblSec = new JLabel("Recent Transaction Ledger Audit");
+        JLabel lblSec = new JLabel("Unified Audit Transaction Ledger Logs");
         lblSec.setFont(new Font("SansSerif", Font.BOLD, 16));
         lblSec.setForeground(new Color(101, 31, 16));
         lblSec.setBorder(BorderFactory.createEmptyBorder(0, 0, 12, 0));
         container.add(lblSec, BorderLayout.NORTH);
 
-        String[] cols = {"Contributor Name", "Allocated Sum", "Log Description", "Status"};
+        String[] cols = {"Entity Party Involved", "Cash Flow Allocation", "Log Audit Description", "System Status"};
         ledgerTableModel = new DefaultTableModel(null, cols);
 
         recentLedgerTable = new JTable(ledgerTableModel);
@@ -323,7 +334,7 @@ public class EdirGroupDetailPanel extends JPanel {
         lblValue.setForeground(textCol);
 
         card.add(lblT);
-        card.add(Box.createVerticalStrut(8)); // Strut component sits safely at index 1 without throwing ClassCast Exceptions
+        card.add(Box.createVerticalStrut(8));
         card.add(lblValue);
         return card;
     }

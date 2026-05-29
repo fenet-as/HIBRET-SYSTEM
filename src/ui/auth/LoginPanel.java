@@ -1,10 +1,12 @@
 package ui.auth;
 
-import dao.EdirDAOImpl;
+//import dao.EdirDAOImpl;
+import dao.impl.EdirDAOImpl;
 import dao.impl.ReportDAOImpl;
 import service.*;
-import service.EdirServiceImpl;
+//import service.EdirServiceImpl;
 import service.impl.AuthServiceImpl;
+import service.impl.EdirServiceImpl;
 import service.impl.ReportServiceImpl;
 import service.impl.EqubServiceImpl;
 //import service.impl.EdirServiceImpl;          // ⭐ 2. ADDED IMPORT FOR EDIR IMPLEMENTATION
