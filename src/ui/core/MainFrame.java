@@ -2,8 +2,11 @@ package ui.core;
 
 import model.User;
 import service.ReportService;
-import service.EqubService;         // ⭐ ADDED BACKEND DEPENDENCY HOOK
-import ui.equb.EqubHomePanel;       // ⭐ IMPORT THE HOME VIEW GRID MODULE
+import service.EqubService;
+import service.EdirService;          // ⭐ HOOKED EDIR SERVICE INTERFACE
+import service.impl.EdirServiceImpl; // ⭐ HOOKED EDIR SERVICE IMPLEMENTATION
+import ui.equb.EqubHomePanel;
+import ui.edir.EdirHomePanel;       // ⭐ IMPORTED EDIR HOME PANEL MODULE
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -14,7 +17,8 @@ public class MainFrame extends JFrame {
     private CardLayout secondaryCardRouter;
     private SidebarPanel sidebar;
     private final ReportService reportService;
-    private final EqubService equbService;   // ⭐ FIELD STORAGE REGISTERED
+    private final EqubService equbService;
+    private final EdirService edirService;   // ⭐ EDIR SERVICE STORAGE FIELD REGISTERED
 
     // Single Source of Truth for the active page route
     private String activeRoute = "Dashboard";
@@ -26,10 +30,11 @@ public class MainFrame extends JFrame {
     private int currentWidth = MAX_WIDTH;
     private boolean isExpanded = true;
 
-    // ⭐ UPDATED CONSTRUCTOR TO ACCEPT EQUBSERVICE INSTANCE AS WELL
-    public MainFrame(User user, ReportService reportService, EqubService equbService) {
+    // ⭐ UPDATED CONSTRUCTOR TO ACCEPT EDIRSERVICE INSTANCE AS WELL
+    public MainFrame(User user, ReportService reportService, EqubService equbService, EdirService edirService) {
         this.reportService = reportService;
-        this.equbService = equbService;      // ✅ ASSIGNED DEPENDENCY TRACE
+        this.equbService = equbService;
+        this.edirService = edirService;      // ✅ ASSIGNED DEPENDENCY TRACE
 
         setTitle("Hibret System - Integrated Management Framework");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -59,23 +64,26 @@ public class MainFrame extends JFrame {
         // --- VIEWS ROUTING MATRIX INTEGRATION LAYER ---
         centerViewportContainer.add(contentScroll, "Dashboard");
 
-        // ⭐ REMOVED PLACEHOLDER: INJECTING DYNAMIC CARD CONTAINER BASE LAYER FOR EQUB
+        // --- EQUB MODULE CARD ROUTING WRAPPER ---
         JPanel equbModuleCardWrapper = new JPanel(new CardLayout());
         equbModuleCardWrapper.setOpaque(false);
-
-        // Build the landing grid panel passing our sub-routing container & backend services
         EqubHomePanel equbGridLandingScreen = new EqubHomePanel(equbModuleCardWrapper, equbService);
         equbModuleCardWrapper.add(equbGridLandingScreen, "EqubHome");
-
-        // Register the dynamic Equb wrapper directly onto the root viewport switcher
         centerViewportContainer.add(equbModuleCardWrapper, "Equb");
 
+        // --- ⭐ EDIR MODULE DYNAMIC CARD CONTAINER ROUTING WRAPPER ---
+        JPanel edirModuleCardWrapper = new JPanel(new CardLayout());
+        edirModuleCardWrapper.setOpaque(false);
+
+        // Build the landing screen panel passing the sub-routing wrapper container
+        EdirHomePanel edirGridLandingScreen = new EdirHomePanel(edirModuleCardWrapper);
+        edirModuleCardWrapper.add(edirGridLandingScreen, "EdirHome");
+
+        // Register the dynamic Edir wrapper directly onto the root viewport switcher (Replacing placeholder)
+        centerViewportContainer.add(edirModuleCardWrapper, "Edir");
+
         // Remaining placeholders/modules wired up
-        centerViewportContainer.add(createPlaceholderPanel("Edir Management View"), "Edir");
-
-        // WIRED BACKEND HOOK: Injected both MainFrame reference and ReportService backend
         centerViewportContainer.add(new ui.reports.ReportHomePanel(this, reportService), "Reports");
-
         centerViewportContainer.add(createPlaceholderPanel("Settings View"), "Settings");
 
         masterBackgroundCanvas.add(topBar, BorderLayout.NORTH);
@@ -117,15 +125,30 @@ public class MainFrame extends JFrame {
     public void switchDashboardView(String cardRouteIdentifier) {
         this.activeRoute = cardRouteIdentifier;
 
-        // ⭐ AUTO-REFRESH TRIGGER: When switching to Equb, force data to reload immediately
+        // AUTO-REFRESH TRIGGER: When switching to Equb, force data to reload immediately
         if (cardRouteIdentifier.equalsIgnoreCase("Equb")) {
             for (Component viewComponent : centerViewportContainer.getComponents()) {
                 if (viewComponent instanceof JPanel && ((JPanel) viewComponent).getLayout() instanceof CardLayout) {
                     JPanel wrapperPanel = (JPanel) viewComponent;
                     for (Component subComp : wrapperPanel.getComponents()) {
                         if (subComp instanceof EqubHomePanel) {
-                            ((EqubHomePanel) subComp).loadEqubGroupsData(); // Refreshes grid rows
-                            ((CardLayout) wrapperPanel.getLayout()).show(wrapperPanel, "EqubHome"); // Resets state back to home grid
+                            ((EqubHomePanel) subComp).loadEqubGroupsData();
+                            ((CardLayout) wrapperPanel.getLayout()).show(wrapperPanel, "EqubHome");
+                        }
+                    }
+                }
+            }
+        }
+
+        // ⭐ AUTO-REFRESH TRIGGER: When switching to Edir, reload database groups dynamically on screen
+        else if (cardRouteIdentifier.equalsIgnoreCase("Edir")) {
+            for (Component viewComponent : centerViewportContainer.getComponents()) {
+                if (viewComponent instanceof JPanel && ((JPanel) viewComponent).getLayout() instanceof CardLayout) {
+                    JPanel wrapperPanel = (JPanel) viewComponent;
+                    for (Component subComp : wrapperPanel.getComponents()) {
+                        if (subComp instanceof EdirHomePanel) {
+                            ((EdirHomePanel) subComp).loadGroups(); // Refreshes table rows straight from MySQL
+                            ((CardLayout) wrapperPanel.getLayout()).show(wrapperPanel, "EdirHome"); // Resets layout back to grid home view
                         }
                     }
                 }

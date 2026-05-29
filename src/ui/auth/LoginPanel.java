@@ -5,8 +5,10 @@ import service.AuthService;
 import service.impl.AuthServiceImpl;
 import service.ReportService;
 import service.impl.ReportServiceImpl;
-import service.EqubService;                 //  1. ADDED IMPORT FOR EQUB SERVICE
-import service.impl.EqubServiceImpl;         //  2. ADDED IMPORT FOR EQUB IMPLEMENTATION
+import service.EqubService;
+import service.impl.EqubServiceImpl;
+import service.EdirService;                  // ⭐ 1. ADDED IMPORT FOR EDIR SERVICE
+import service.impl.EdirServiceImpl;          // ⭐ 2. ADDED IMPORT FOR EDIR IMPLEMENTATION
 import model.User;
 import ui.core.MainFrame;
 
@@ -29,7 +31,8 @@ public class LoginPanel extends JPanel {
     // --- State-Driven Business Services ---
     private final AuthService authService = new AuthServiceImpl();
     private final ReportService reportService = new ReportServiceImpl(new ReportDAOImpl());
-    private final EqubService equbService = new EqubServiceImpl(); //  3. INSTANTIATED EQUB SERVICE
+    private final EqubService equbService = new EqubServiceImpl();
+    private final EdirService edirService = new EdirServiceImpl(); // ⭐ 3. INSTANTIATED EDIR SERVICE PIPELINE
 
     public LoginPanel(LoginFrame frame) {
         this.parentFrame = frame;
@@ -155,8 +158,9 @@ public class LoginPanel extends JPanel {
 
             if (user != null) {
                 parentFrame.dispose();
-                //  4. PASSED ALL THREE REQUIRED ARGUMENTS SAFELY HERE
-                new MainFrame(user, reportService, equbService);
+                // ⭐ 4. PASSED ALL FOUR REQUIRED ARGUMENTS TO MAINFRAME SAFELY HERE
+                new MainFrame(user, reportService, equbService, edirService);
+
             } else {
                 JOptionPane.showMessageDialog(this, "Invalid credentials! Please try again.", "Authentication Failed", JOptionPane.ERROR_MESSAGE);
             }
