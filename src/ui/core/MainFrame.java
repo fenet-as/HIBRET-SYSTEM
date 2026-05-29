@@ -72,14 +72,18 @@ public class MainFrame extends JFrame {
         centerViewportContainer.add(equbModuleCardWrapper, "Equb");
 
         // --- ⭐ EDIR MODULE DYNAMIC CARD CONTAINER ROUTING WRAPPER ---
+
         JPanel edirModuleCardWrapper = new JPanel(new CardLayout());
         edirModuleCardWrapper.setOpaque(false);
 
         // Build the landing screen panel passing the sub-routing wrapper container
-        EdirHomePanel edirGridLandingScreen = new EdirHomePanel(edirModuleCardWrapper);
+
+
+        EdirHomePanel edirGridLandingScreen = new EdirHomePanel(edirModuleCardWrapper, edirService);
         edirModuleCardWrapper.add(edirGridLandingScreen, "EdirHome");
 
         // Register the dynamic Edir wrapper directly onto the root viewport switcher (Replacing placeholder)
+
         centerViewportContainer.add(edirModuleCardWrapper, "Edir");
 
         // Remaining placeholders/modules wired up

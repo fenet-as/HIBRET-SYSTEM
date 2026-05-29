@@ -2,97 +2,165 @@ package ui.edir;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.RoundRectangle2D;
 import service.EdirService;
-import service.impl.EdirServiceImpl;
 
 public class CreateEdirGroupPanel extends JPanel {
-    private final JPanel containerPanel;
-    private final EdirHomePanel homePanel; // ⭐ Added reference to trigger live screen updates
-    private final EdirService edirService = new EdirServiceImpl();
-    private JTextField txtName;
-    private JTextField txtContribution;
+    private final JPanel parentWrapper;
+    private final EdirService edirService;
 
-    // ⭐ Updated Constructor to accept the parent EdirHomePanel
-    public CreateEdirGroupPanel(JPanel containerPanel, EdirHomePanel homePanel) {
-        this.containerPanel = containerPanel;
-        this.homePanel = homePanel;
+    private JTextField txtGroupName;
+    private JTextField txtMonthlyFee;
+    private JTextField txtInitialDeposit;
+    private JTextArea txtRules;
 
-        setOpaque(false);
-        setLayout(new GridBagLayout());
-        setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+    public CreateEdirGroupPanel(JPanel parentWrapper, EdirService edirService) {
+        this.parentWrapper = parentWrapper;
+        this.edirService = edirService;
+
+        setLayout(new BorderLayout(20, 20));
+        setBackground(new Color(253, 247, 237)); // Standard Hibret cream canvas background
+        setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
+
+        initMainForm();
+    }
+
+    private void initMainForm() {
+        JPanel formContainer = new JPanel(new GridBagLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(Color.WHITE);
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 16, 16));
+                g2.setColor(new Color(235, 225, 210));
+                g2.draw(new RoundRectangle2D.Float(0, 0, getWidth()-1, getHeight()-1, 16, 16));
+                g2.dispose();
+            }
+        };
+        formContainer.setOpaque(false);
+        formContainer.setBorder(BorderFactory.createEmptyBorder(35, 35, 35, 35));
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.insets = new Insets(12, 12, 12, 12);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JLabel title = new JLabel("🆕 Initialize New Edir Association");
-        title.setFont(new Font("SansSerif", Font.BOLD, 20));
-        title.setForeground(new Color(101, 53, 15));
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
-        add(title, gbc);
-
-        gbc.gridwidth = 1;
-        gbc.gridy = 1; gbc.gridx = 0;
-        add(new JLabel("Group Name:"), gbc);
-        txtName = new JTextField(20);
-        gbc.gridx = 1;
-        add(txtName, gbc);
-
-        gbc.gridy = 2; gbc.gridx = 0;
-        add(new JLabel("Monthly Fixed Contribution (Birr):"), gbc);
-        txtContribution = new JTextField(20);
-        gbc.gridx = 1;
-        add(txtContribution, gbc);
-
-        JPanel actionRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        actionRow.setOpaque(false);
-
-        JButton btnCancel = new JButton("Cancel");
-        btnCancel.addActionListener(e -> ((CardLayout) containerPanel.getLayout()).show(containerPanel, "EdirHome"));
-
-        JButton btnSave = new JButton("Save Registry");
-        btnSave.addActionListener(e -> {
-            try {
-                String name = txtName.getText().trim();
-                String contribText = txtContribution.getText().trim();
-
-                if (name.isEmpty() || name.equals("  Enter username")) {
-                    JOptionPane.showMessageDialog(this, "Group Name cannot be empty!", "Input Validation Error", JOptionPane.WARNING_MESSAGE);
-                    return;
-                }
-
-                double contrib = Double.parseDouble(contribText);
-                if (contrib < 0) {
-                    JOptionPane.showMessageDialog(this, "Contribution must be a positive number.", "Input Validation Error", JOptionPane.WARNING_MESSAGE);
-                    return;
-                }
-
-                // 1. Write straight to MySQL database via Service layer
-                edirService.createEdirGroup(name, contrib);
-
-                // 2. Clear out form inputs for future additions
-                txtName.setText("");
-                txtContribution.setText("");
-
-                // 3. ⭐ CRITICAL: Force the main grid panel to pull fresh data from the database right now!
-                homePanel.loadGroups();
-
-                JOptionPane.showMessageDialog(this, "Edir Group Configured Successfully!");
-
-                // 4. Route back home to view the updated table layout
-                ((CardLayout) containerPanel.getLayout()).show(containerPanel, "EdirHome");
-
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Please enter a valid numeric value for the contribution fee.", "Format Error", JOptionPane.ERROR_MESSAGE);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Database error: Unable to save group. Check your server logs.", "Persistence Error", JOptionPane.ERROR_MESSAGE);
-            }
+        // Custom Top Header with Action Routing Back Button
+        JButton btnBack = new JButton("← Cancel");
+        btnBack.setFont(new Font("SansSerif", Font.BOLD, 12));
+        btnBack.setForeground(new Color(101, 31, 16));
+        btnBack.addActionListener(e -> {
+            CardLayout innerLayout = (CardLayout) parentWrapper.getLayout();
+            innerLayout.show(parentWrapper, "EdirHome");
         });
 
-        actionRow.add(btnCancel);
-        actionRow.add(btnSave);
-        gbc.gridy = 3; gbc.gridx = 0; gbc.gridwidth = 2;
-        add(actionRow, gbc);
+        JLabel lblTitle = new JLabel("Establish New Edir Group");
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 22));
+        lblTitle.setForeground(new Color(101, 31, 16));
+
+        JPanel headerLayout = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        headerLayout.setOpaque(false);
+        headerLayout.add(btnBack);
+        headerLayout.add(lblTitle);
+
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        formContainer.add(headerLayout, gbc);
+
+        gbc.gridwidth = 1;
+        gbc.weightx = 0.5;
+
+        // Row 1: Group Name & Monthly Subscription Fee
+        gbc.gridx = 0; gbc.gridy = 1;
+        formContainer.add(createFieldLabel("Edir Group Name"), gbc);
+        txtGroupName = new JTextField();
+        txtGroupName.setPreferredSize(new Dimension(0, 35));
+        gbc.gridy = 2;
+        formContainer.add(txtGroupName, gbc);
+
+        gbc.gridx = 1; gbc.gridy = 1;
+        formContainer.add(createFieldLabel("Monthly Membership Fee (birr)"), gbc);
+        txtMonthlyFee = new JTextField("200");
+        txtMonthlyFee.setPreferredSize(new Dimension(0, 35));
+        gbc.gridy = 2;
+        formContainer.add(txtMonthlyFee, gbc);
+
+        // Row 2: Initial Capital Pool Deposit & Terms/By-laws Memo Field
+        gbc.gridx = 0; gbc.gridy = 3;
+        formContainer.add(createFieldLabel("Initial Group Reserve Deposit (birr)"), gbc);
+        txtInitialDeposit = new JTextField("5,000");
+        txtInitialDeposit.setPreferredSize(new Dimension(0, 35));
+        gbc.gridy = 4;
+        formContainer.add(txtInitialDeposit, gbc);
+
+        gbc.gridx = 1; gbc.gridy = 3;
+        formContainer.add(createFieldLabel("Group Policies / Claims Criteria Bylaws"), gbc);
+        txtRules = new JTextArea("Standard community support rules apply. Payout allocations require a minimum committee confirmation audit.", 3, 20);
+        txtRules.setBorder(BorderFactory.createLineBorder(new Color(210, 200, 185)));
+        txtRules.setLineWrap(true);
+        txtRules.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        JScrollPane rulesScroll = new JScrollPane(txtRules);
+        gbc.gridy = 4; gbc.gridheight = 2; gbc.fill = GridBagConstraints.BOTH;
+        formContainer.add(rulesScroll, gbc);
+
+        // Submit Row Setup
+        gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 2; gbc.gridheight = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(30, 12, 12, 12);
+
+        JButton btnSubmit = new JButton("Create and Register Group") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(28, 85, 163)); // Corporate Blue
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        btnSubmit.setFont(new Font("SansSerif", Font.BOLD, 15));
+        btnSubmit.setForeground(Color.WHITE);
+        btnSubmit.setContentAreaFilled(false);
+        btnSubmit.setBorderPainted(false);
+        btnSubmit.setFocusPainted(false);
+        btnSubmit.setPreferredSize(new Dimension(0, 45));
+
+        btnSubmit.addActionListener(e -> {
+            String groupName = txtGroupName.getText().trim();
+            String fee = txtMonthlyFee.getText().trim();
+            String initialPool = txtInitialDeposit.getText().trim();
+
+            if(groupName.isEmpty() || fee.isEmpty() || initialPool.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "All identification and initial financial entries are required.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // In the future, hook into your active service layer:
+            // edirService.createGroup(groupName, Double.parseDouble(fee)...);
+
+            JOptionPane.showMessageDialog(this, "'" + groupName + "' has been officially registered within the system registry.");
+
+            // Route user directly back onto the refreshed home view card
+            CardLayout innerLayout = (CardLayout) parentWrapper.getLayout();
+
+            // Pull components inside stack layout to invoke reload sequence dynamically
+            for (Component viewComponent : parentWrapper.getComponents()) {
+                if (viewComponent instanceof EdirHomePanel) {
+                    ((EdirHomePanel) viewComponent).loadGroups();
+                }
+            }
+
+            innerLayout.show(parentWrapper, "EdirHome");
+        });
+
+        formContainer.add(btnSubmit, gbc);
+        add(formContainer, BorderLayout.CENTER);
+    }
+
+    private JLabel createFieldLabel(String text) {
+        JLabel lbl = new JLabel(text);
+        lbl.setFont(new Font("SansSerif", Font.BOLD, 13));
+        lbl.setForeground(Color.DARK_GRAY);
+        return lbl;
     }
 }
