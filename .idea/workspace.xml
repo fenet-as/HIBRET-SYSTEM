@@ -8,25 +8,19 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/dao/EdirDAO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dao/EdirDAO.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/dao/impl/EdirDAOImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dao/impl/EdirDAOImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/model/Group.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/model/Group.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/service/EdirService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/EdirService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/service/impl/EdirServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/impl/EdirServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/auth/LoginPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/auth/LoginPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/core/MainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/core/MainFrame.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ui/edir/AddMemberPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/AddMemberPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/edir/CreateEdirGroupPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/CreateEdirGroupPanel.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ui/edir/DistributeFundPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/DistributeFundPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/edir/EdirContributionPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/EdirContributionPanel.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ui/edir/EdirGroupDetailPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/EdirGroupDetailPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/edir/EdirHomePanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/EdirHomePanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/edir/EdirMembersPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/EdirMembersPanel.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ui/edir/EmergencyCasePanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/EmergencyCasePanel.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/service/EdirService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/EdirService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/EdirServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/impl/EdirServiceImpl.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/CreateEdirGroupPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/CreateEdirGroupPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/EdirServiceImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/auth/LoginPanel.class" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/DistributeFundPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/DistributeFundPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EdirContributionPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/EdirContributionPanel.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EdirGroupDetailPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/EdirGroupDetailPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EdirHomePanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/EdirHomePanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EdirMembersPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/EdirMembersPanel.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EmergencyCasePanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/EmergencyCasePanel.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

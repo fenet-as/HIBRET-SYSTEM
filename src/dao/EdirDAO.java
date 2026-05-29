@@ -14,4 +14,6 @@ public interface EdirDAO {
     List<Map<String, String>> getRecentContributions(String groupName);
     boolean registerEmergencyCase(String groupName, String memberName, String type, double amount, String description);
     boolean authorizePayout(String groupName, String caseId, double amount, String approvedBy, String notes);
+    List<Map<String, String>> getPendingClaimsByGroup(String groupName);
+
 }

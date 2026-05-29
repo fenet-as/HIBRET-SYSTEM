@@ -10,13 +10,13 @@ import java.util.Map;
 public class EdirDAOImpl implements EdirDAO {
 
     public EdirDAOImpl() {
-        // Interfacing with your live PostgreSQL database
+        // Core initialization interacting with your live PostgreSQL instance
     }
 
     @Override
     public List<Map<String, String>> getAllGroups() {
         List<Map<String, String>> list = new ArrayList<>();
-        // ✅ UPDATED: Changed eg.contribution to eg.contribution_amount
+        // Fixed to reference contribution_amount column
         String sql = "SELECT g.id, g.name, eg.contribution_amount AS group_fee, " +
                 "(SELECT COUNT(DISTINCT t.member_id) FROM transactions t WHERE t.group_id = g.id) AS member_count, " +
                 "COALESCE((SELECT SUM(amount) FROM transactions WHERE group_id = g.id AND type = 'CONTRIBUTION'), 0) - " +
@@ -46,12 +46,11 @@ public class EdirDAOImpl implements EdirDAO {
     @Override
     public boolean createGroup(String groupName, double monthlyFee, double initialPool, String rules) {
         String sqlGroup = "INSERT INTO groups (name, type, created_by) VALUES (?, 'EDIR', null) RETURNING id";
-        // ✅ UPDATED: target table column explicitly mapped to contribution_amount
         String sqlEdirSettings = "INSERT INTO edir_groups (name, contribution_amount) VALUES (?, ?)";
-        String sqlInitialTransaction = "INSERT INTO transactions (group_id, group_type, amount, type, description) VALUES (?, 'EDIR', ?, 'DEPOSIT', 'Initial reserves deposit pool')";
+        String sqlInitialTransaction = "INSERT INTO transactions (group_id, group_type, amount, type, description) VALUES (?, 'EDIR', ?, 'CONTRIBUTION', 'Initial reserves deposit pool')";
 
         try (Connection conn = DBConnection.getConnection()) {
-            conn.setAutoCommit(false); // Begin transaction block
+            conn.setAutoCommit(false); // Begin ACID Transaction Block
 
             int generatedGroupId = -1;
             try (PreparedStatement psGroup = conn.prepareStatement(sqlGroup)) {
@@ -135,10 +134,12 @@ public class EdirDAOImpl implements EdirDAO {
     @Override
     public Map<String, String> getGroupDetails(String groupName) {
         Map<String, String> map = new HashMap<>();
+        // Fully updated to count active 'PENDING_CLAIM' configurations dynamically
         String sql = "SELECT g.id, " +
                 "COALESCE((SELECT SUM(amount) FROM transactions WHERE group_id = g.id AND type = 'CONTRIBUTION'), 0) - " +
                 "COALESCE((SELECT SUM(amount) FROM transactions WHERE group_id = g.id AND type = 'PAYOUT'), 0) as fund_balance, " +
-                "(SELECT COUNT(DISTINCT member_id) FROM transactions WHERE group_id = g.id) as total_members " +
+                "(SELECT COUNT(DISTINCT member_id) FROM transactions WHERE group_id = g.id) as total_members, " +
+                "(SELECT COUNT(*) FROM transactions WHERE group_id = g.id AND type = 'PENDING_CLAIM') as active_cases " +
                 "FROM groups g WHERE g.name = ? AND g.type = 'EDIR'";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -148,7 +149,7 @@ public class EdirDAOImpl implements EdirDAO {
                     map.put("id", String.valueOf(rs.getInt("id")));
                     map.put("fund_balance", String.format("%.2f", rs.getDouble("fund_balance")));
                     map.put("total_members", String.valueOf(rs.getInt("total_members")));
-                    map.put("active_cases", "0");
+                    map.put("active_cases", String.valueOf(rs.getInt("active_cases")));
                 }
             }
         } catch (SQLException e) {
@@ -324,12 +325,43 @@ public class EdirDAOImpl implements EdirDAO {
         }
     }
 
+    // New Data Acquisition API Hook specifically mapping pending cases to the distribution layout
+    public List<Map<String, String>> getPendingClaimsByGroup(String groupName) {
+        List<Map<String, String>> list = new ArrayList<>();
+        String sql = "SELECT t.id, m.full_name, t.amount, t.description " +
+                "FROM transactions t " +
+                "JOIN groups g ON t.group_id = g.id " +
+                "JOIN members m ON t.member_id = m.id " +
+                "WHERE g.name = ? AND g.type = 'EDIR' AND t.type = 'PENDING_CLAIM' " +
+                "ORDER BY t.id ASC";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, groupName);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, String> map = new HashMap<>();
+                    map.put("tx_id", String.valueOf(rs.getInt("id")));
+                    map.put("member_name", rs.getString("full_name"));
+                    map.put("amount", String.valueOf(rs.getDouble("amount")));
+                    map.put("description", rs.getString("description"));
+                    list.add(map);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     @Override
-    public boolean authorizePayout(String groupName, String caseId, double amount, String approvedBy, String notes) {
+    public boolean authorizePayout(String groupName, String caseTxId, double amount, String approvedBy, String notes) {
         String sqlFindGroup = "SELECT id FROM groups WHERE name = ? AND type = 'EDIR'";
-        String sqlInsertPayout = "INSERT INTO transactions (member_id, group_id, group_type, amount, type, description) VALUES (null, ?, 'EDIR', ?, 'PAYOUT', ?)";
+        String sqlUpdateClaim = "UPDATE transactions SET type = 'APPROVED_CLAIM' WHERE id = ?";
+        String sqlInsertPayout = "INSERT INTO transactions (member_id, group_id, group_type, amount, type, description) VALUES " +
+                "((SELECT member_id FROM transactions WHERE id = ?), ?, 'EDIR', ?, 'PAYOUT', ?)";
 
         try (Connection conn = DBConnection.getConnection()) {
+            conn.setAutoCommit(false); // Begin multi-step structural commit transaction
             int groupId = -1;
             try (PreparedStatement psG = conn.prepareStatement(sqlFindGroup)) {
                 psG.setString(1, groupName);
@@ -337,13 +369,26 @@ public class EdirDAOImpl implements EdirDAO {
             }
             if (groupId == -1) return false;
 
-            try (PreparedStatement psTx = conn.prepareStatement(sqlInsertPayout)) {
-                psTx.setInt(1, groupId);
-                psTx.setDouble(2, amount);
-                psTx.setString(3, "Approved By: " + approvedBy + " | Notes: " + notes);
-                return psTx.executeUpdate() > 0;
+            int claimId = Integer.parseInt(caseTxId);
+
+            // 1. Move old state from pending claim status out of the queue
+            try (PreparedStatement psUp = conn.prepareStatement(sqlUpdateClaim)) {
+                psUp.setInt(1, claimId);
+                psUp.executeUpdate();
             }
-        } catch (SQLException e) {
+
+            // 2. Insert absolute deduction debit entry line row
+            try (PreparedStatement psTx = conn.prepareStatement(sqlInsertPayout)) {
+                psTx.setInt(1, claimId);
+                psTx.setInt(2, groupId);
+                psTx.setDouble(3, amount);
+                psTx.setString(4, "Approved By: " + approvedBy + " | Notes: " + notes);
+                psTx.executeUpdate();
+            }
+
+            conn.commit();
+            return true;
+        } catch (SQLException | NumberFormatException e) {
             e.printStackTrace();
             return false;
         }

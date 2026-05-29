@@ -2,7 +2,8 @@ package ui.edir;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.RoundRectangle2D;
+import java.util.List;
+import java.util.Map;
 import service.EdirService;
 
 public class DistributeFundPanel extends JPanel {
@@ -10,150 +11,208 @@ public class DistributeFundPanel extends JPanel {
     private final EdirService edirService;
     private final String groupName;
 
-    private JComboBox<String> comboApprovedCase;
-    private JTextField txtDisbursedAmount;
+    private JComboBox<ClaimItem> cmbClaims;
+    private JTextField txtDisbursedSum;
     private JTextField txtApprovedBy;
     private JTextArea txtNotes;
+
+    private double currentAvailableBalance = 0.0;
+    private List<Map<String, String>> pendingClaimsData;
+
+    // Simple helper class to store both internal DB IDs and viewable Text descriptions inside JComboBox components
+    private static class ClaimItem {
+        String id;
+        String displayText;
+        double requestedAmount;
+
+        public ClaimItem(String id, String displayText, double requestedAmount) {
+            this.id = id;
+            this.displayText = displayText;
+            this.requestedAmount = requestedAmount;
+        }
+        @Override
+        public String toString() { return displayText; }
+    }
 
     public DistributeFundPanel(JPanel parentWrapper, EdirService edirService, String groupName) {
         this.parentWrapper = parentWrapper;
         this.edirService = edirService;
         this.groupName = groupName;
 
-        setLayout(new BorderLayout(20, 20));
+        setLayout(new BorderLayout(25, 25));
         setBackground(new Color(253, 247, 237));
-        setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
+        setBorder(BorderFactory.createEmptyBorder(35, 35, 35, 35));
 
-        initMainForm();
+        fetchVaultStatus();
+        initHeader();
+        initFormLayout();
     }
 
-    private void initMainForm() {
-        JPanel formContainer = new JPanel(new GridBagLayout()) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(Color.WHITE);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 16, 16));
-                g2.setColor(new Color(235, 225, 210));
-                g2.draw(new RoundRectangle2D.Float(0, 0, getWidth()-1, getHeight()-1, 16, 16));
-                g2.dispose();
+    private void fetchVaultStatus() {
+        Map<String, String> details = edirService.getGroupDetails(groupName);
+        if (details != null && details.containsKey("fund_balance")) {
+            try {
+                currentAvailableBalance = Double.parseDouble(details.get("fund_balance"));
+            } catch (NumberFormatException e) {
+                currentAvailableBalance = 0.0;
             }
-        };
-        formContainer.setOpaque(false);
-        formContainer.setBorder(BorderFactory.createEmptyBorder(35, 35, 35, 35));
+        }
+    }
 
+    private void initHeader() {
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setOpaque(false);
+
+        JLabel lblTitle = new JLabel("Authorize Fund Capital Payout Distribution");
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 22));
+        lblTitle.setForeground(new Color(101, 31, 16));
+
+        JLabel lblLimit = new JLabel(String.format("Max Available Reserves: %,.2f ETB", currentAvailableBalance));
+        lblLimit.setFont(new Font("SansSerif", Font.ITALIC | Font.BOLD, 14));
+        lblLimit.setForeground(new Color(46, 117, 89));
+
+        headerPanel.add(lblTitle, BorderLayout.WEST);
+        headerPanel.add(lblLimit, BorderLayout.EAST);
+        add(headerPanel, BorderLayout.NORTH);
+    }
+
+    private void initFormLayout() {
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setOpaque(false);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(12, 12, 12, 12);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JButton btnBack = new JButton("← Cancel");
-        btnBack.addActionListener(e -> {
-            CardLayout innerLayout = (CardLayout) parentWrapper.getLayout();
-            innerLayout.show(parentWrapper, "EdirDetail");
-        });
+        // 1. SELECT TARGET EMERGENCY CASE FROM DATABASE
+        gbc.gridx = 0; gbc.gridy = 0;
+        form.add(new JLabel("Select Linked Emergency Claim Case:"), gbc);
 
-        JLabel lblTitle = new JLabel("Distribute Emergency Support Fund — " + groupName);
-        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 22));
-        lblTitle.setForeground(new Color(101, 31, 16));
+        cmbClaims = new JComboBox<>();
+        cmbClaims.setPreferredSize(new Dimension(350, 35));
 
-        JPanel headerLayout = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        headerLayout.setOpaque(false);
-        headerLayout.add(btnBack);
-        headerLayout.add(lblTitle);
+        // Load pending emergency files directly from PostgreSQL transactions
+        // Crucial cast: edirService must contain your implementation model rules
+        try {
+            // If your service layer wraps your DAO, cast or invoke directly
+            java.lang.reflect.Method m = edirService.getClass().getMethod("getPendingClaimsByGroup", String.class);
+            pendingClaimsData = (List<Map<String, String>>) m.invoke(edirService, groupName);
+        } catch (Exception e) {
+            // Direct Fallback if you mapped it cleanly into your standard EdirService interface layout
+            pendingClaimsData = edirService.getPendingClaimsByGroup(groupName);
+        }
 
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
-        formContainer.add(headerLayout, gbc);
-
-        gbc.gridwidth = 1;
-        gbc.weightx = 0.5;
-
-        gbc.gridx = 0; gbc.gridy = 1;
-        formContainer.add(createFieldLabel("Select Approved Active Claim Case"), gbc);
-        comboApprovedCase = new JComboBox<>(new String[]{
-                "CLAIM-ACTIVE: Urgent Support Case Selection Pool Reference"
-        });
-        gbc.gridy = 2;
-        formContainer.add(comboApprovedCase, gbc);
-
-        gbc.gridx = 1; gbc.gridy = 1;
-        formContainer.add(createFieldLabel("Disbursed Payout Capital (birr)"), gbc);
-        txtDisbursedAmount = new JTextField("15000");
-        txtDisbursedAmount.setPreferredSize(new Dimension(0, 35));
-        gbc.gridy = 2;
-        formContainer.add(txtDisbursedAmount, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 3;
-        formContainer.add(createFieldLabel("Approving Chairman/Admin Board Authority"), gbc);
-        txtApprovedBy = new JTextField("System Administrator");
-        txtApprovedBy.setPreferredSize(new Dimension(0, 35));
-        gbc.gridy = 4;
-        formContainer.add(txtApprovedBy, gbc);
-
-        gbc.gridx = 1; gbc.gridy = 3;
-        formContainer.add(createFieldLabel("Distribution Auditor Memo Notes"), gbc);
-        txtNotes = new JTextArea("Disbursement processing transaction logs.", 2, 20);
-        txtNotes.setBorder(BorderFactory.createLineBorder(new Color(210, 200, 185)));
-        txtNotes.setLineWrap(true);
-        JScrollPane notesScroll = new JScrollPane(txtNotes);
-        gbc.gridy = 4;
-        formContainer.add(notesScroll, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 2;
-        gbc.insets = new Insets(30, 12, 12, 12);
-
-        JButton btnSubmit = new JButton("Authorize Emergency Resource Payout") {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(163, 51, 39));
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
-                g2.dispose();
-                super.paintComponent(g);
+        if (pendingClaimsData != null && !pendingClaimsData.isEmpty()) {
+            for (Map<String, String> claim : pendingClaimsData) {
+                double reqAmt = Double.parseDouble(claim.getOrDefault("amount", "0"));
+                String display = "Claim #" + claim.get("tx_id") + " - " + claim.get("member_name") + " (" + claim.get("description") + ")";
+                cmbClaims.addItem(new ClaimItem(claim.get("tx_id"), display, reqAmt));
             }
-        };
-        btnSubmit.setFont(new Font("SansSerif", Font.BOLD, 15));
-        btnSubmit.setForeground(Color.WHITE);
-        btnSubmit.setContentAreaFilled(false);
-        btnSubmit.setBorderPainted(false);
-        btnSubmit.setFocusPainted(false);
-        btnSubmit.setPreferredSize(new Dimension(0, 45));
+        } else {
+            cmbClaims.addItem(new ClaimItem("-1", "⚠️ No unresolved emergency cases found in database", 0));
+        }
 
-        btnSubmit.addActionListener(e -> {
-            if (txtDisbursedAmount.getText().trim().isEmpty() || txtApprovedBy.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "All entry inputs are required.", "Error", JOptionPane.ERROR_MESSAGE);
+        gbc.gridx = 1;
+        form.add(cmbClaims, gbc);
+
+        // 2. DISBURSED PAYOUT AMOUNT FIELD
+        gbc.gridx = 0; gbc.gridy = 1;
+        form.add(new JLabel("Amount to Distribute (ETB):"), gbc);
+        txtDisbursedSum = new JTextField();
+        txtDisbursedSum.setPreferredSize(new Dimension(350, 35));
+        gbc.gridx = 1;
+        form.add(txtDisbursedSum, gbc);
+
+        // AUTOMATED AUTO-FILL HOOK: When an emergency item is picked, pre-populate its exact recorded coverage sum
+        cmbClaims.addActionListener(e -> {
+            ClaimItem selected = (ClaimItem) cmbClaims.getSelectedItem();
+            if (selected != null && !selected.id.equals("-1")) {
+                txtDisbursedSum.setText(String.valueOf(selected.requestedAmount));
+            }
+        });
+
+        // 3. AUTHORIZING OFFICER INPUT
+        gbc.gridx = 0; gbc.gridy = 2;
+        form.add(new JLabel("Authorized Approver Name:"), gbc);
+        txtApprovedBy = new JTextField();
+        txtApprovedBy.setPreferredSize(new Dimension(350, 35));
+        gbc.gridx = 1;
+        form.add(txtApprovedBy, gbc);
+
+        // 4. PAYOUT DESCRIPTIONS AND AUDIT LOG NOTES
+        gbc.gridx = 0; gbc.gridy = 3;
+        form.add(new JLabel("Distribution Audit Notes:"), gbc);
+        txtNotes = new JTextArea(4, 20);
+        txtNotes.setLineWrap(true);
+        txtNotes.setWrapStyleWord(true);
+        JScrollPane scroll = new JScrollPane(txtNotes);
+        gbc.gridx = 1;
+        form.add(scroll, gbc);
+
+        // 5. ACTION BUTTON EXECUTION LAYOUT ROW
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
+        actions.setOpaque(false);
+
+        JButton btnCancel = new JButton("Cancel");
+        btnCancel.setPreferredSize(new Dimension(100, 38));
+        btnCancel.addActionListener(e -> returnToDashboardView());
+
+        JButton btnConfirm = new JButton("Approve & Disburse");
+        btnConfirm.setPreferredSize(new Dimension(180, 38));
+        btnConfirm.setBackground(new Color(46, 117, 89));
+        btnConfirm.setForeground(Color.WHITE);
+
+        btnConfirm.addActionListener(e -> {
+            ClaimItem selectedClaim = (ClaimItem) cmbClaims.getSelectedItem();
+            String sumStr = txtDisbursedSum.getText().trim();
+            String officer = txtApprovedBy.getText().trim();
+            String notes = txtNotes.getText().trim();
+
+            if (selectedClaim == null || selectedClaim.id.equals("-1")) {
+                JOptionPane.showMessageDialog(this, "Payout requires a valid linked pending emergency case profile.", "Execution Blocked", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            int conf = JOptionPane.showConfirmDialog(this, "Confirm fund allocation payout logs?", "Confirm Payout", JOptionPane.YES_NO_OPTION);
-            if (conf == JOptionPane.YES_OPTION) {
-                try {
-                    double amt = Double.parseDouble(txtDisbursedAmount.getText().trim());
-                    boolean ok = edirService.authorizePayout(groupName, "MOCK-ID", amt, txtApprovedBy.getText(), txtNotes.getText());
-                    if (ok) {
-                        JOptionPane.showMessageDialog(this, "Funds allocated and transaction logged successfully.");
-                        for (Component comp : parentWrapper.getComponents()) {
-                            if (comp instanceof EdirGroupDetailPanel) {
-                                ((EdirGroupDetailPanel) comp).refreshDashboardMetricsAndLedger();
-                            }
-                        }
-                        CardLayout cl = (CardLayout) parentWrapper.getLayout();
-                        cl.show(parentWrapper, "EdirDetail");
-                    }
-                } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(this, "Invalid digit configurations format.", "Error", JOptionPane.ERROR_MESSAGE);
+            if (sumStr.isEmpty() || officer.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please verify both the distribution value and authorizing signatory data.", "Execution Alert", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            try {
+                double payoutValue = Double.parseDouble(sumStr);
+
+                if (payoutValue > currentAvailableBalance) {
+                    JOptionPane.showMessageDialog(this, "Transaction Rejected. Insufficient reserve capitals in group vault pool.", "Overdraft Limit Protection", JOptionPane.ERROR_MESSAGE);
+                    return;
                 }
+
+                // Pass the specific case execution transaction tracking ID cleanly to database layer
+                boolean success = edirService.authorizePayout(groupName, selectedClaim.id, payoutValue, officer, notes);
+                if (success) {
+                    JOptionPane.showMessageDialog(this, "Financial payout successfully authorized. Linked emergency case has been closed.");
+                    returnToDashboardView();
+                } else {
+                    JOptionPane.showMessageDialog(this, "An unexpected database synchronization issue occurred.", "Database Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Please enter a valid numeric amount inside the distribution field.", "Format Mismatch", JOptionPane.ERROR_MESSAGE);
             }
         });
 
-        formContainer.add(btnSubmit, gbc);
-        add(formContainer, BorderLayout.CENTER);
+        actions.add(btnCancel);
+        actions.add(btnConfirm);
+        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2;
+        gbc.insets = new Insets(20, 12, 12, 12);
+        form.add(actions, gbc);
+
+        add(form, BorderLayout.CENTER);
     }
 
-    private JLabel createFieldLabel(String text) {
-        JLabel lbl = new JLabel(text);
-        lbl.setFont(new Font("SansSerif", Font.BOLD, 13));
-        lbl.setForeground(Color.DARK_GRAY);
-        return lbl;
+    private void returnToDashboardView() {
+        for (Component comp : parentWrapper.getComponents()) {
+            if (comp instanceof EdirGroupDetailPanel) {
+                ((EdirGroupDetailPanel) comp).refreshDashboardMetricsAndLedger();
+            }
+        }
+        CardLayout cl = (CardLayout) parentWrapper.getLayout();
+        cl.show(parentWrapper, "EdirDetail");
     }
 }

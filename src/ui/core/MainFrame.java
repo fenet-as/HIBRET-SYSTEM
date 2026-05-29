@@ -4,7 +4,7 @@ import model.User;
 import service.ReportService;
 import service.EqubService;
 import service.EdirService;          // ⭐ HOOKED EDIR SERVICE INTERFACE
-import service.impl.EdirServiceImpl; // ⭐ HOOKED EDIR SERVICE IMPLEMENTATION
+//import service.impl.EdirServiceImpl; // ⭐ HOOKED EDIR SERVICE IMPLEMENTATION
 import ui.equb.EqubHomePanel;
 import ui.edir.EdirHomePanel;       // ⭐ IMPORTED EDIR HOME PANEL MODULE
 import javax.swing.*;

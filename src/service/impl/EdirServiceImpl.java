@@ -1,18 +1,14 @@
-package service.impl;
+package service;
 
 import dao.EdirDAO;
-
-import dao.EdirDAOImpl;
-import service.EdirService;
-
 import java.util.List;
 import java.util.Map;
 
 public class EdirServiceImpl implements EdirService {
     private final EdirDAO edirDAO;
 
-    public EdirServiceImpl() {
-        this.edirDAO = new EdirDAOImpl();
+    public EdirServiceImpl(EdirDAO edirDAO) {
+        this.edirDAO = edirDAO;
     }
 
     @Override
@@ -22,7 +18,6 @@ public class EdirServiceImpl implements EdirService {
 
     @Override
     public boolean createGroup(String groupName, double monthlyFee, double initialPool, String rules) {
-        if (groupName == null || groupName.trim().isEmpty()) return false;
         return edirDAO.createGroup(groupName, monthlyFee, initialPool, rules);
     }
 
@@ -62,7 +57,17 @@ public class EdirServiceImpl implements EdirService {
     }
 
     @Override
-    public boolean authorizePayout(String groupName, String caseId, double amount, String approvedBy, String notes) {
-        return edirDAO.authorizePayout(groupName, caseId, amount, approvedBy, notes);
+    public boolean authorizePayout(String groupName, String caseTxId, double amount, String approvedBy, String notes) {
+        return edirDAO.authorizePayout(groupName, caseTxId, amount, approvedBy, notes);
+    }
+
+    @Override
+    public List<Map<String, String>> getPendingClaimsByGroup(String groupName) {
+        // Safe check block: If mapped via EdirDAO interface pattern, forward directly.
+        // Otherwise, downcast explicitly to the compiled EdirDAOImpl structural class.
+        if (edirDAO instanceof dao.EdirDAOImpl) {
+            return ((dao.EdirDAOImpl) edirDAO).getPendingClaimsByGroup(groupName);
+        }
+        return edirDAO.getPendingClaimsByGroup(groupName);
     }
 }

@@ -1,14 +1,13 @@
 package ui.auth;
 
+import dao.EdirDAOImpl;
 import dao.impl.ReportDAOImpl;
-import service.AuthService;
+import service.*;
+import service.EdirServiceImpl;
 import service.impl.AuthServiceImpl;
-import service.ReportService;
 import service.impl.ReportServiceImpl;
-import service.EqubService;
 import service.impl.EqubServiceImpl;
-import service.EdirService;                  // ⭐ 1. ADDED IMPORT FOR EDIR SERVICE
-import service.impl.EdirServiceImpl;          // ⭐ 2. ADDED IMPORT FOR EDIR IMPLEMENTATION
+//import service.impl.EdirServiceImpl;          // ⭐ 2. ADDED IMPORT FOR EDIR IMPLEMENTATION
 import model.User;
 import ui.core.MainFrame;
 
@@ -32,7 +31,8 @@ public class LoginPanel extends JPanel {
     private final AuthService authService = new AuthServiceImpl();
     private final ReportService reportService = new ReportServiceImpl(new ReportDAOImpl());
     private final EqubService equbService = new EqubServiceImpl();
-    private final EdirService edirService = new EdirServiceImpl(); // ⭐ 3. INSTANTIATED EDIR SERVICE PIPELINE
+    private final EdirService edirService =
+            new EdirServiceImpl(new EdirDAOImpl()); // ⭐ 3. INSTANTIATED EDIR SERVICE PIPELINE
 
     public LoginPanel(LoginFrame frame) {
         this.parentFrame = frame;

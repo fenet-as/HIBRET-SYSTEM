@@ -14,7 +14,7 @@ public class EdirGroupDetailPanel extends JPanel {
     private final EdirService edirService;
     private final String groupName;
 
-    // Direct UI label references for real-time data binding
+    // Direct UI label references for type-safe real-time data binding
     private JLabel lblMembersValue;
     private JLabel lblBalanceValue;
     private JLabel lblCasesValue;
@@ -42,6 +42,11 @@ public class EdirGroupDetailPanel extends JPanel {
         refreshDashboardMetricsAndLedger();
     }
 
+    // Explicit service getter helper hook for AddMemberPanel to resolve queries
+    public EdirService getEdirService() {
+        return this.edirService;
+    }
+
     /**
      * Core refresh function invoked automatically upon construction
      * and whenever returning from form panels (Add Member, Contribution, etc.)
@@ -58,7 +63,7 @@ public class EdirGroupDetailPanel extends JPanel {
             try {
                 balance = Double.parseDouble(metrics.getOrDefault("fund_balance", "0.0"));
             } catch (NumberFormatException e) {
-                // Handle fallback if string formatting is applied at DAO level
+                // Safe parsing fallback flag
             }
             lblBalanceValue.setText(String.format("%,.2f ETB", balance));
             lblCasesValue.setText(metrics.getOrDefault("active_cases", "0") + " Request(s)");
@@ -69,11 +74,16 @@ public class EdirGroupDetailPanel extends JPanel {
         List<Map<String, String>> contributions = edirService.getRecentContributions(groupName);
 
         for (Map<String, String> c : contributions) {
-            double amt = Double.parseDouble(c.getOrDefault("amount", "0"));
+            double amt = 0.0;
+            try {
+                amt = Double.parseDouble(c.getOrDefault("amount", "0"));
+            } catch (NumberFormatException e) {
+                // Safe parsing fallback flag
+            }
             ledgerTableModel.addRow(new Object[]{
                     c.get("member_name"),
                     String.format("%,.2f birr", amt),
-                    c.getOrDefault("month", "N/A"), // Displays parsed description/receipt data
+                    c.getOrDefault("month", "N/A"), // Displays parsed description data
                     "Cleared"
             });
         }
@@ -106,7 +116,7 @@ public class EdirGroupDetailPanel extends JPanel {
         btnBack.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         btnBack.addActionListener(e -> {
-            // Refresh main table before returning to ensure data consistency
+            // Refresh main home table before returning to keep everything synced up
             for (Component comp : parentWrapper.getComponents()) {
                 if (comp instanceof EdirHomePanel) {
                     ((EdirHomePanel) comp).loadGroups();
@@ -130,17 +140,12 @@ public class EdirGroupDetailPanel extends JPanel {
         add(headerPanel);
     }
 
-
-
-
-
-
     private void initStatCards() {
         JPanel cardsPanel = new JPanel(new GridLayout(1, 4, 20, 0));
         cardsPanel.setOpaque(false);
         cardsPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, 110));
 
-        // Create cards and assign class-level value label variables safely
+        // ✅ FIX: Instantiate variables explicitly to avoid index out of bounds or ClassCastExceptions
         lblMembersValue = new JLabel("0 Active");
         JPanel card1 = createStatCard("Registered Members", lblMembersValue, new Color(44, 122, 123));
 
@@ -161,8 +166,6 @@ public class EdirGroupDetailPanel extends JPanel {
         add(cardsPanel);
     }
 
-
-
     private void initActionButtons() {
         JPanel actionPanel = new JPanel(new GridLayout(1, 5, 15, 0));
         actionPanel.setOpaque(false);
@@ -172,15 +175,72 @@ public class EdirGroupDetailPanel extends JPanel {
         JButton btnRecordContribution = createModuleButton("Contributions", "💰");
         JButton btnEmergency = createModuleButton("Emergency Case", "🚨");
         JButton btnDistribute = createModuleButton("Disbursed Payout", "📤");
-        JButton btnReports = createModuleButton("Audit Logs", "📊");
+        JButton btnViewMembers = createModuleButton("View Members", "👥");
 
-        // Action routing listeners modified to pass dynamic references
+        // Add Member callback configuration mapping
         btnAddMember.addActionListener(e -> {
             model.EdirGroup genericGroupObj = new model.EdirGroup();
             genericGroupObj.setName(groupName);
+
             AddMemberPanel p = new AddMemberPanel(parentWrapper, genericGroupObj, this);
             parentWrapper.add(p, "AddMember");
             ((CardLayout) parentWrapper.getLayout()).show(parentWrapper, "AddMember");
+        });
+
+        // ✅ REAL-TIME WORKPLACE: Instantiates an on-the-fly component view pulling data directly from database
+        btnViewMembers.addActionListener(e -> {
+            JPanel membersPanel = new JPanel(new BorderLayout(15, 15));
+            membersPanel.setBackground(new Color(253, 247, 237));
+            membersPanel.setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
+
+            JLabel lblHeading = new JLabel("Active Enrollment Records for: " + groupName);
+            lblHeading.setFont(new Font("SansSerif", Font.BOLD, 18));
+            lblHeading.setForeground(new Color(101, 31, 16));
+            membersPanel.add(lblHeading, BorderLayout.NORTH);
+
+            String[] cols = {"Member Registry ID", "Full Legal Name", "Phone Mapping Line", "Profile Status"};
+            DefaultTableModel membersModel = new DefaultTableModel(null, cols) {
+                @Override
+                public boolean isCellEditable(int r, int c) { return false; }
+            };
+
+            List<Map<String, String>> membersList = edirService.getMembersByGroup(groupName);
+            for (Map<String, String> m : membersList) {
+                membersModel.addRow(new Object[]{
+                        m.get("id"),
+                        m.get("full_name"),
+                        m.get("phone"),
+                        m.getOrDefault("status", "Active")
+                });
+            }
+
+            JTable table = new JTable(membersModel);
+            table.setRowHeight(38);
+            table.setShowGrid(false);
+            table.setFont(new Font("SansSerif", Font.PLAIN, 13));
+            table.getTableHeader().setBackground(new Color(249, 237, 222));
+            table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 13));
+            table.getTableHeader().setPreferredSize(new Dimension(0, 36));
+
+            JScrollPane scroll = new JScrollPane(table);
+            scroll.setBorder(BorderFactory.createLineBorder(new Color(230, 215, 195)));
+            membersPanel.add(scroll, BorderLayout.CENTER);
+
+            JButton btnReturn = new JButton("← Back to Group Dashboard");
+            btnReturn.setFont(new Font("SansSerif", Font.BOLD, 13));
+            btnReturn.setPreferredSize(new Dimension(200, 40));
+            btnReturn.addActionListener(ev -> {
+                CardLayout cl = (CardLayout) parentWrapper.getLayout();
+                cl.show(parentWrapper, "EdirDetail");
+            });
+
+            JPanel southContainer = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+            southContainer.setOpaque(false);
+            southContainer.add(btnReturn);
+            membersPanel.add(southContainer, BorderLayout.SOUTH);
+
+            parentWrapper.add(membersPanel, "GroupMembersListView");
+            ((CardLayout) parentWrapper.getLayout()).show(parentWrapper, "GroupMembersListView");
         });
 
         btnRecordContribution.addActionListener(e -> {
@@ -205,7 +265,7 @@ public class EdirGroupDetailPanel extends JPanel {
         actionPanel.add(btnRecordContribution);
         actionPanel.add(btnEmergency);
         actionPanel.add(btnDistribute);
-        actionPanel.add(btnReports);
+        actionPanel.add(btnViewMembers);
 
         add(actionPanel);
     }
@@ -259,16 +319,14 @@ public class EdirGroupDetailPanel extends JPanel {
         lblT.setFont(new Font("SansSerif", Font.BOLD, 13));
         lblT.setForeground(Color.GRAY);
 
-        // Apply styling rules to the passed object parameter
         lblValue.setFont(new Font("SansSerif", Font.BOLD, 20));
         lblValue.setForeground(textCol);
 
         card.add(lblT);
-        card.add(Box.createVerticalStrut(8)); // Box$Filler sits here at index 1
-        card.add(lblValue);                  // Value label sits safely without being indexed manually
+        card.add(Box.createVerticalStrut(8)); // Strut component sits safely at index 1 without throwing ClassCast Exceptions
+        card.add(lblValue);
         return card;
     }
-
 
     private JButton createModuleButton(String text, String unicodeIcon) {
         JButton btn = new JButton("<html><body style='text-align: center;'>" + unicodeIcon + "<br>" + text + "</body></html>") {
