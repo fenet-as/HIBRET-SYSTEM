@@ -2,14 +2,24 @@ package ui.edir;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
+import java.util.List;
+import java.util.Map;
 import service.EdirService;
 
 public class EdirGroupDetailPanel extends JPanel {
     private final JPanel parentWrapper;
     private final EdirService edirService;
     private final String groupName;
+
+    // Direct UI label references for real-time data binding
+    private JLabel lblMembersValue;
+    private JLabel lblBalanceValue;
+    private JLabel lblCasesValue;
+    private JTable recentLedgerTable;
+    private DefaultTableModel ledgerTableModel;
 
     public EdirGroupDetailPanel(JPanel parentWrapper, EdirService edirService, String groupName) {
         this.parentWrapper = parentWrapper;
@@ -18,34 +28,98 @@ public class EdirGroupDetailPanel extends JPanel {
 
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBackground(new Color(253, 247, 237));
-        setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
+        setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
 
         initHeader();
-        add(Box.createVerticalStrut(20));
-        initStatCards();
-        add(Box.createVerticalStrut(20));
-        initActionButtons();
         add(Box.createVerticalStrut(25));
+        initStatCards();
+        add(Box.createVerticalStrut(25));
+        initActionButtons();
+        add(Box.createVerticalStrut(30));
         initRecentContributions();
+
+        // Trigger an initial data load from PostgreSQL tables on creation
+        refreshDashboardMetricsAndLedger();
+    }
+
+    /**
+     * Core refresh function invoked automatically upon construction
+     * and whenever returning from form panels (Add Member, Contribution, etc.)
+     */
+    public void refreshDashboardMetricsAndLedger() {
+        // 1. Fetch dynamic aggregated values from database service
+        Map<String, String> metrics = edirService.getGroupDetails(groupName);
+
+        if (metrics != null && !metrics.isEmpty()) {
+            // Update stats cards text instantly with real DB results
+            lblMembersValue.setText(metrics.getOrDefault("total_members", "0") + " Active");
+
+            double balance = 0.0;
+            try {
+                balance = Double.parseDouble(metrics.getOrDefault("fund_balance", "0.0"));
+            } catch (NumberFormatException e) {
+                // Handle fallback if string formatting is applied at DAO level
+            }
+            lblBalanceValue.setText(String.format("%,.2f ETB", balance));
+            lblCasesValue.setText(metrics.getOrDefault("active_cases", "0") + " Request(s)");
+        }
+
+        // 2. Clear and reload the live Recent Transaction Ledger from database
+        ledgerTableModel.setRowCount(0);
+        List<Map<String, String>> contributions = edirService.getRecentContributions(groupName);
+
+        for (Map<String, String> c : contributions) {
+            double amt = Double.parseDouble(c.getOrDefault("amount", "0"));
+            ledgerTableModel.addRow(new Object[]{
+                    c.get("member_name"),
+                    String.format("%,.2f birr", amt),
+                    c.getOrDefault("month", "N/A"), // Displays parsed description/receipt data
+                    "Cleared"
+            });
+        }
+
+        revalidate();
+        repaint();
     }
 
     private void initHeader() {
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
-        headerPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, 40));
+        headerPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, 45));
 
-        JButton btnBack = new JButton("← Back");
+        JButton btnBack = new JButton("← Return Overview") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(235, 225, 210));
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
         btnBack.setFont(new Font("SansSerif", Font.BOLD, 12));
         btnBack.setForeground(new Color(101, 31, 16));
+        btnBack.setContentAreaFilled(false);
+        btnBack.setBorderPainted(false);
+        btnBack.setPreferredSize(new Dimension(150, 38));
+        btnBack.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
         btnBack.addActionListener(e -> {
-            CardLayout innerLayout = (CardLayout) parentWrapper.getLayout();
-            innerLayout.show(parentWrapper, "EdirHome");
+            // Refresh main table before returning to ensure data consistency
+            for (Component comp : parentWrapper.getComponents()) {
+                if (comp instanceof EdirHomePanel) {
+                    ((EdirHomePanel) comp).loadGroups();
+                }
+            }
+            CardLayout layout = (CardLayout) parentWrapper.getLayout();
+            layout.show(parentWrapper, "EdirHome");
         });
 
         JLabel lblTitle = new JLabel(groupName);
-        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 24));
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 26));
         lblTitle.setForeground(new Color(101, 31, 16));
-        lblTitle.setBorder(BorderFactory.createEmptyBorder(0, 15, 0, 0));
+        lblTitle.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
 
         JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         leftPanel.setOpaque(false);
@@ -56,58 +130,75 @@ public class EdirGroupDetailPanel extends JPanel {
         add(headerPanel);
     }
 
-    private void initStatCards() {
-        JPanel cardsPanel = new JPanel(new GridLayout(1, 4, 15, 0));
-        cardsPanel.setOpaque(false);
-        cardsPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, 100));
 
-        cardsPanel.add(createStatCard("Members", "35", new Color(46, 117, 89)));
-        cardsPanel.add(createStatCard("Fund Balance", "80,000 birr", new Color(46, 117, 89)));
-        cardsPanel.add(createStatCard("Active Cases", "1", new Color(163, 51, 39)));
-        cardsPanel.add(createStatCard("Pending Payments", "5", new Color(163, 51, 39)));
+
+
+
+
+    private void initStatCards() {
+        JPanel cardsPanel = new JPanel(new GridLayout(1, 4, 20, 0));
+        cardsPanel.setOpaque(false);
+        cardsPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, 110));
+
+        // Create cards and assign class-level value label variables safely
+        lblMembersValue = new JLabel("0 Active");
+        JPanel card1 = createStatCard("Registered Members", lblMembersValue, new Color(44, 122, 123));
+
+        lblBalanceValue = new JLabel("0.00 ETB");
+        JPanel card2 = createStatCard("Net Vault Balance", lblBalanceValue, new Color(34, 139, 94));
+
+        lblCasesValue = new JLabel("0 Request(s)");
+        JPanel card3 = createStatCard("Active Claims", lblCasesValue, new Color(197, 48, 48));
+
+        JLabel lblArrearsPlaceholder = new JLabel("0 Arrears");
+        JPanel card4 = createStatCard("Pending Notices", lblArrearsPlaceholder, new Color(183, 100, 30));
+
+        cardsPanel.add(card1);
+        cardsPanel.add(card2);
+        cardsPanel.add(card3);
+        cardsPanel.add(card4);
 
         add(cardsPanel);
     }
 
+
+
     private void initActionButtons() {
-        JPanel actionPanel = new JPanel(new GridLayout(1, 5, 12, 0));
+        JPanel actionPanel = new JPanel(new GridLayout(1, 5, 15, 0));
         actionPanel.setOpaque(false);
-        actionPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, 45));
+        actionPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, 50));
 
-        JButton btnAddMember = createModuleButton("Add Member");
-        JButton btnRecordContribution = createModuleButton("Record Contribution");
-        JButton btnEmergency = createModuleButton("Emergency Case");
-        JButton btnDistribute = createModuleButton("Distribute Fund");
-        JButton btnReports = createModuleButton("Reports");
+        JButton btnAddMember = createModuleButton("Add Member", "👤");
+        JButton btnRecordContribution = createModuleButton("Contributions", "💰");
+        JButton btnEmergency = createModuleButton("Emergency Case", "🚨");
+        JButton btnDistribute = createModuleButton("Disbursed Payout", "📤");
+        JButton btnReports = createModuleButton("Audit Logs", "📊");
 
+        // Action routing listeners modified to pass dynamic references
         btnAddMember.addActionListener(e -> {
-            EdirMembersPanel membersPanel = new EdirMembersPanel(parentWrapper, edirService, groupName);
-            parentWrapper.add(membersPanel, "EdirMembers");
-            ((CardLayout) parentWrapper.getLayout()).show(parentWrapper, "EdirMembers");
+            model.EdirGroup genericGroupObj = new model.EdirGroup();
+            genericGroupObj.setName(groupName);
+            AddMemberPanel p = new AddMemberPanel(parentWrapper, genericGroupObj, this);
+            parentWrapper.add(p, "AddMember");
+            ((CardLayout) parentWrapper.getLayout()).show(parentWrapper, "AddMember");
         });
 
         btnRecordContribution.addActionListener(e -> {
-            EdirContributionPanel contributionPanel = new EdirContributionPanel(parentWrapper, edirService, groupName);
-            parentWrapper.add(contributionPanel, "EdirContribution");
+            EdirContributionPanel p = new EdirContributionPanel(parentWrapper, edirService, groupName);
+            parentWrapper.add(p, "EdirContribution");
             ((CardLayout) parentWrapper.getLayout()).show(parentWrapper, "EdirContribution");
         });
 
         btnEmergency.addActionListener(e -> {
-            EmergencyCasePanel emergencyPanel = new EmergencyCasePanel(parentWrapper, edirService, groupName);
-            parentWrapper.add(emergencyPanel, "EmergencyForm");
+            EmergencyCasePanel p = new EmergencyCasePanel(parentWrapper, edirService, groupName);
+            parentWrapper.add(p, "EmergencyForm");
             ((CardLayout) parentWrapper.getLayout()).show(parentWrapper, "EmergencyForm");
         });
 
         btnDistribute.addActionListener(e -> {
-            DistributeFundPanel distributePanel = new DistributeFundPanel(parentWrapper, edirService, groupName);
-            parentWrapper.add(distributePanel, "DistributeFund");
+            DistributeFundPanel p = new DistributeFundPanel(parentWrapper, edirService, groupName);
+            parentWrapper.add(p, "DistributeFund");
             ((CardLayout) parentWrapper.getLayout()).show(parentWrapper, "DistributeFund");
-        });
-
-        btnReports.addActionListener(e -> {
-            EdirGroupReportPanel reportPanel = new EdirGroupReportPanel(parentWrapper, edirService, groupName);
-            parentWrapper.add(reportPanel, "EdirGroupReport");
-            ((CardLayout) parentWrapper.getLayout()).show(parentWrapper, "EdirGroupReport");
         });
 
         actionPanel.add(btnAddMember);
@@ -120,93 +211,88 @@ public class EdirGroupDetailPanel extends JPanel {
     }
 
     private void initRecentContributions() {
-        JPanel tableContainer = new JPanel(new BorderLayout());
-        tableContainer.setOpaque(false);
+        JPanel container = new JPanel(new BorderLayout());
+        container.setOpaque(false);
 
-        JLabel lblSection = new JLabel("Recent Contributions");
-        lblSection.setFont(new Font("SansSerif", Font.BOLD, 16));
-        lblSection.setForeground(new Color(101, 31, 16));
-        lblSection.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
-        tableContainer.add(lblSection, BorderLayout.NORTH);
+        JLabel lblSec = new JLabel("Recent Transaction Ledger Audit");
+        lblSec.setFont(new Font("SansSerif", Font.BOLD, 16));
+        lblSec.setForeground(new Color(101, 31, 16));
+        lblSec.setBorder(BorderFactory.createEmptyBorder(0, 0, 12, 0));
+        container.add(lblSec, BorderLayout.NORTH);
 
-        String[] cols = {"Member", "Amount", "Date", "Status"};
-        Object[][] data = {
-                {"Sara", "200 birr", "10/06/2017", "Paid"},
-                {"Abel", "200 birr", "10/06/2017", "Paid"},
-                {"Hana", "200 birr", "10/06/2017", "Pending"}
-        };
+        String[] cols = {"Contributor Name", "Allocated Sum", "Log Description", "Status"};
+        ledgerTableModel = new DefaultTableModel(null, cols);
 
-        DefaultTableModel model = new DefaultTableModel(data, cols);
-        JTable table = new JTable(model) {
-            @Override
-            public Component prepareRenderer(javax.swing.table.TableCellRenderer renderer, int row, int col) {
-                Component c = super.prepareRenderer(renderer, row, col);
-                if (col == 3) {
-                    String val = (String) getValueAt(row, col);
-                    c.setForeground(val.equals("Paid") ? new Color(46, 117, 89) : new Color(217, 83, 79));
-                    c.setFont(c.getFont().deriveFont(Font.BOLD));
-                } else {
-                    c.setForeground(Color.DARK_GRAY);
-                }
-                return c;
-            }
-        };
+        recentLedgerTable = new JTable(ledgerTableModel);
+        recentLedgerTable.setRowHeight(40);
+        recentLedgerTable.setShowGrid(false);
+        recentLedgerTable.setBackground(Color.WHITE);
+        recentLedgerTable.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        recentLedgerTable.getTableHeader().setBackground(new Color(249, 237, 222));
+        recentLedgerTable.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 13));
+        recentLedgerTable.getTableHeader().setPreferredSize(new Dimension(0, 36));
 
-        table.setRowHeight(40);
-        table.setShowGrid(false);
-        table.setBackground(Color.WHITE);
-        table.getTableHeader().setBackground(new Color(249, 237, 222));
-        table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 13));
-
-        JScrollPane sp = new JScrollPane(table);
+        JScrollPane sp = new JScrollPane(recentLedgerTable);
         sp.setBorder(BorderFactory.createLineBorder(new Color(230, 215, 195)));
-        tableContainer.add(sp, BorderLayout.CENTER);
+        container.add(sp, BorderLayout.CENTER);
 
-        add(tableContainer);
+        add(container);
     }
 
-    private JPanel createStatCard(String title, String value, Color valueColor) {
+    private JPanel createStatCard(String title, JLabel lblValue, Color textCol) {
         JPanel card = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(Color.WHITE);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 15, 15));
-                g2.setColor(new Color(235, 225, 210));
-                g2.draw(new RoundRectangle2D.Float(0, 0, getWidth()-1, getHeight()-1, 15, 15));
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 16, 16));
+                g2.setColor(new Color(230, 220, 205));
+                g2.draw(new RoundRectangle2D.Float(0, 0, getWidth() - 1, getHeight() - 1, 16, 16));
                 g2.dispose();
             }
         };
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBorder(BorderFactory.createEmptyBorder(12, 15, 12, 15));
+        card.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
 
-        JLabel lblTitle = new JLabel(title);
-        lblTitle.setFont(new Font("SansSerif", Font.PLAIN, 13));
-        lblTitle.setForeground(Color.GRAY);
+        JLabel lblT = new JLabel(title);
+        lblT.setFont(new Font("SansSerif", Font.BOLD, 13));
+        lblT.setForeground(Color.GRAY);
 
-        JLabel lblValue = new JLabel(value);
+        // Apply styling rules to the passed object parameter
         lblValue.setFont(new Font("SansSerif", Font.BOLD, 20));
-        lblValue.setForeground(valueColor);
+        lblValue.setForeground(textCol);
 
-        card.add(lblTitle);
-        card.add(Box.createVerticalStrut(8));
-        card.add(lblValue);
+        card.add(lblT);
+        card.add(Box.createVerticalStrut(8)); // Box$Filler sits here at index 1
+        card.add(lblValue);                  // Value label sits safely without being indexed manually
         return card;
     }
 
-    private JButton createModuleButton(String text) {
-        JButton btn = new JButton(text) {
+
+    private JButton createModuleButton(String text, String unicodeIcon) {
+        JButton btn = new JButton("<html><body style='text-align: center;'>" + unicodeIcon + "<br>" + text + "</body></html>") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(Color.WHITE);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
-                g2.setColor(new Color(230, 215, 195));
-                g2.draw(new RoundRectangle2D.Float(0, 0, getWidth()-1, getHeight()-1, 12, 12));
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 14, 14));
+                g2.setColor(new Color(220, 210, 190));
+                g2.draw(new RoundRectangle2D.Float(0, 0, getWidth() - 1, getHeight() - 1, 14, 14));
                 g2.dispose();
-                super.paintComponent(g);
+
+                FontMetrics fm = g.getFontMetrics();
+                String[] lines = getText().replace("<html><body style='text-align: center;'>", "").replace("</body></html>", "").split("<br>");
+                g.setFont(getFont());
+                g.setColor(getForeground());
+
+                int y = (getHeight() - (lines.length * fm.getHeight())) / 2 + fm.getAscent();
+                for (String line : lines) {
+                    int x = (getWidth() - fm.stringWidth(line)) / 2;
+                    g.drawString(line, x, y);
+                    y += fm.getHeight();
+                }
             }
         };
         btn.setFont(new Font("SansSerif", Font.BOLD, 13));
@@ -214,31 +300,7 @@ public class EdirGroupDetailPanel extends JPanel {
         btn.setContentAreaFilled(false);
         btn.setBorderPainted(false);
         btn.setFocusPainted(false);
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         return btn;
-    }
-
-
-    /**
-     * Synchronizes and refreshes local group metrics, active emergency counters,
-     * and historical contribution ledger entries directly from the database layer.
-     */
-    public void refreshDashboardMetricsAndLedger() {
-        // 1. Re-fetch up-to-date data structures from the injected database service
-        try {
-            // Example:
-            // double updatedBalance = edirService.getGroupBalance(groupName);
-            // int activeCases = edirService.getActiveCasesCount(groupName);
-
-            // 2. Refresh UI labels and table model elements
-            // lblBalance.setText(String.format("%,.2f birr", updatedBalance));
-
-            // For now, repaint to verify the hook executes perfectly
-            revalidate();
-            repaint();
-
-            System.out.println("DEBUG: EdirGroupDetailPanel metric synchronization hook invoked successfully for: " + groupName);
-        } catch (Exception ex) {
-            System.err.println("ERROR: Failed to run refresh sequence for Edir group details: " + ex.getMessage());
-        }
     }
 }

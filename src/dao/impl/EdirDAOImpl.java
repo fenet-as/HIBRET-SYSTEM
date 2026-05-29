@@ -1,180 +1,181 @@
-package dao.impl;
+package dao;
 
-import dao.EdirDAO;
-import model.EdirGroup;
-import model.EmergencyCase;
-import model.Transaction;
 import util.DBConnection;
-
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class EdirDAOImpl implements EdirDAO {
 
-    @Override
-    public void createEdirGroup(String name, double contribution) {
-        // Changing the column name to contribution_amount here 🎯
-        String sql = "INSERT INTO edir_groups (name, contribution_amount, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, name);
-            stmt.setDouble(2, contribution);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+    public EdirDAOImpl() {
+        // Interfacing with your live PostgreSQL database
     }
 
     @Override
-    public List<EdirGroup> getAllEdirGroups() {
-        List<EdirGroup> groups = new ArrayList<>();
-        // Changing the column name to contribution_amount here as well 🎯
-        String sql = "SELECT id, name, contribution_amount, created_at FROM edir_groups ORDER BY id DESC";
-        try (Connection conn = DBConnection.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+    public List<Map<String, String>> getAllGroups() {
+        List<Map<String, String>> list = new ArrayList<>();
+        // ✅ UPDATED: Changed eg.contribution to eg.contribution_amount
+        String sql = "SELECT g.id, g.name, eg.contribution_amount AS group_fee, " +
+                "(SELECT COUNT(DISTINCT t.member_id) FROM transactions t WHERE t.group_id = g.id) AS member_count, " +
+                "COALESCE((SELECT SUM(amount) FROM transactions WHERE group_id = g.id AND type = 'CONTRIBUTION'), 0) - " +
+                "COALESCE((SELECT SUM(amount) FROM transactions WHERE group_id = g.id AND type = 'PAYOUT'), 0) AS fund_balance " +
+                "FROM groups g " +
+                "JOIN edir_groups eg ON g.name = eg.name " +
+                "WHERE g.type = 'EDIR'";
 
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
             while (rs.next()) {
-                EdirGroup group = new EdirGroup();
-                group.setId(rs.getInt("id"));
-                group.setName(rs.getString("name"));
-                group.setContribution(rs.getDouble("contribution_amount")); // Read correctly
-                group.setCreatedAt(rs.getTimestamp("created_at"));
-                groups.add(group);
+                Map<String, String> map = new HashMap<>();
+                map.put("id", String.valueOf(rs.getInt("id")));
+                map.put("name", rs.getString("name"));
+                map.put("monthly_fee", String.valueOf(rs.getDouble("group_fee")));
+                map.put("fund_balance", String.valueOf(rs.getDouble("fund_balance")));
+                map.put("member_count", String.valueOf(rs.getInt("member_count")));
+                list.add(map);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return groups;
+        return list;
     }
 
     @Override
-    public void deleteEdirGroup(int id) {
-        String sql = "DELETE FROM edir_groups WHERE id = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            stmt.executeUpdate();
+    public boolean createGroup(String groupName, double monthlyFee, double initialPool, String rules) {
+        String sqlGroup = "INSERT INTO groups (name, type, created_by) VALUES (?, 'EDIR', null) RETURNING id";
+        // ✅ UPDATED: target table column explicitly mapped to contribution_amount
+        String sqlEdirSettings = "INSERT INTO edir_groups (name, contribution_amount) VALUES (?, ?)";
+        String sqlInitialTransaction = "INSERT INTO transactions (group_id, group_type, amount, type, description) VALUES (?, 'EDIR', ?, 'DEPOSIT', 'Initial reserves deposit pool')";
+
+        try (Connection conn = DBConnection.getConnection()) {
+            conn.setAutoCommit(false); // Begin transaction block
+
+            int generatedGroupId = -1;
+            try (PreparedStatement psGroup = conn.prepareStatement(sqlGroup)) {
+                psGroup.setString(1, groupName);
+                try (ResultSet rs = psGroup.executeQuery()) {
+                    if (rs.next()) {
+                        generatedGroupId = rs.getInt(1);
+                    }
+                }
+            }
+
+            if (generatedGroupId == -1) {
+                conn.rollback();
+                return false;
+            }
+
+            try (PreparedStatement psEdir = conn.prepareStatement(sqlEdirSettings)) {
+                psEdir.setString(1, groupName);
+                psEdir.setDouble(2, monthlyFee);
+                psEdir.executeUpdate();
+            }
+
+            if (initialPool > 0) {
+                try (PreparedStatement psTx = conn.prepareStatement(sqlInitialTransaction)) {
+                    psTx.setInt(1, generatedGroupId);
+                    psTx.setDouble(2, initialPool);
+                    psTx.executeUpdate();
+                }
+            }
+
+            conn.commit();
+            return true;
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         }
     }
 
     @Override
-    public Object[] getEdirGroupMetrics(int edirGroupId) {
-        String sql = "SELECT " +
-                "  (SELECT COUNT(*) FROM members) AS total_m, " +
-                "  COALESCE((SELECT SUM(amount) FROM transaction WHERE group_id = ? AND group_type = 'EDIR' AND type = 'CONTRIBUTION'), 0) - " +
-                "  COALESCE((SELECT SUM(amount) FROM transaction WHERE group_id = ? AND group_type = 'EDIR' AND type = 'PAYOUT'), 0) AS balance, " +
-                "  (SELECT COUNT(*) FROM edir_emergencies WHERE group_id = ? AND status = 'PENDING') AS active_cases";
+    public boolean deleteGroup(String groupName) {
+        String sqlGetId = "SELECT id FROM groups WHERE name = ? AND type = 'EDIR'";
+        String sqlDelTx = "DELETE FROM transactions WHERE group_id = ?";
+        String sqlDelEdir = "DELETE FROM edir_groups WHERE name = ?";
+        String sqlDelGroup = "DELETE FROM groups WHERE id = ?";
 
+        try (Connection conn = DBConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            int groupId = -1;
+
+            try (PreparedStatement psId = conn.prepareStatement(sqlGetId)) {
+                psId.setString(1, groupName);
+                try (ResultSet rs = psId.executeQuery()) {
+                    if (rs.next()) groupId = rs.getInt("id");
+                }
+            }
+
+            if (groupId != -1) {
+                try (PreparedStatement psDelTx = conn.prepareStatement(sqlDelTx)) {
+                    psDelTx.setInt(1, groupId);
+                    psDelTx.executeUpdate();
+                }
+                try (PreparedStatement psDelGroup = conn.prepareStatement(sqlDelGroup)) {
+                    psDelGroup.setInt(1, groupId);
+                    psDelGroup.executeUpdate();
+                }
+            }
+
+            try (PreparedStatement psDelEdir = conn.prepareStatement(sqlDelEdir)) {
+                psDelEdir.setString(1, groupName);
+                psDelEdir.executeUpdate();
+            }
+
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @Override
+    public Map<String, String> getGroupDetails(String groupName) {
+        Map<String, String> map = new HashMap<>();
+        String sql = "SELECT g.id, " +
+                "COALESCE((SELECT SUM(amount) FROM transactions WHERE group_id = g.id AND type = 'CONTRIBUTION'), 0) - " +
+                "COALESCE((SELECT SUM(amount) FROM transactions WHERE group_id = g.id AND type = 'PAYOUT'), 0) as fund_balance, " +
+                "(SELECT COUNT(DISTINCT member_id) FROM transactions WHERE group_id = g.id) as total_members " +
+                "FROM groups g WHERE g.name = ? AND g.type = 'EDIR'";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, edirGroupId);
-            stmt.setInt(2, edirGroupId);
-            stmt.setInt(3, edirGroupId);
-
-            try (ResultSet rs = stmt.executeQuery()) {
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, groupName);
+            try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    return new Object[]{
-                            rs.getInt("total_m"),
-                            rs.getDouble("balance"),
-                            rs.getInt("active_cases")
-                    };
+                    map.put("id", String.valueOf(rs.getInt("id")));
+                    map.put("fund_balance", String.format("%.2f", rs.getDouble("fund_balance")));
+                    map.put("total_members", String.valueOf(rs.getInt("total_members")));
+                    map.put("active_cases", "0");
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return new Object[]{0, 0.0, 0};
+        return map;
     }
 
     @Override
-    public void recordEdirContribution(int memberId, int groupId, double amount) {
-        String sql = "INSERT INTO transaction (member_id, group_id, group_type, amount, type, date, description) " +
-                "VALUES (?, ?, 'EDIR', ?, 'CONTRIBUTION', CURRENT_TIMESTAMP, 'Monthly Edir Fee Contribution Payment')";
+    public List<Map<String, String>> getMembersByGroup(String groupName) {
+        List<Map<String, String>> list = new ArrayList<>();
+        String sql = "SELECT DISTINCT m.id, m.full_name, m.phone " +
+                "FROM members m " +
+                "JOIN transactions t ON m.id = t.member_id " +
+                "JOIN groups g ON t.group_id = g.id " +
+                "WHERE g.name = ? AND g.type = 'EDIR'";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, memberId);
-            stmt.setInt(2, groupId);
-            stmt.setDouble(3, amount);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public List<Transaction> getRecentContributionsForGroup(int groupId) {
-        List<Transaction> transactions = new ArrayList<>();
-        String sql = "SELECT id, member_id, group_id, group_type, amount, type, date, description " +
-                "FROM transaction WHERE group_id = ? AND group_type = 'EDIR' ORDER BY date DESC";
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, groupId);
-
-            try (ResultSet rs = stmt.executeQuery()) {
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, groupName);
+            try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    Transaction t = new Transaction();
-                    t.setId(rs.getInt("id"));
-                    t.setMemberId(rs.getInt("member_id"));
-                    t.setGroupId(rs.getInt("group_id"));
-                    t.setGroupType(rs.getString("group_type"));
-                    t.setAmount(rs.getDouble("amount"));
-                    t.setType(rs.getString("type"));
-                    t.setDate(rs.getTimestamp("date"));
-                    t.setDescription(rs.getString("description"));
-                    transactions.add(t);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return transactions;
-    }
-
-    @Override
-    public void registerEmergencyCase(int memberId, int groupId, String type, double amount, String description) {
-        String sql = "INSERT INTO edir_emergencies (member_id, group_id, emergency_type, amount_needed, description, status, date) " +
-                "VALUES (?, ?, ?, ?, ?, 'PENDING', CURRENT_TIMESTAMP)";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, memberId);
-            stmt.setInt(2, groupId);
-            stmt.setString(3, type);
-            stmt.setDouble(4, amount);
-            stmt.setString(5, description);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public List<EmergencyCase> getPendingPayoutCasesForGroup(int groupId) {
-        List<EmergencyCase> list = new ArrayList<>();
-        String sql = "SELECT e.*, m.full_name FROM edir_emergencies e " +
-                "JOIN members m ON e.member_id = m.id " +
-                "WHERE e.group_id = ? AND e.status = 'PENDING' ORDER BY e.date DESC";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, groupId);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    EmergencyCase ec = new EmergencyCase();
-                    ec.setId(rs.getInt("id"));
-                    ec.setMemberId(rs.getInt("member_id"));
-                    ec.setMemberName(rs.getString("full_name"));
-                    ec.setGroupId(rs.getInt("group_id"));
-                    ec.setEmergencyType(rs.getString("emergency_type"));
-                    ec.setAmountNeeded(rs.getDouble("amount_needed"));
-                    ec.setDescription(rs.getString("description"));
-                    ec.setStatus(rs.getString("status"));
-                    ec.setDate(rs.getTimestamp("date"));
-                    list.add(ec);
+                    Map<String, String> map = new HashMap<>();
+                    map.put("id", String.valueOf(rs.getInt("id")));
+                    map.put("full_name", rs.getString("full_name"));
+                    map.put("phone", rs.getString("phone"));
+                    map.put("status", "Active");
+                    list.add(map);
                 }
             }
         } catch (SQLException e) {
@@ -184,34 +185,167 @@ public class EdirDAOImpl implements EdirDAO {
     }
 
     @Override
-    public void disburseEmergencyFunds(EmergencyCase ec) {
-        String insertTxSql = "INSERT INTO transaction (member_id, group_id, group_type, amount, type, date, description) " +
-                "VALUES (?, ?, 'EDIR', ?, 'PAYOUT', CURRENT_TIMESTAMP, ?)";
-        String updateEmergencySql = "UPDATE edir_emergencies SET status = 'DISBURSED' WHERE id = ?";
+    public boolean addMemberToGroup(String groupName, String fullName, String phone) {
+        String sqlFindGroup = "SELECT id FROM groups WHERE name = ? AND type = 'EDIR'";
+        String sqlInsertMember = "INSERT INTO members (full_name, phone, user_id) VALUES (?, ?, null) RETURNING id";
+        String sqlLinkTx = "INSERT INTO transactions (member_id, group_id, group_type, amount, type, description) VALUES (?, ?, 'EDIR', 0, 'REGISTRATION', 'Member joined group profile entry')";
 
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
-            try {
-                try (PreparedStatement stmt1 = conn.prepareStatement(insertTxSql)) {
-                    stmt1.setInt(1, ec.getMemberId());
-                    stmt1.setInt(2, ec.getGroupId());
-                    stmt1.setDouble(3, ec.getAmountNeeded());
-                    stmt1.setString(4, "Emergency assistance payout for: " + ec.getEmergencyType());
-                    stmt1.executeUpdate();
-                }
 
-                try (PreparedStatement stmt2 = conn.prepareStatement(updateEmergencySql)) {
-                    stmt2.setInt(1, ec.getId());
-                    stmt2.executeUpdate();
+            int groupId = -1;
+            try (PreparedStatement psG = conn.prepareStatement(sqlFindGroup)) {
+                psG.setString(1, groupName);
+                try (ResultSet rs = psG.executeQuery()) {
+                    if (rs.next()) groupId = rs.getInt("id");
                 }
+            }
 
-                conn.commit();
-            } catch (SQLException ex) {
+            if (groupId == -1) {
                 conn.rollback();
-                throw ex;
+                return false;
+            }
+
+            int memberId = -1;
+            try (PreparedStatement psM = conn.prepareStatement(sqlInsertMember)) {
+                psM.setString(1, fullName);
+                psM.setString(2, phone);
+                try (ResultSet rs = psM.executeQuery()) {
+                    if (rs.next()) memberId = rs.getInt(1);
+                }
+            }
+
+            try (PreparedStatement psTx = conn.prepareStatement(sqlLinkTx)) {
+                psTx.setInt(1, memberId);
+                psTx.setInt(2, groupId);
+                psTx.executeUpdate();
+            }
+
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @Override
+    public boolean recordContribution(String groupName, String memberName, String month, double amount, String receiptNo) {
+        String sqlFindGroup = "SELECT id FROM groups WHERE name = ? AND type = 'EDIR'";
+        String sqlFindMember = "SELECT id FROM members WHERE full_name = ? LIMIT 1";
+        String sqlInsertTx = "INSERT INTO transactions (member_id, group_id, group_type, amount, type, description) VALUES (?, ?, 'EDIR', ?, 'CONTRIBUTION', ?)";
+
+        try (Connection conn = DBConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            int groupId = -1, memberId = -1;
+
+            try (PreparedStatement psG = conn.prepareStatement(sqlFindGroup)) {
+                psG.setString(1, groupName);
+                try (ResultSet rs = psG.executeQuery()) { if (rs.next()) groupId = rs.getInt("id"); }
+            }
+            try (PreparedStatement psM = conn.prepareStatement(sqlFindMember)) {
+                psM.setString(1, memberName);
+                try (ResultSet rs = psM.executeQuery()) { if (rs.next()) memberId = rs.getInt("id"); }
+            }
+
+            if (groupId == -1 || memberId == -1) { conn.rollback(); return false; }
+
+            try (PreparedStatement psTx = conn.prepareStatement(sqlInsertTx)) {
+                psTx.setInt(1, memberId);
+                psTx.setInt(2, groupId);
+                psTx.setDouble(3, amount);
+                psTx.setString(4, "Month: " + month + " | Receipt: " + receiptNo);
+                psTx.executeUpdate();
+            }
+
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @Override
+    public List<Map<String, String>> getRecentContributions(String groupName) {
+        List<Map<String, String>> list = new ArrayList<>();
+        String sql = "SELECT m.full_name, t.amount, t.description " +
+                "FROM transactions t " +
+                "JOIN members m ON t.member_id = m.id " +
+                "JOIN groups g ON t.group_id = g.id " +
+                "WHERE g.name = ? AND t.type = 'CONTRIBUTION' " +
+                "ORDER BY t.id DESC LIMIT 5";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, groupName);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, String> map = new HashMap<>();
+                    map.put("member_name", rs.getString("full_name"));
+                    map.put("amount", String.valueOf(rs.getDouble("amount")));
+                    map.put("month", rs.getString("description"));
+                    list.add(map);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+        return list;
+    }
+
+    @Override
+    public boolean registerEmergencyCase(String groupName, String memberName, String type, double amount, String description) {
+        String sqlFindGroup = "SELECT id FROM groups WHERE name = ? AND type = 'EDIR'";
+        String sqlFindMember = "SELECT id FROM members WHERE full_name = ? LIMIT 1";
+        String sqlInsertTx = "INSERT INTO transactions (member_id, group_id, group_type, amount, type, description) VALUES (?, ?, 'EDIR', ?, 'PENDING_CLAIM', ?)";
+
+        try (Connection conn = DBConnection.getConnection()) {
+            int groupId = -1, memberId = -1;
+            try (PreparedStatement psG = conn.prepareStatement(sqlFindGroup)) {
+                psG.setString(1, groupName);
+                try (ResultSet rs = psG.executeQuery()) { if (rs.next()) groupId = rs.getInt("id"); }
+            }
+            try (PreparedStatement psM = conn.prepareStatement(sqlFindMember)) {
+                psM.setString(1, memberName);
+                try (ResultSet rs = psM.executeQuery()) { if (rs.next()) memberId = rs.getInt("id"); }
+            }
+            if (groupId == -1 || memberId == -1) return false;
+
+            try (PreparedStatement psTx = conn.prepareStatement(sqlInsertTx)) {
+                psTx.setInt(1, memberId);
+                psTx.setInt(2, groupId);
+                psTx.setDouble(3, amount);
+                psTx.setString(4, "Type: " + type + " | Details: " + description);
+                return psTx.executeUpdate() > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @Override
+    public boolean authorizePayout(String groupName, String caseId, double amount, String approvedBy, String notes) {
+        String sqlFindGroup = "SELECT id FROM groups WHERE name = ? AND type = 'EDIR'";
+        String sqlInsertPayout = "INSERT INTO transactions (member_id, group_id, group_type, amount, type, description) VALUES (null, ?, 'EDIR', ?, 'PAYOUT', ?)";
+
+        try (Connection conn = DBConnection.getConnection()) {
+            int groupId = -1;
+            try (PreparedStatement psG = conn.prepareStatement(sqlFindGroup)) {
+                psG.setString(1, groupName);
+                try (ResultSet rs = psG.executeQuery()) { if (rs.next()) groupId = rs.getInt("id"); }
+            }
+            if (groupId == -1) return false;
+
+            try (PreparedStatement psTx = conn.prepareStatement(sqlInsertPayout)) {
+                psTx.setInt(1, groupId);
+                psTx.setDouble(2, amount);
+                psTx.setString(3, "Approved By: " + approvedBy + " | Notes: " + notes);
+                return psTx.executeUpdate() > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
     }
 }

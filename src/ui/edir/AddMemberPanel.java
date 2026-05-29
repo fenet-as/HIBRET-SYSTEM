@@ -2,77 +2,99 @@ package ui.edir;
 
 import javax.swing.*;
 import java.awt.*;
-import model.EdirGroup;
 import service.EdirService;
-import service.impl.EdirServiceImpl;
+import model.EdirGroup;
 
 public class AddMemberPanel extends JPanel {
-    private final JPanel containerPanel;
+    private final JPanel parentWrapper;
     private final EdirGroup group;
-    private final EdirGroupDetailPanel detailPanel;
-    private final EdirService edirService = new EdirServiceImpl();
+    private final EdirGroupDetailPanel trackingDashboard;
 
     private JTextField txtFullName;
+    private JTextField txtPhone;
 
-    public AddMemberPanel(JPanel containerPanel, EdirGroup group, EdirGroupDetailPanel detailPanel) {
-        this.containerPanel = containerPanel;
+    public AddMemberPanel(JPanel parentWrapper, EdirGroup group, EdirGroupDetailPanel trackingDashboard) {
+        this.parentWrapper = parentWrapper;
         this.group = group;
-        this.detailPanel = detailPanel;
+        this.trackingDashboard = trackingDashboard;
 
-        setBackground(new Color(252, 249, 242));
         setLayout(new GridBagLayout());
-        setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
+        setBackground(new Color(253, 247, 237));
+        setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
 
+        initFormComponents();
+    }
+
+    private void initFormComponents() {
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(12, 12, 12, 12);
+        gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JLabel title = new JLabel("👤 Register New Member to " + group.getName());
-        title.setFont(new Font("SansSerif", Font.BOLD, 20));
-        title.setForeground(new Color(101, 53, 15));
+        JLabel lblTitle = new JLabel("Enroll New Group Member");
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 22));
+        lblTitle.setForeground(new Color(101, 31, 16));
         gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
-        add(title, gbc);
+        add(lblTitle, gbc);
 
-        gbc.gridwidth = 1;
-        gbc.gridy = 1; gbc.gridx = 0;
+        // Name input UI setup
+        gbc.gridwidth = 1; gbc.gridy = 1;
         add(new JLabel("Full Name:"), gbc);
-
         txtFullName = new JTextField(20);
-        txtFullName.setPreferredSize(new Dimension(200, 35));
         gbc.gridx = 1;
         add(txtFullName, gbc);
 
-        JPanel actionRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        actionRow.setOpaque(false);
+        // Phone input UI setup
+        gbc.gridx = 0; gbc.gridy = 2;
+        add(new JLabel("Phone Number:"), gbc);
+        txtPhone = new JTextField(20);
+        gbc.gridx = 1;
+        add(txtPhone, gbc);
+
+        // Action Buttons Setup Container Panel
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        btnPanel.setOpaque(false);
 
         JButton btnCancel = new JButton("Cancel");
-        btnCancel.addActionListener(e -> ((CardLayout) containerPanel.getLayout()).show(containerPanel, "EdirGroupDetail"));
+        JButton btnSubmit = new JButton("Register Member");
+        btnSubmit.setBackground(new Color(46, 117, 89));
+        btnSubmit.setForeground(Color.WHITE);
 
-        JButton btnSave = new JButton("Add Registry");
-        btnSave.addActionListener(e -> {
-            String fullName = txtFullName.getText().trim();
-            if (fullName.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Member name cannot be blank.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+        // ✅ CANCEL ACTION ROUTINE: Triggers immediate back navigation
+        btnCancel.addActionListener(e -> returnToDashboardView());
+
+        // ✅ SUBMIT ACTION ROUTINE: Persists registration entry to Postgres database then routes back
+        btnSubmit.addActionListener(e -> {
+            String name = txtFullName.getText().trim();
+            String phone = txtPhone.getText().trim();
+
+            if (name.isEmpty() || phone.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "All input fields are required.", "Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            // Write to service layer database framework
-            edirService.addMemberToGroup(fullName, group.getId());
-            JOptionPane.showMessageDialog(this, fullName + " has been successfully enrolled!");
-
-            // Force the metrics panel card layout to refresh numbers instantly
-            detailPanel.refreshDashboardMetricsAndLedger();
-
-            ((CardLayout) containerPanel.getLayout()).show(containerPanel, "EdirGroupDetail");
+            // Interface with Postgres via structural Service Layer
+            boolean success = trackingDashboard.getEdirService().addMemberToGroup(group.getName(), name, phone);
+            if (success) {
+                JOptionPane.showMessageDialog(this, "Member successfully added to " + group.getName());
+                returnToDashboardView();
+            } else {
+                JOptionPane.showMessageDialog(this, "Could not process database enrollment record.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
-        actionRow.add(btnCancel);
-        actionRow.add(btnSave);
-        gbc.gridy = 2; gbc.gridx = 0; gbc.gridwidth = 2;
-        add(actionRow, gbc);
+        btnPanel.add(btnCancel);
+        btnPanel.add(btnSubmit);
+
+        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2;
+        add(btnPanel, gbc);
     }
 
+    private void returnToDashboardView() {
+        // Trigger the top-level refresh to update stat counts from the database
+        trackingDashboard.refreshDashboardMetricsAndLedger();
 
-
-
+        // Pop the view deck container card backward securely
+        CardLayout cl = (CardLayout) parentWrapper.getLayout();
+        cl.show(parentWrapper, "EdirDetail");
+    }
 }

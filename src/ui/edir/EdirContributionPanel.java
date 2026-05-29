@@ -3,6 +3,8 @@ package ui.edir;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
+import java.util.List;
+import java.util.Map;
 import service.EdirService;
 
 public class EdirContributionPanel extends JPanel {
@@ -25,6 +27,7 @@ public class EdirContributionPanel extends JPanel {
         setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
 
         initMainForm();
+        loadMembersCombo();
     }
 
     private void initMainForm() {
@@ -47,7 +50,6 @@ public class EdirContributionPanel extends JPanel {
         gbc.insets = new Insets(12, 12, 12, 12);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Custom Flow Header with Back Navigation
         JButton btnBack = new JButton("← Cancel");
         btnBack.addActionListener(e -> {
             CardLayout innerLayout = (CardLayout) parentWrapper.getLayout();
@@ -69,10 +71,9 @@ public class EdirContributionPanel extends JPanel {
         gbc.gridwidth = 1;
         gbc.weightx = 0.5;
 
-        // Row 1: Member Selection & Month
         gbc.gridx = 0; gbc.gridy = 1;
         formContainer.add(createFieldLabel("Select Contributor Member"), gbc);
-        comboMember = new JComboBox<>(new String[]{"Sara Kebede", "Abel Tesfaye", "Hana Bekele"});
+        comboMember = new JComboBox<>();
         gbc.gridy = 2;
         formContainer.add(comboMember, gbc);
 
@@ -82,7 +83,6 @@ public class EdirContributionPanel extends JPanel {
         gbc.gridy = 2;
         formContainer.add(comboMonth, gbc);
 
-        // Row 2: Amount & Receipt Number reference tracker
         gbc.gridx = 0; gbc.gridy = 3;
         formContainer.add(createFieldLabel("Amount Paid (birr)"), gbc);
         txtAmount = new JTextField("200");
@@ -97,7 +97,6 @@ public class EdirContributionPanel extends JPanel {
         gbc.gridy = 4;
         formContainer.add(txtReceiptNumber, gbc);
 
-        // Submit Button Row
         gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 2;
         gbc.insets = new Insets(30, 12, 12, 12);
 
@@ -106,7 +105,7 @@ public class EdirContributionPanel extends JPanel {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(28, 85, 163)); // Hibret Corporate Blue Accent
+                g2.setColor(new Color(28, 85, 163));
                 g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
                 g2.dispose();
                 super.paintComponent(g);
@@ -120,17 +119,42 @@ public class EdirContributionPanel extends JPanel {
         btnSubmit.setPreferredSize(new Dimension(0, 45));
 
         btnSubmit.addActionListener(e -> {
-            if(txtAmount.getText().trim().isEmpty() || txtReceiptNumber.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "All database reporting parameters are mandatory.", "Error", JOptionPane.ERROR_MESSAGE);
+            if (comboMember.getSelectedItem() == null || txtAmount.getText().trim().isEmpty() || txtReceiptNumber.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "All fields are required.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            JOptionPane.showMessageDialog(this, "Contribution fee payment recorded into financial ledgers successfully.");
-            CardLayout cl = (CardLayout) parentWrapper.getLayout();
-            cl.show(parentWrapper, "EdirDetail");
+            try {
+                String member = comboMember.getSelectedItem().toString();
+                String month = comboMonth.getSelectedItem().toString();
+                double amt = Double.parseDouble(txtAmount.getText().trim());
+                String receipt = txtReceiptNumber.getText().trim();
+
+                boolean ok = edirService.recordContribution(groupName, member, month, amt, receipt);
+                if (ok) {
+                    JOptionPane.showMessageDialog(this, "Contribution fee payment recorded successfully.");
+                    for (Component comp : parentWrapper.getComponents()) {
+                        if (comp instanceof EdirGroupDetailPanel) {
+                            ((EdirGroupDetailPanel) comp).refreshDashboardMetricsAndLedger();
+                        }
+                    }
+                    CardLayout cl = (CardLayout) parentWrapper.getLayout();
+                    cl.show(parentWrapper, "EdirDetail");
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Invalid number entry.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         formContainer.add(btnSubmit, gbc);
         add(formContainer, BorderLayout.CENTER);
+    }
+
+    private void loadMembersCombo() {
+        comboMember.removeAllItems();
+        List<Map<String, String>> list = edirService.getMembersByGroup(groupName);
+        for(Map<String, String> m : list) {
+            comboMember.addItem(m.get("full_name"));
+        }
     }
 
     private JLabel createFieldLabel(String text) {

@@ -4,6 +4,8 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
+import java.util.List;
+import java.util.Map;
 import service.EdirService;
 
 public class EdirMembersPanel extends JPanel {
@@ -22,11 +24,12 @@ public class EdirMembersPanel extends JPanel {
         this.groupName = groupName;
 
         setLayout(new BorderLayout(20, 20));
-        setBackground(new Color(253, 247, 237));
+        setBackground(new Color(253, 247, 237)); // Keeps your preferred cream aesthetic
         setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
 
         initHeader();
         initSplitBody();
+        loadMembersData();
     }
 
     private void initHeader() {
@@ -37,6 +40,11 @@ public class EdirMembersPanel extends JPanel {
         btnBack.setFont(new Font("SansSerif", Font.BOLD, 12));
         btnBack.setForeground(new Color(101, 31, 16));
         btnBack.addActionListener(e -> {
+            for (Component comp : parentWrapper.getComponents()) {
+                if (comp instanceof EdirGroupDetailPanel) {
+                    ((EdirGroupDetailPanel) comp).refreshDashboardMetricsAndLedger();
+                }
+            }
             CardLayout innerLayout = (CardLayout) parentWrapper.getLayout();
             innerLayout.show(parentWrapper, "EdirDetail");
         });
@@ -54,7 +62,6 @@ public class EdirMembersPanel extends JPanel {
         JPanel splitPanel = new JPanel(new GridLayout(1, 2, 25, 0));
         splitPanel.setOpaque(false);
 
-        // --- LEFT SIDE: ADD MEMBER FORM ---
         JPanel formContainer = new JPanel(new GridBagLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
@@ -100,7 +107,7 @@ public class EdirMembersPanel extends JPanel {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(46, 117, 89)); // Emerald Green
+                g2.setColor(new Color(46, 117, 89));
                 g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
                 g2.dispose();
                 super.paintComponent(g);
@@ -113,26 +120,32 @@ public class EdirMembersPanel extends JPanel {
         btnSubmit.setFocusPainted(false);
         btnSubmit.setPreferredSize(new Dimension(0, 42));
 
+        // ✅ FIX IS HERE: The action listener now extracts and passes exactly 3 String values
         btnSubmit.addActionListener(e -> {
             String name = txtFullName.getText().trim();
             String phone = txtPhone.getText().trim();
+
             if (name.isEmpty() || phone.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Please fill in all details.", "Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            // Add row to table model
-            int index = tableModel.getRowCount() + 1;
-            tableModel.addRow(new Object[]{String.valueOf(index), name, phone, "Active"});
-            txtFullName.setText("");
-            txtPhone.setText("");
-            JOptionPane.showMessageDialog(this, name + " added to group registration roster successfully.");
+
+            // Invoking the backend layer with correct types (String, String, String)
+            boolean ok = edirService.addMemberToGroup(groupName, name, phone);
+            if (ok) {
+                loadMembersData(); // Refresh table from live DB records
+                txtFullName.setText("");
+                txtPhone.setText("");
+                JOptionPane.showMessageDialog(this, name + " added successfully to " + groupName);
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to save record to backend database.", "Database Error", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         gbc.gridy = 5;
         gbc.insets = new Insets(20, 8, 8, 8);
         formContainer.add(btnSubmit, gbc);
 
-        // --- RIGHT SIDE: ACTIVE MEMBERS TABLE VIEW ---
         JPanel tableContainer = new JPanel(new BorderLayout());
         tableContainer.setOpaque(false);
 
@@ -144,10 +157,6 @@ public class EdirMembersPanel extends JPanel {
 
         String[] cols = {"ID", "Full Name", "Phone", "Status"};
         tableModel = new DefaultTableModel(null, cols);
-        // Prepopulating demo data rows
-        tableModel.addRow(new Object[]{"1", "Sara Kebede", "0911223344", "Active"});
-        tableModel.addRow(new Object[]{"2", "Abel Tesfaye", "0912345678", "Active"});
-        tableModel.addRow(new Object[]{"3", "Hana Bekele", "0918765432", "Active"});
 
         membersTable = new JTable(tableModel);
         membersTable.setRowHeight(38);
@@ -163,6 +172,15 @@ public class EdirMembersPanel extends JPanel {
         splitPanel.add(formContainer);
         splitPanel.add(tableContainer);
         add(splitPanel, BorderLayout.CENTER);
+    }
+
+    private void loadMembersData() {
+        tableModel.setRowCount(0);
+        List<Map<String, String>> members = edirService.getMembersByGroup(groupName);
+        int id = 1;
+        for (Map<String, String> m : members) {
+            tableModel.addRow(new Object[]{String.valueOf(id++), m.get("full_name"), m.get("phone"), m.get("status")});
+        }
     }
 
     private JLabel createFieldLabel(String text) {

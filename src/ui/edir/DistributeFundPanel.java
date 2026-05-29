@@ -68,24 +68,21 @@ public class DistributeFundPanel extends JPanel {
         gbc.gridwidth = 1;
         gbc.weightx = 0.5;
 
-        // Row 1: Approved Cases List Lookup & Amount Allocation
         gbc.gridx = 0; gbc.gridy = 1;
         formContainer.add(createFieldLabel("Select Approved Active Claim Case"), gbc);
         comboApprovedCase = new JComboBox<>(new String[]{
-                "CASE-8930: Abel Tesfaye (Funeral Assistance Request)",
-                "CASE-4211: Sara Kebede (Medical Outpatient Support)"
+                "CLAIM-ACTIVE: Urgent Support Case Selection Pool Reference"
         });
         gbc.gridy = 2;
         formContainer.add(comboApprovedCase, gbc);
 
         gbc.gridx = 1; gbc.gridy = 1;
         formContainer.add(createFieldLabel("Disbursed Payout Capital (birr)"), gbc);
-        txtDisbursedAmount = new JTextField("15,000");
+        txtDisbursedAmount = new JTextField("15000");
         txtDisbursedAmount.setPreferredSize(new Dimension(0, 35));
         gbc.gridy = 2;
         formContainer.add(txtDisbursedAmount, gbc);
 
-        // Row 2: Approving Authority Signature & Auditor Notes Memo Field
         gbc.gridx = 0; gbc.gridy = 3;
         formContainer.add(createFieldLabel("Approving Chairman/Admin Board Authority"), gbc);
         txtApprovedBy = new JTextField("System Administrator");
@@ -95,14 +92,13 @@ public class DistributeFundPanel extends JPanel {
 
         gbc.gridx = 1; gbc.gridy = 3;
         formContainer.add(createFieldLabel("Distribution Auditor Memo Notes"), gbc);
-        txtNotes = new JTextArea("Disbursement processing via cash reserve withdrawal confirmation receipt.", 2, 20);
+        txtNotes = new JTextArea("Disbursement processing transaction logs.", 2, 20);
         txtNotes.setBorder(BorderFactory.createLineBorder(new Color(210, 200, 185)));
         txtNotes.setLineWrap(true);
         JScrollPane notesScroll = new JScrollPane(txtNotes);
         gbc.gridy = 4;
         formContainer.add(notesScroll, gbc);
 
-        // Submit Row Action Trigger
         gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 2;
         gbc.insets = new Insets(30, 12, 12, 12);
 
@@ -111,7 +107,7 @@ public class DistributeFundPanel extends JPanel {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(163, 51, 39)); // Alert/Distribution crimson red
+                g2.setColor(new Color(163, 51, 39));
                 g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
                 g2.dispose();
                 super.paintComponent(g);
@@ -124,21 +120,29 @@ public class DistributeFundPanel extends JPanel {
         btnSubmit.setFocusPainted(false);
         btnSubmit.setPreferredSize(new Dimension(0, 45));
 
-
-
-
-        //  CORRECTED CODE
         btnSubmit.addActionListener(e -> {
-            if(txtDisbursedAmount.getText().trim().isEmpty() || txtApprovedBy.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "All financial clearance entries are mandatory.", "Error", JOptionPane.ERROR_MESSAGE);
+            if (txtDisbursedAmount.getText().trim().isEmpty() || txtApprovedBy.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "All entry inputs are required.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            int conf = JOptionPane.showConfirmDialog(this, "Are you sure you want to log this payout? This will deduct funds from the pool.", "Confirm Payout", JOptionPane.YES_NO_OPTION);
+            int conf = JOptionPane.showConfirmDialog(this, "Confirm fund allocation payout logs?", "Confirm Payout", JOptionPane.YES_NO_OPTION);
             if (conf == JOptionPane.YES_OPTION) {
-                // Line removed successfully
-                JOptionPane.showMessageDialog(this, "Funds allocated and transaction logged successfully.");
-                CardLayout cl = (CardLayout) parentWrapper.getLayout();
-                cl.show(parentWrapper, "EdirDetail");
+                try {
+                    double amt = Double.parseDouble(txtDisbursedAmount.getText().trim());
+                    boolean ok = edirService.authorizePayout(groupName, "MOCK-ID", amt, txtApprovedBy.getText(), txtNotes.getText());
+                    if (ok) {
+                        JOptionPane.showMessageDialog(this, "Funds allocated and transaction logged successfully.");
+                        for (Component comp : parentWrapper.getComponents()) {
+                            if (comp instanceof EdirGroupDetailPanel) {
+                                ((EdirGroupDetailPanel) comp).refreshDashboardMetricsAndLedger();
+                            }
+                        }
+                        CardLayout cl = (CardLayout) parentWrapper.getLayout();
+                        cl.show(parentWrapper, "EdirDetail");
+                    }
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this, "Invalid digit configurations format.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
             }
         });
 

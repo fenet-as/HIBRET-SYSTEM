@@ -125,32 +125,50 @@ public class CreateEdirGroupPanel extends JPanel {
         btnSubmit.setFocusPainted(false);
         btnSubmit.setPreferredSize(new Dimension(0, 45));
 
+
+
         btnSubmit.addActionListener(e -> {
             String groupName = txtGroupName.getText().trim();
-            String fee = txtMonthlyFee.getText().trim();
-            String initialPool = txtInitialDeposit.getText().trim();
+            String feeStr = txtMonthlyFee.getText().trim();
+            String initialPoolStr = txtInitialDeposit.getText().trim();
+            String rules = txtRules.getText().trim();
 
-            if(groupName.isEmpty() || fee.isEmpty() || initialPool.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "All identification and initial financial entries are required.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            if(groupName.isEmpty() || feeStr.isEmpty() || initialPoolStr.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "All input identification entries are required.", "Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            // In the future, hook into your active service layer:
-            // edirService.createGroup(groupName, Double.parseDouble(fee)...);
+            try {
+                double fee = Double.parseDouble(feeStr);
+                double initialPool = Double.parseDouble(initialPoolStr);
 
-            JOptionPane.showMessageDialog(this, "'" + groupName + "' has been officially registered within the system registry.");
+                // Runs transaction sequence inside Postgres groups & edir_groups tables simultaneously
+                boolean success = edirService.createGroup(groupName, fee, initialPool, rules);
+                if (success) {
+                    JOptionPane.showMessageDialog(this, "EDIR Group '" + groupName + "' has been successfully registered!");
 
-            // Route user directly back onto the refreshed home view card
-            CardLayout innerLayout = (CardLayout) parentWrapper.getLayout();
+                    // Clear inputs
+                    txtGroupName.setText("");
+                    txtMonthlyFee.setText("");
+                    txtInitialDeposit.setText("");
+                    txtRules.setText("");
 
-            // Pull components inside stack layout to invoke reload sequence dynamically
-            for (Component viewComponent : parentWrapper.getComponents()) {
-                if (viewComponent instanceof EdirHomePanel) {
-                    ((EdirHomePanel) viewComponent).loadGroups();
+                    // Instantaneously trigger landing view table records updates
+                    for (Component viewComponent : parentWrapper.getComponents()) {
+                        if (viewComponent instanceof EdirHomePanel) {
+                            ((EdirHomePanel) viewComponent).loadGroups();
+                        }
+                    }
+
+                    // Switch layout cards back to grid view homepage
+                    CardLayout innerLayout = (CardLayout) parentWrapper.getLayout();
+                    innerLayout.show(parentWrapper, "EdirHome");
+                } else {
+                    JOptionPane.showMessageDialog(this, "Could not create group. The group name might already be taken.", "Database Error", JOptionPane.ERROR_MESSAGE);
                 }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Please enter valid number values for numeric input configuration entries.", "Input Error", JOptionPane.ERROR_MESSAGE);
             }
-
-            innerLayout.show(parentWrapper, "EdirHome");
         });
 
         formContainer.add(btnSubmit, gbc);
