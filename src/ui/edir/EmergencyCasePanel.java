@@ -5,8 +5,6 @@ import java.awt.*;
 import java.util.List;
 import java.util.Map;
 import service.EdirService;
-import util.LanguageManager;
-import util.FontManager; // ✅ Imported FontManager
 
 public class EmergencyCasePanel extends JPanel {
     private final JPanel parentWrapper;
@@ -38,9 +36,8 @@ public class EmergencyCasePanel extends JPanel {
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
 
-        // ✅ Localized Panel Header String Builder Formatter Context
-        lblTitle = new JLabel(LanguageManager.getFormattedString("edir.emergency.title", groupDisplayName));
-        lblTitle.setFont(FontManager.getBoldFont(22));
+        lblTitle = new JLabel("File Emergency Claim for " + groupDisplayName);
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 22));
         lblTitle.setForeground(new Color(101, 31, 16));
 
         headerPanel.add(lblTitle, BorderLayout.WEST);
@@ -56,86 +53,83 @@ public class EmergencyCasePanel extends JPanel {
 
         // 1. Affected Member Combo Field
         gbc.gridx = 0; gbc.gridy = 0;
-        JLabel lblMem = new JLabel(LanguageManager.getString("edir.emergency.lbl.select_member"));
-        lblMem.setFont(FontManager.getBoldFont(14));
+        JLabel lblMem = new JLabel("Select Affected Group Member:");
+        lblMem.setFont(new Font("SansSerif", Font.BOLD, 14));
         formContainer.add(lblMem, gbc);
 
         cmbMembers = new JComboBox<>();
-        cmbMembers.setFont(FontManager.getPlainFont(13));
+        cmbMembers.setFont(new Font("SansSerif", Font.PLAIN, 13));
         cmbMembers.setPreferredSize(new Dimension(300, 35));
         gbc.gridx = 1;
         formContainer.add(cmbMembers, gbc);
 
-        // 2. Financial Request Sum Allocation Textbox (Shifted grid coordinates up to gridy = 1)
+        // 2. Financial Request Sum Allocation Textbox
         gbc.gridx = 0; gbc.gridy = 1;
-        JLabel lblAmt = new JLabel(LanguageManager.getString("edir.emergency.lbl.coverage_sum"));
-        lblAmt.setFont(FontManager.getBoldFont(14));
+        JLabel lblAmt = new JLabel("Requested Coverage Amount (ETB):");
+        lblAmt.setFont(new Font("SansSerif", Font.BOLD, 14));
         formContainer.add(lblAmt, gbc);
 
         txtAmount = new JTextField();
-        txtAmount.setFont(FontManager.getPlainFont(14));
+        txtAmount.setFont(new Font("SansSerif", Font.PLAIN, 14));
         txtAmount.setPreferredSize(new Dimension(300, 35));
         gbc.gridx = 1;
         formContainer.add(txtAmount, gbc);
 
-        // 3. Incident Narrative Logging Area (Shifted grid coordinates up to gridy = 2)
+        // 3. Incident Narrative Logging Area
         gbc.gridx = 0; gbc.gridy = 2;
-        JLabel lblDesc = new JLabel(LanguageManager.getString("edir.emergency.lbl.narrative"));
-        lblDesc.setFont(FontManager.getBoldFont(14));
+        JLabel lblDesc = new JLabel("Incident Narrative / Justification Summary:");
+        lblDesc.setFont(new Font("SansSerif", Font.BOLD, 14));
         formContainer.add(lblDesc, gbc);
 
         txtDescription = new JTextArea(4, 20);
-        txtDescription.setFont(FontManager.getPlainFont(14));
+        txtDescription.setFont(new Font("SansSerif", Font.PLAIN, 14));
         txtDescription.setLineWrap(true);
         txtDescription.setWrapStyleWord(true);
         JScrollPane descScroll = new JScrollPane(txtDescription);
         gbc.gridx = 1;
         formContainer.add(descScroll, gbc);
 
-        // 4. Execution Buttons Panel Setup Row (Shifted grid coordinates up to gridy = 3)
+        // 4. Execution Buttons Panel Setup Row
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
         btnPanel.setOpaque(false);
 
-        JButton btnCancel = new JButton(LanguageManager.getString("edir.emergency.btn.cancel"));
-        btnCancel.setFont(FontManager.getBoldFont(13));
+        JButton btnCancel = new JButton("Cancel");
+        btnCancel.setFont(new Font("SansSerif", Font.BOLD, 13));
         btnCancel.setPreferredSize(new Dimension(100, 38));
         btnCancel.addActionListener(e -> returnToDashboardView());
 
-        JButton btnSubmit = new JButton(LanguageManager.getString("edir.emergency.btn.submit"));
-        btnSubmit.setFont(FontManager.getBoldFont(13));
+        JButton btnSubmit = new JButton("Submit Claim Request");
+        btnSubmit.setFont(new Font("SansSerif", Font.BOLD, 13));
         btnSubmit.setPreferredSize(new Dimension(160, 38));
         btnSubmit.setBackground(new Color(197, 48, 48));
         btnSubmit.setForeground(Color.WHITE);
 
         btnSubmit.addActionListener(e -> {
-            UIManager.put("OptionPane.messageFont", FontManager.getPlainFont(14));
-            UIManager.put("OptionPane.buttonFont", FontManager.getPlainFont(13));
+            UIManager.put("OptionPane.messageFont", new Font("SansSerif", Font.PLAIN, 14));
+            UIManager.put("OptionPane.buttonFont", new Font("SansSerif", Font.PLAIN, 13));
 
             String selectedMember = (String) cmbMembers.getSelectedItem();
             String amountStr = txtAmount.getText().trim();
             String desc = txtDescription.getText().trim();
 
             if (selectedMember == null || amountStr.isEmpty()) {
-                JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.emergency.err.validation"), LanguageManager.getString("msg.validation_error"), JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Please select a member and state the requested fund allocation total.", "Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
             try {
                 double parsedAmt = Double.parseDouble(amountStr);
-
-                // ✅ SEVERITY COMBO REMOVED: Passes a standard default background type string
-                // to fulfill backend tracking variables securely without triggering UI translation layout drops
                 String fallbackCaseType = "General Emergency";
 
                 boolean isSaved = edirService.registerEmergencyCase(this.groupId, selectedMember, fallbackCaseType, parsedAmt, desc);
                 if (isSaved) {
-                    JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.emergency.success"), LanguageManager.getString("msg.success"), JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Emergency financial coverage claim filed successfully and queued for operational processing.", "Success", JOptionPane.INFORMATION_MESSAGE);
                     returnToDashboardView();
                 } else {
-                    JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.emergency.err.database"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Failed to write structural parameters into system data files.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.emergency.err.parsing"), LanguageManager.getString("msg.parsing_error"), JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "The numerical values assigned to financial request properties could not be formatted cleanly.", "Format Parsing Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -152,7 +146,7 @@ public class EmergencyCasePanel extends JPanel {
         Map<String, String> details = edirService.getGroupDetails(this.groupId);
         if (details != null && !details.isEmpty()) {
             this.groupDisplayName = details.getOrDefault("name", "Edir Group");
-            lblTitle.setText(LanguageManager.getFormattedString("edir.emergency.title", this.groupDisplayName));
+            lblTitle.setText("File Emergency Claim for " + this.groupDisplayName);
         }
 
         cmbMembers.removeAllItems();

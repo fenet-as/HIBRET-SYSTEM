@@ -7,8 +7,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import service.EdirService;
-import util.LanguageManager;
-import util.FontManager;
 
 public class EdirContributionPanel extends JPanel {
     private final JPanel parentWrapper;
@@ -57,15 +55,15 @@ public class EdirContributionPanel extends JPanel {
         gbc.anchor = GridBagConstraints.WEST;
 
         // Top Cancel Back Button
-        JButton btnBack = new JButton(LanguageManager.getString("edir.contribution.btn_cancel"));
-        btnBack.setFont(FontManager.getBoldFont(12));
+        JButton btnBack = new JButton("Cancel");
+        btnBack.setFont(new Font("SansSerif", Font.BOLD, 12));
         btnBack.addActionListener(e -> {
             CardLayout innerLayout = (CardLayout) parentWrapper.getLayout();
             innerLayout.show(parentWrapper, "EdirDetail");
         });
 
-        lblTitle = new JLabel(LanguageManager.getFormattedString("edir.contribution.title", groupDisplayName));
-        lblTitle.setFont(FontManager.getBoldFont(22));
+        lblTitle = new JLabel("Record Contribution for " + groupDisplayName);
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 22));
         lblTitle.setForeground(new Color(101, 31, 16));
 
         JPanel headerLayout = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
@@ -83,15 +81,15 @@ public class EdirContributionPanel extends JPanel {
 
         // Row 1: Contributor Member
         gbc.gridy = 1;
-        formContainer.add(createFieldLabel(LanguageManager.getString("edir.contribution.lbl_contributor")), gbc);
+        formContainer.add(createFieldLabel("Select Contributor Member"), gbc);
 
         comboMember = new JComboBox<>();
-        comboMember.setFont(FontManager.getPlainFont(14));
+        comboMember.setFont(new Font("SansSerif", Font.PLAIN, 14));
         comboMember.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                label.setFont(FontManager.getPlainFont(14));
+                label.setFont(new Font("SansSerif", Font.PLAIN, 14));
                 return label;
             }
         });
@@ -100,10 +98,10 @@ public class EdirContributionPanel extends JPanel {
 
         // Row 2: Amount Textbox
         gbc.gridy = 3;
-        formContainer.add(createFieldLabel(LanguageManager.getString("edir.contribution.lbl_amount")), gbc);
+        formContainer.add(createFieldLabel("Contribution Amount (ETB)"), gbc);
 
         txtAmount = new JTextField("200");
-        txtAmount.setFont(FontManager.getPlainFont(14));
+        txtAmount.setFont(new Font("SansSerif", Font.PLAIN, 14));
         txtAmount.setPreferredSize(new Dimension(360, 42));
         txtAmount.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(210, 200, 185), 1, true),
@@ -114,10 +112,10 @@ public class EdirContributionPanel extends JPanel {
 
         // Row 3: Receipt Textbox
         gbc.gridy = 5;
-        formContainer.add(createFieldLabel(LanguageManager.getString("edir.contribution.lbl_receipt")), gbc);
+        formContainer.add(createFieldLabel("Reference Receipt Serial Number"), gbc);
 
         txtReceiptNumber = new JTextField("REC-" + (int)(Math.random() * 90000 + 10000));
-        txtReceiptNumber.setFont(FontManager.getPlainFont(14));
+        txtReceiptNumber.setFont(new Font("SansSerif", Font.PLAIN, 14));
         txtReceiptNumber.setPreferredSize(new Dimension(360, 42));
         txtReceiptNumber.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(210, 200, 185), 1, true),
@@ -130,7 +128,7 @@ public class EdirContributionPanel extends JPanel {
         gbc.gridy = 7;
         gbc.insets = new Insets(30, 12, 10, 12);
 
-        JButton btnSubmit = new JButton(LanguageManager.getString("edir.contribution.btn_submit")) {
+        JButton btnSubmit = new JButton("Submit Payment") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -141,7 +139,7 @@ public class EdirContributionPanel extends JPanel {
                 super.paintComponent(g);
             }
         };
-        btnSubmit.setFont(FontManager.getBoldFont(15));
+        btnSubmit.setFont(new Font("SansSerif", Font.BOLD, 15));
         btnSubmit.setForeground(Color.WHITE);
         btnSubmit.setContentAreaFilled(false);
         btnSubmit.setBorderPainted(false);
@@ -149,11 +147,11 @@ public class EdirContributionPanel extends JPanel {
         btnSubmit.setPreferredSize(new Dimension(200, 45));
 
         btnSubmit.addActionListener(e -> {
-            UIManager.put("OptionPane.messageFont", FontManager.getPlainFont(14));
-            UIManager.put("OptionPane.buttonFont", FontManager.getPlainFont(13));
+            UIManager.put("OptionPane.messageFont", new Font("SansSerif", Font.PLAIN, 14));
+            UIManager.put("OptionPane.buttonFont", new Font("SansSerif", Font.PLAIN, 13));
 
             if (comboMember.getSelectedItem() == null || txtAmount.getText().trim().isEmpty() || txtReceiptNumber.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.contribution.err.required"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Please fill in all required operational input properties.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             try {
@@ -165,7 +163,7 @@ public class EdirContributionPanel extends JPanel {
 
                 boolean ok = edirService.recordContribution(this.groupId, member, systemMonth, amt, receipt);
                 if (ok) {
-                    JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.contribution.success"), LanguageManager.getString("msg.success"), JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Contribution payment processed and logged successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                     for (Component comp : parentWrapper.getComponents()) {
                         if (comp instanceof EdirGroupDetailPanel) {
                             ((EdirGroupDetailPanel) comp).refreshDashboardMetricsAndLedger();
@@ -175,7 +173,7 @@ public class EdirContributionPanel extends JPanel {
                     cl.show(parentWrapper, "EdirDetail");
                 }
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.contribution.err.number"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Please enter a completely valid decimal number for the collection sum.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -191,7 +189,6 @@ public class EdirContributionPanel extends JPanel {
         centerConstraints.anchor = GridBagConstraints.CENTER;
         centeringWrapper.add(formContainer, centerConstraints);
 
-        // ✅ FIXED: Explicitly assigns standard string layout flags to the parent panel's BorderLayout
         add(centeringWrapper, BorderLayout.CENTER);
     }
 
@@ -199,7 +196,7 @@ public class EdirContributionPanel extends JPanel {
         Map<String, String> details = edirService.getGroupDetails(this.groupId);
         if (details != null && !details.isEmpty()) {
             this.groupDisplayName = details.getOrDefault("name", "Edir Group");
-            lblTitle.setText(LanguageManager.getFormattedString("edir.contribution.title", this.groupDisplayName));
+            lblTitle.setText("Record Contribution for " + this.groupDisplayName);
         }
 
         comboMember.removeAllItems();
@@ -212,7 +209,7 @@ public class EdirContributionPanel extends JPanel {
 
     private JLabel createFieldLabel(String text) {
         JLabel lbl = new JLabel(text);
-        lbl.setFont(FontManager.getBoldFont(13));
+        lbl.setFont(new Font("SansSerif", Font.BOLD, 13));
         lbl.setForeground(Color.DARK_GRAY);
         return lbl;
     }

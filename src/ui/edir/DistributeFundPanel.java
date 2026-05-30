@@ -5,8 +5,6 @@ import java.awt.*;
 import java.util.List;
 import java.util.Map;
 import service.EdirService;
-import util.LanguageManager;
-import util.FontManager; // ✅ Imported FontManager
 
 public class DistributeFundPanel extends JPanel {
     private final JPanel parentWrapper;
@@ -76,15 +74,13 @@ public class DistributeFundPanel extends JPanel {
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
 
-        // ✅ Localized Header Title with FontManager Mapping
-        JLabel lblTitle = new JLabel(LanguageManager.getString("edir.distribute.title"));
-        lblTitle.setFont(FontManager.getBoldFont(22));
+        JLabel lblTitle = new JLabel("Distribute Emergency Payout Funds");
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 22));
         lblTitle.setForeground(new Color(101, 31, 16));
 
-        // ✅ Localized Available Reserves Format Tracker Label with FontManager Mapping
         String dynamicReserves = String.format("%,.2f", currentAvailableBalance);
-        JLabel lblLimit = new JLabel(LanguageManager.getFormattedString("edir.distribute.max_reserves", dynamicReserves));
-        lblLimit.setFont(FontManager.getBoldFont(14));
+        JLabel lblLimit = new JLabel("Available Vault Balance Limit: " + dynamicReserves + " ETB");
+        lblLimit.setFont(new Font("SansSerif", Font.BOLD, 14));
         lblLimit.setForeground(new Color(46, 117, 89));
 
         headerPanel.add(lblTitle, BorderLayout.WEST);
@@ -100,18 +96,17 @@ public class DistributeFundPanel extends JPanel {
         gbc.insets = new Insets(10, 12, 10, 12);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // 1. SELECT TARGET EMERGENCY CASE FROM DATABASE - Localized Form Label with dynamic font
+        // 1. SELECT TARGET EMERGENCY CASE FROM DATABASE
         gbc.gridx = 0; gbc.gridy = 0;
-        form.add(createFormLabel(LanguageManager.getString("edir.distribute.lbl_select_claim")), gbc);
+        form.add(createFormLabel("Select Active Emergency Claim Case File"), gbc);
 
         cmbClaims = new JComboBox<>();
-        cmbClaims.setFont(FontManager.getPlainFont(13));
+        cmbClaims.setFont(new Font("SansSerif", Font.PLAIN, 13));
         cmbClaims.setPreferredSize(new Dimension(400, 35));
 
-        // Ensure the internal dropdown overlay list elements render the Amharic texts safely
         Object renderer = cmbClaims.getRenderer();
         if (renderer instanceof JComponent) {
-            ((JComponent) renderer).setFont(FontManager.getPlainFont(13));
+            ((JComponent) renderer).setFont(new Font("SansSerif", Font.PLAIN, 13));
         }
 
         try {
@@ -132,19 +127,18 @@ public class DistributeFundPanel extends JPanel {
                 cmbClaims.addItem(new ClaimItem(id, shortDisplay, member, desc, reqAmt));
             }
         } else {
-            // ✅ Localized Fallback Item Entry
-            cmbClaims.addItem(new ClaimItem("-1", LanguageManager.getString("edir.distribute.no_claims"), "N/A", "N/A", 0));
+            cmbClaims.addItem(new ClaimItem("-1", "-- No outstanding claims found --", "N/A", "N/A", 0));
         }
 
         gbc.gridx = 1;
         form.add(cmbClaims, gbc);
 
-        // 1b. LIVE CASE DETAILS INSPECTOR CARD - Localized Form Label
+        // 1b. LIVE CASE DETAILS INSPECTOR CARD
         gbc.gridx = 0; gbc.gridy = 1;
-        form.add(createFormLabel(LanguageManager.getString("edir.distribute.lbl_context")), gbc);
+        form.add(createFormLabel("Case Details Overview Context"), gbc);
 
         txtCaseDetailsDisplay = new JTextArea(5, 25);
-        txtCaseDetailsDisplay.setFont(FontManager.getPlainFont(12)); // ✅ Replaced hardcoded Font with fallback configuration
+        txtCaseDetailsDisplay.setFont(new Font("SansSerif", Font.PLAIN, 12));
         txtCaseDetailsDisplay.setBackground(new Color(245, 240, 230));
         txtCaseDetailsDisplay.setEditable(false);
         txtCaseDetailsDisplay.setLineWrap(true);
@@ -156,31 +150,31 @@ public class DistributeFundPanel extends JPanel {
         gbc.gridx = 1;
         form.add(caseDetailsScroll, gbc);
 
-        // 2. DISBURSED PAYOUT AMOUNT FIELD - Localized Form Label
+        // 2. DISBURSED PAYOUT AMOUNT FIELD
         gbc.gridx = 0; gbc.gridy = 2;
-        form.add(createFormLabel(LanguageManager.getString("edir.distribute.lbl_amount")), gbc);
+        form.add(createFormLabel("Approved Payout Allocation Amount (ETB)"), gbc);
         txtDisbursedSum = new JTextField();
-        txtDisbursedSum.setFont(FontManager.getPlainFont(14));
+        txtDisbursedSum.setFont(new Font("SansSerif", Font.PLAIN, 14));
         txtDisbursedSum.setPreferredSize(new Dimension(400, 35));
         gbc.gridx = 1;
         form.add(txtDisbursedSum, gbc);
 
         cmbClaims.addActionListener(e -> updateCaseDetailsDisplay());
 
-        // 3. AUTHORIZING OFFICER INPUT - Localized Form Label
+        // 3. AUTHORIZING OFFICER INPUT
         gbc.gridx = 0; gbc.gridy = 3;
-        form.add(createFormLabel(LanguageManager.getString("edir.distribute.lbl_approver")), gbc);
+        form.add(createFormLabel("Authorizing Executive Officer Name"), gbc);
         txtApprovedBy = new JTextField();
-        txtApprovedBy.setFont(FontManager.getPlainFont(14));
+        txtApprovedBy.setFont(new Font("SansSerif", Font.PLAIN, 14));
         txtApprovedBy.setPreferredSize(new Dimension(400, 35));
         gbc.gridx = 1;
         form.add(txtApprovedBy, gbc);
 
-        // 4. PAYOUT DESCRIPTIONS AND AUDIT LOG NOTES - Localized Form Label
+        // 4. PAYOUT DESCRIPTIONS AND AUDIT LOG NOTES
         gbc.gridx = 0; gbc.gridy = 4;
-        form.add(createFormLabel(LanguageManager.getString("edir.distribute.lbl_notes")), gbc);
+        form.add(createFormLabel("Audit Ledger Comments and Documentation Notes"), gbc);
         txtNotes = new JTextArea(3, 20);
-        txtNotes.setFont(FontManager.getPlainFont(13));
+        txtNotes.setFont(new Font("SansSerif", Font.PLAIN, 13));
         txtNotes.setLineWrap(true);
         txtNotes.setWrapStyleWord(true);
         JScrollPane scroll = new JScrollPane(txtNotes);
@@ -188,25 +182,24 @@ public class DistributeFundPanel extends JPanel {
         gbc.gridx = 1;
         form.add(scroll, gbc);
 
-        // 5. ACTION BUTTON EXECUTION LAYOUT ROW - Localized Form Targets
+        // 5. ACTION BUTTON EXECUTION LAYOUT ROW
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
         actions.setOpaque(false);
 
-        JButton btnCancel = new JButton(LanguageManager.getString("edir.distribute.btn_cancel"));
-        btnCancel.setFont(FontManager.getBoldFont(13));
+        JButton btnCancel = new JButton("Cancel");
+        btnCancel.setFont(new Font("SansSerif", Font.BOLD, 13));
         btnCancel.setPreferredSize(new Dimension(100, 38));
         btnCancel.addActionListener(e -> returnToDashboardView());
 
-        JButton btnConfirm = new JButton(LanguageManager.getString("edir.distribute.btn_confirm"));
-        btnConfirm.setFont(FontManager.getBoldFont(13));
+        JButton btnConfirm = new JButton("Authorize Distribution");
+        btnConfirm.setFont(new Font("SansSerif", Font.BOLD, 13));
         btnConfirm.setPreferredSize(new Dimension(180, 38));
         btnConfirm.setBackground(new Color(46, 117, 89));
         btnConfirm.setForeground(Color.WHITE);
 
         btnConfirm.addActionListener(e -> {
-            // Apply dynamic validation popup box configurations explicitly
-            UIManager.put("OptionPane.messageFont", FontManager.getPlainFont(14));
-            UIManager.put("OptionPane.buttonFont", FontManager.getPlainFont(13));
+            UIManager.put("OptionPane.messageFont", new Font("SansSerif", Font.PLAIN, 14));
+            UIManager.put("OptionPane.buttonFont", new Font("SansSerif", Font.PLAIN, 13));
 
             ClaimItem selectedClaim = (ClaimItem) cmbClaims.getSelectedItem();
             String sumStr = txtDisbursedSum.getText().trim();
@@ -214,11 +207,11 @@ public class DistributeFundPanel extends JPanel {
             String notes = txtNotes.getText().trim();
 
             if (selectedClaim == null || selectedClaim.id.equals("-1")) {
-                JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.distribute.err.invalid_claim"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Please select a valid pending emergency claim case profile.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             if (sumStr.isEmpty() || officer.isEmpty()) {
-                JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.distribute.err.required"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Please fill in all required operational input properties.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
@@ -226,19 +219,19 @@ public class DistributeFundPanel extends JPanel {
                 double payoutValue = Double.parseDouble(sumStr);
 
                 if (payoutValue > currentAvailableBalance) {
-                    JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.distribute.err.overdraft"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Transaction rejected: Allocation amount exceeds group available reserves vault balance.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
                 boolean success = edirService.authorizePayout(this.groupId, selectedClaim.id, payoutValue, officer, notes);
                 if (success) {
-                    JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.distribute.success"), LanguageManager.getString("msg.success"), JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Emergency payout authorization completed successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                     returnToDashboardView();
                 } else {
-                    JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.distribute.err.db"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Failed to update financial ledger. Please check database logs.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.distribute.err.number"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Please enter a completely valid decimal number for the payout sum.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -260,24 +253,24 @@ public class DistributeFundPanel extends JPanel {
 
             StringBuilder sb = new StringBuilder();
             sb.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-            sb.append(LanguageManager.getFormattedString("edir.distribute.card.id", selected.id)).append("\n");
-            sb.append(LanguageManager.getFormattedString("edir.distribute.card.member", selected.memberName)).append("\n");
+            sb.append("Claim ID Target: ").append(selected.id).append("\n");
+            sb.append("Filing Member Profile: ").append(selected.memberName).append("\n");
             String formattedAmt = String.format("%,.2f", selected.requestedAmount);
-            sb.append(LanguageManager.getFormattedString("edir.distribute.card.requested", formattedAmt)).append("\n");
+            sb.append("Requested Payout Amount: ").append(formattedAmt).append(" ETB\n");
             sb.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-            sb.append(LanguageManager.getString("edir.distribute.card.incident")).append(" ").append(selected.fullDescription);
+            sb.append("Incident Context Description: ").append(selected.fullDescription);
 
             txtCaseDetailsDisplay.setText(sb.toString());
             txtCaseDetailsDisplay.setCaretPosition(0);
         } else {
-            txtCaseDetailsDisplay.setText(LanguageManager.getString("edir.distribute.no_selection"));
+            txtCaseDetailsDisplay.setText("-- No specific case profile currently highlighted --");
             txtDisbursedSum.setText("");
         }
     }
 
     private JLabel createFormLabel(String labelText) {
         JLabel label = new JLabel(labelText);
-        label.setFont(FontManager.getBoldFont(13));
+        label.setFont(new Font("SansSerif", Font.BOLD, 13));
         label.setForeground(Color.DARK_GRAY);
         return label;
     }

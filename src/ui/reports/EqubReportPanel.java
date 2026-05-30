@@ -3,8 +3,6 @@ package ui.reports;
 import service.ReportService;
 import model.ReportDataModels.EqubReport;
 import model.ReportDataModels.EqubMemberRow;
-import util.LanguageManager;
-import util.FontManager; // ✅ Imported FontManager
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -33,15 +31,13 @@ public class EqubReportPanel extends JPanel {
         headerRow.setOpaque(false);
         headerRow.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // ✅ Localized Main Title
-        JLabel lblTitle = new JLabel(LanguageManager.getString("equb.report.title"));
-        lblTitle.setFont(FontManager.getBoldFont(30)); // ✅ Updated to FontManager
+        JLabel lblTitle = new JLabel("Equb Group Financial Report");
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 30));
         lblTitle.setForeground(new Color(101, 53, 15));
         headerRow.add(lblTitle, BorderLayout.WEST);
 
-        // ✅ Localized Back Button
-        JButton btnBack = new JButton(LanguageManager.getString("equb.report.btn_back"));
-        btnBack.setFont(FontManager.getBoldFont(13)); // ✅ Updated to FontManager
+        JButton btnBack = new JButton("Back to Overview");
+        btnBack.setFont(new Font("SansSerif", Font.BOLD, 13));
         btnBack.setForeground(new Color(130, 90, 40));
         btnBack.setContentAreaFilled(false);
         btnBack.setBorderPainted(false);
@@ -56,13 +52,12 @@ public class EqubReportPanel extends JPanel {
         selectorRow.setOpaque(false);
         selectorRow.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // ✅ Localized Selector Label
-        JLabel lblFilterLabel = new JLabel(LanguageManager.getString("equb.report.lbl_select_group"));
-        lblFilterLabel.setFont(FontManager.getBoldFont(14)); // ✅ Updated to FontManager
+        JLabel lblFilterLabel = new JLabel("Select Equb Group:");
+        lblFilterLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
         lblFilterLabel.setForeground(new Color(101, 53, 15));
 
         dropdownFilterOptions = new JComboBox<>();
-        dropdownFilterOptions.setFont(FontManager.getPlainFont(13)); // ✅ Updated to FontManager
+        dropdownFilterOptions.setFont(new Font("SansSerif", Font.PLAIN, 13));
         dropdownFilterOptions.setPreferredSize(new Dimension(220, 30));
         selectorRow.add(lblFilterLabel);
         selectorRow.add(dropdownFilterOptions);
@@ -79,31 +74,22 @@ public class EqubReportPanel extends JPanel {
         metricsGrid.setOpaque(false);
         metricsGrid.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // ✅ Localized Stat Cards & Dynamic Currency Suffixes
-        String defaultCurrency = "- " + LanguageManager.getString("currency.unit");
-        metricsGrid.add(createMiniStatCard(LanguageManager.getString("equb.report.stat.total_members"), lblTotalMembersVal = new JLabel("-"), new Color(101, 53, 15)));
-        metricsGrid.add(createMiniStatCard(LanguageManager.getString("equb.report.stat.total_money"), lblTotalMoneyVal = new JLabel(defaultCurrency), new Color(46, 117, 59)));
-        metricsGrid.add(createMiniStatCard(LanguageManager.getString("equb.report.stat.current_cycle"), lblCurrentCycleVal = new JLabel("-"), new Color(101, 53, 15)));
-        metricsGrid.add(createMiniStatCard(LanguageManager.getString("equb.report.stat.next_payout"), lblNextPayoutVal = new JLabel("-"), new Color(46, 117, 59)));
+        metricsGrid.add(createMiniStatCard("Total Members", lblTotalMembersVal = new JLabel("-"), new Color(101, 53, 15)));
+        metricsGrid.add(createMiniStatCard("Total Collected Pool", lblTotalMoneyVal = new JLabel("- ETB"), new Color(46, 117, 59)));
+        metricsGrid.add(createMiniStatCard("Current Active Cycle", lblCurrentCycleVal = new JLabel("-"), new Color(101, 53, 15)));
+        metricsGrid.add(createMiniStatCard("Next Eligible Drawer", lblNextPayoutVal = new JLabel("-"), new Color(46, 117, 59)));
         add(metricsGrid);
         add(Box.createVerticalStrut(25));
 
         // 4. DATA TABLE LEDGER
-        // ✅ Localized Table Title Descriptor
-        JLabel lblTableTitle = new JLabel(LanguageManager.getString("equb.report.table_title"));
-        lblTableTitle.setFont(FontManager.getBoldFont(18)); // ✅ Updated to FontManager
+        JLabel lblTableTitle = new JLabel("Participant Ledger Matrix & Status Track");
+        lblTableTitle.setFont(new Font("SansSerif", Font.BOLD, 18));
         lblTableTitle.setForeground(new Color(101, 53, 15));
         lblTableTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
         add(lblTableTitle);
         add(Box.createVerticalStrut(10));
 
-        // ✅ Localized Table Meta Column Headers Configuration
-        String[] headers = {
-                LanguageManager.getString("equb.report.col.member"),
-                LanguageManager.getString("equb.report.col.cycle"),
-                LanguageManager.getString("equb.report.col.amount"),
-                LanguageManager.getString("equb.report.col.status")
-        };
+        String[] headers = { "Participant Name", "Cycle Period Paid", "Contribution Value", "Payment Status" };
         tableModel = new DefaultTableModel(null, headers) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
@@ -111,8 +97,8 @@ public class EqubReportPanel extends JPanel {
         JTable table = new JTable(tableModel);
         table.setRowHeight(34);
         table.setShowGrid(false);
-        table.setFont(FontManager.getPlainFont(13)); // ✅ Updated to FontManager
-        table.getTableHeader().setFont(FontManager.getBoldFont(13)); // ✅ Updated to FontManager
+        table.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 13));
         table.getTableHeader().setBackground(new Color(240, 232, 215));
         table.getTableHeader().setPreferredSize(new Dimension(0, 36));
 
@@ -142,13 +128,12 @@ public class EqubReportPanel extends JPanel {
         EqubReport report = reportService.getEqubReportData(groupName);
 
         if (report != null) {
-            String unit = " " + LanguageManager.getString("currency.unit");
+            String unit = " ETB";
             lblTotalMembersVal.setText(String.valueOf(report.totalMembers));
             lblTotalMoneyVal.setText(String.format("%,.2f" + unit, report.totalCollected));
 
-            // ✅ Localized Fallback Labels for Evaluation States
-            lblCurrentCycleVal.setText(report.currentCycle != null ? report.currentCycle : LanguageManager.getString("equb.report.status.active"));
-            lblNextPayoutVal.setText(report.nextPayoutMember != null ? report.nextPayoutMember : LanguageManager.getString("equb.report.status.drawing_pool"));
+            lblCurrentCycleVal.setText(report.currentCycle != null ? report.currentCycle : "Active Sequence");
+            lblNextPayoutVal.setText(report.nextPayoutMember != null ? report.nextPayoutMember : "Drawing Pool Empty");
 
             if (report.memberRows != null && !report.memberRows.isEmpty()) {
                 for (EqubMemberRow row : report.memberRows) {
@@ -160,8 +145,7 @@ public class EqubReportPanel extends JPanel {
                     });
                 }
             } else {
-                // ✅ Localized Empty Ledger Fallback Label
-                tableModel.addRow(new Object[]{"-", "-", LanguageManager.getString("equb.report.table.empty_row"), "-"});
+                tableModel.addRow(new Object[]{"-", "-", "No financial transaction logs exist for this group selection.", "-"});
             }
         } else {
             clearDashboardDisplay();
@@ -172,9 +156,8 @@ public class EqubReportPanel extends JPanel {
     }
 
     private void clearDashboardDisplay() {
-        String defaultCurrency = "- " + LanguageManager.getString("currency.unit");
         lblTotalMembersVal.setText("-");
-        lblTotalMoneyVal.setText(defaultCurrency);
+        lblTotalMoneyVal.setText("- ETB");
         lblCurrentCycleVal.setText("-");
         lblNextPayoutVal.setText("-");
         tableModel.setRowCount(0);
@@ -199,10 +182,10 @@ public class EqubReportPanel extends JPanel {
         card.setPreferredSize(new Dimension(160, 75));
 
         JLabel lblMsg = new JLabel(label);
-        lblMsg.setFont(FontManager.getBoldFont(12)); // ✅ Updated to FontManager
+        lblMsg.setFont(new Font("SansSerif", Font.BOLD, 12));
         lblMsg.setForeground(new Color(130, 125, 115));
 
-        lblValueRef.setFont(FontManager.getBoldFont(18)); // ✅ Updated to FontManager
+        lblValueRef.setFont(new Font("SansSerif", Font.BOLD, 18));
         lblValueRef.setForeground(textValueColor);
 
         card.add(lblMsg);
@@ -212,7 +195,7 @@ public class EqubReportPanel extends JPanel {
     }
 
     /**
-     * ✅ DYNAMIC LIFECYCLE HOOK ENTRY POINT:
+     * DYNAMIC LIFECYCLE HOOK ENTRY POINT:
      * Rebuilds the combobox dropdown options straight from the DB every time the user
      * opens the Reports menu, ensuring zero context misalignment.
      */

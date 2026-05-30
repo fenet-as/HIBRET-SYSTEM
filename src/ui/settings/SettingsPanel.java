@@ -3,8 +3,6 @@ package ui.settings;
 import dao.impl.UserDAOImpl;
 import model.User;
 import dao.UserDAO;
-import util.LanguageManager;
-import util.FontManager; // ✅ Imported FontManager
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,19 +11,14 @@ import java.awt.geom.RoundRectangle2D;
 public class SettingsPanel extends JPanel {
     private final JPanel parentWrapper;
     private final User currentUser;
-    private final UserDAO userDAO; // Points directly to interface template structure
+    private final UserDAO userDAO;
 
     // UI Layout Components
     private JPanel contentCardsContainer;
     private CardLayout contentCardLayout;
 
     // Sidebar Navigation Buttons
-    private JButton btnLanguageNav;
     private JButton btnPasswordNav;
-
-    // Configuration Fields
-    private JRadioButton rbEnglish;
-    private JRadioButton rbAmharic;
 
     public SettingsPanel(JPanel parentWrapper, User currentUser) {
         this.parentWrapper = parentWrapper;
@@ -41,7 +34,7 @@ public class SettingsPanel extends JPanel {
         initSettingsContentCards();
 
         // Default View
-        showCard("LanguageCard", btnLanguageNav);
+        showCard("PasswordCard", btnPasswordNav);
     }
 
     private void initHeader() {
@@ -50,12 +43,11 @@ public class SettingsPanel extends JPanel {
         headerPanel.setPreferredSize(new Dimension(Short.MAX_VALUE, 50));
 
         JLabel lblIcon = new JLabel("⚙");
-        lblIcon.setFont(FontManager.getPlainFont(28)); // ✅ Updated to FontManager
+        lblIcon.setFont(new Font("SansSerif", Font.PLAIN, 28));
         lblIcon.setForeground(new Color(101, 31, 16));
 
-        // ✅ Localized Title Panel Header Text Hook
-        JLabel lblTitle = new JLabel(LanguageManager.getString("settings.title"));
-        lblTitle.setFont(FontManager.getBoldFont(26)); // ✅ Updated to FontManager
+        JLabel lblTitle = new JLabel("System Settings Configuration");
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 26));
         lblTitle.setForeground(new Color(101, 31, 16));
 
         headerPanel.add(lblIcon);
@@ -69,15 +61,9 @@ public class SettingsPanel extends JPanel {
         sidebarPanel.setOpaque(false);
         sidebarPanel.setPreferredSize(new Dimension(220, Short.MAX_VALUE));
 
-        // ✅ Localized Sidebar Structural Component Text Parameters
-        btnLanguageNav = createSidebarButton(LanguageManager.getString("settings.nav.language"), "🌐");
-        btnPasswordNav = createSidebarButton(LanguageManager.getString("settings.nav.password"), "🔒");
-
-        btnLanguageNav.addActionListener(e -> showCard("LanguageCard", btnLanguageNav));
+        btnPasswordNav = createSidebarButton("Security & Password", "🔒");
         btnPasswordNav.addActionListener(e -> showCard("PasswordCard", btnPasswordNav));
 
-        sidebarPanel.add(btnLanguageNav);
-        sidebarPanel.add(Box.createVerticalStrut(10));
         sidebarPanel.add(btnPasswordNav);
 
         add(sidebarPanel, BorderLayout.WEST);
@@ -88,55 +74,8 @@ public class SettingsPanel extends JPanel {
         contentCardsContainer = new JPanel(contentCardLayout);
         contentCardsContainer.setOpaque(false);
 
-        // --- Card 1: Language Form Pane ---
-        // ✅ Localized Active Context Label Inner Form Card Headers
-        JPanel languageCard = createFormCard(LanguageManager.getString("settings.nav.language"));
-        JPanel langBody = new JPanel();
-        langBody.setLayout(new BoxLayout(langBody, BoxLayout.Y_AXIS));
-        langBody.setOpaque(false);
-        langBody.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        JLabel lblSelect = new JLabel(LanguageManager.getString("settings.lang.select"));
-        lblSelect.setFont(FontManager.getBoldFont(14)); // ✅ Updated to FontManager
-        lblSelect.setForeground(Color.GRAY);
-        lblSelect.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        rbEnglish = new JRadioButton(LanguageManager.getString("settings.lang.english"), true);
-        rbEnglish.setFont(FontManager.getBoldFont(15)); // ✅ Updated to FontManager
-        rbEnglish.setForeground(new Color(101, 31, 16));
-        rbEnglish.setOpaque(false);
-        rbEnglish.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        rbAmharic = new JRadioButton(LanguageManager.getString("settings.lang.amharic"), false);
-        rbAmharic.setFont(FontManager.getBoldFont(15)); // ✅ Updated to FontManager
-        rbAmharic.setForeground(new Color(101, 31, 16));
-        rbAmharic.setOpaque(false);
-        rbAmharic.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        ButtonGroup languageGroup = new ButtonGroup();
-        languageGroup.add(rbEnglish);
-        languageGroup.add(rbAmharic);
-
-        JButton btnApplyLang = createPrimaryButton(LanguageManager.getString("settings.btn.apply"));
-        btnApplyLang.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btnApplyLang.addActionListener(e -> {
-            String selected = rbEnglish.isSelected() ? "English" : "Amharic";
-            String successMsg = String.format(LanguageManager.getString("settings.msg.lang_success"), selected);
-            JOptionPane.showMessageDialog(this, successMsg, LanguageManager.getString("settings.msg.success_title"), JOptionPane.INFORMATION_MESSAGE);
-        });
-
-        langBody.add(lblSelect);
-        langBody.add(Box.createVerticalStrut(20));
-        langBody.add(rbEnglish);
-        langBody.add(Box.createVerticalStrut(15));
-        langBody.add(rbAmharic);
-        langBody.add(Box.createVerticalStrut(30));
-        langBody.add(btnApplyLang);
-        languageCard.add(langBody, BorderLayout.CENTER);
-
-        // --- Card 2: Password Form Pane ---
-        // ✅ Localized Form Field Structure Mapping Identifiers
-        JPanel passwordCard = createFormCard(LanguageManager.getString("settings.nav.password"));
+        // --- Password Form Pane ---
+        JPanel passwordCard = createFormCard("Security & Password");
         JPanel passBody = new JPanel(new GridBagLayout());
         passBody.setOpaque(false);
         passBody.setBorder(BorderFactory.createEmptyBorder(25, 20, 20, 20));
@@ -145,55 +84,52 @@ public class SettingsPanel extends JPanel {
         gbc.insets = new Insets(10, 0, 10, 15);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JLabel lblOld = new JLabel(LanguageManager.getString("settings.pass.current"));
-        lblOld.setFont(FontManager.getBoldFont(13)); // ✅ Updated to FontManager
+        JLabel lblOld = new JLabel("Current Password:");
+        lblOld.setFont(new Font("SansSerif", Font.BOLD, 13));
         JPasswordField txtOld = new JPasswordField(20);
-        txtOld.setFont(FontManager.getPlainFont(13)); // ✅ Added to guarantee textfield localized entry fallback
+        txtOld.setFont(new Font("SansSerif", Font.PLAIN, 13));
 
-        JLabel lblNew = new JLabel(LanguageManager.getString("settings.pass.new"));
-        lblNew.setFont(FontManager.getBoldFont(13)); // ✅ Updated to FontManager
+        JLabel lblNew = new JLabel("New Security Password:");
+        lblNew.setFont(new Font("SansSerif", Font.BOLD, 13));
         JPasswordField txtNew = new JPasswordField(20);
-        txtNew.setFont(FontManager.getPlainFont(13)); // ✅ Added to guarantee textfield localized entry fallback
+        txtNew.setFont(new Font("SansSerif", Font.PLAIN, 13));
 
-        JLabel lblConfirm = new JLabel(LanguageManager.getString("settings.pass.confirm"));
-        lblConfirm.setFont(FontManager.getBoldFont(13)); // ✅ Updated to FontManager
+        JLabel lblConfirm = new JLabel("Confirm New Password:");
+        lblConfirm.setFont(new Font("SansSerif", Font.BOLD, 13));
         JPasswordField txtConfirm = new JPasswordField(20);
-        txtConfirm.setFont(FontManager.getPlainFont(13)); // ✅ Added to guarantee textfield localized entry fallback
+        txtConfirm.setFont(new Font("SansSerif", Font.PLAIN, 13));
 
-        JButton btnSavePassword = createPrimaryButton(LanguageManager.getString("settings.btn.update_pass"));
+        JButton btnSavePassword = createPrimaryButton("Update Profile Password");
 
-        // ✅ USES EXISTING LOGIN METRICS METHOD FOR OLD PASSWORD CONFIRMATION
         btnSavePassword.addActionListener(e -> {
             String currentPass = new String(txtOld.getPassword()).trim();
             String newPass = new String(txtNew.getPassword()).trim();
             String confirmPass = new String(txtConfirm.getPassword()).trim();
 
             if (currentPass.isEmpty() || newPass.isEmpty() || confirmPass.isEmpty()) {
-                JOptionPane.showMessageDialog(this, LanguageManager.getString("settings.msg.param_error"), LanguageManager.getString("settings.msg.error_title"), JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Please completely fill in all the structural text field inputs.", "Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             if (!newPass.equals(confirmPass)) {
-                JOptionPane.showMessageDialog(this, LanguageManager.getString("settings.msg.mismatch_error"), LanguageManager.getString("settings.msg.mismatch_title"), JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "The newly generated security attributes do not mirror each other.", "Mismatch Detected", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             if (currentUser == null || currentUser.getUsername() == null) {
-                JOptionPane.showMessageDialog(this, LanguageManager.getString("settings.msg.session_error"), LanguageManager.getString("settings.msg.system_error"), JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Active login identity could not be tracked securely.", "Session Expired", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            // 1. Authenticate using your existing login method signature
             User verifiedUser = userDAO.login(currentUser.getUsername(), currentPass);
 
             if (verifiedUser != null) {
-                // 2. Clear to call the existing void signature method safely
                 userDAO.updatePassword(currentUser.getUsername(), newPass);
 
-                JOptionPane.showMessageDialog(this, LanguageManager.getString("settings.msg.pass_success"), LanguageManager.getString("settings.msg.success_title"), JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Account master credentials updated successfully in records.", "Success", JOptionPane.INFORMATION_MESSAGE);
                 txtOld.setText("");
                 txtNew.setText("");
                 txtConfirm.setText("");
             } else {
-                JOptionPane.showMessageDialog(this, LanguageManager.getString("settings.msg.auth_error"), LanguageManager.getString("settings.msg.auth_title"), JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "The current security credentials entered do not match database files.", "Authentication Failed", JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -209,7 +145,6 @@ public class SettingsPanel extends JPanel {
         gbc.gridx = 1; gbc.gridy = 3; gbc.insets = new Insets(20, 0, 0, 15); passBody.add(btnSavePassword, gbc);
         passwordCard.add(passBody, BorderLayout.NORTH);
 
-        contentCardsContainer.add(languageCard, "LanguageCard");
         contentCardsContainer.add(passwordCard, "PasswordCard");
 
         add(contentCardsContainer, BorderLayout.CENTER);
@@ -218,8 +153,6 @@ public class SettingsPanel extends JPanel {
     private void showCard(String cardKey, JButton activeNavButton) {
         contentCardLayout.show(contentCardsContainer, cardKey);
 
-        btnLanguageNav.setBackground(Color.WHITE);
-        btnLanguageNav.setForeground(new Color(101, 31, 16));
         btnPasswordNav.setBackground(Color.WHITE);
         btnPasswordNav.setForeground(new Color(101, 31, 16));
 
@@ -259,7 +192,7 @@ public class SettingsPanel extends JPanel {
         cardHeader.setPreferredSize(new Dimension(Short.MAX_VALUE, 46));
 
         JLabel lblTitle = new JLabel(title);
-        lblTitle.setFont(FontManager.getBoldFont(16)); // ✅ Updated to FontManager
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 16));
         lblTitle.setForeground(new Color(34, 84, 54));
         cardHeader.add(lblTitle);
 
@@ -281,7 +214,7 @@ public class SettingsPanel extends JPanel {
                 super.paintComponent(g);
             }
         };
-        btn.setFont(FontManager.getBoldFont(13)); // ✅ Updated to FontManager
+        btn.setFont(new Font("SansSerif", Font.BOLD, 13));
         btn.setHorizontalAlignment(SwingConstants.LEFT);
         btn.setContentAreaFilled(false);
         btn.setBorderPainted(false);
@@ -304,12 +237,12 @@ public class SettingsPanel extends JPanel {
                 super.paintComponent(g);
             }
         };
-        btn.setFont(FontManager.getBoldFont(13)); // ✅ Updated to FontManager
+        btn.setFont(new Font("SansSerif", Font.BOLD, 13));
         btn.setForeground(Color.WHITE);
         btn.setContentAreaFilled(false);
         btn.setBorderPainted(false);
         btn.setFocusPainted(false);
-        btn.setPreferredSize(new Dimension(150, 38));
+        btn.setPreferredSize(new Dimension(180, 38));
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         return btn;
     }

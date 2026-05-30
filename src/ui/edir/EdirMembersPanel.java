@@ -7,8 +7,6 @@ import java.awt.geom.RoundRectangle2D;
 import java.util.List;
 import java.util.Map;
 import service.EdirService;
-import util.LanguageManager;
-import util.FontManager; // ✅ Imported FontManager
 
 public class EdirMembersPanel extends JPanel {
     private final JPanel parentWrapper;
@@ -42,8 +40,7 @@ public class EdirMembersPanel extends JPanel {
         headerPanel.setOpaque(false);
         headerPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, 45));
 
-        // ✅ Localized Action Button Back Label with dynamic font fallback mappings
-        JButton btnBack = new JButton(LanguageManager.getString("edir.members.btn_return")) {
+        JButton btnBack = new JButton("Return to Details") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -54,7 +51,7 @@ public class EdirMembersPanel extends JPanel {
                 super.paintComponent(g);
             }
         };
-        btnBack.setFont(FontManager.getBoldFont(12));
+        btnBack.setFont(new Font("SansSerif", Font.BOLD, 12));
         btnBack.setForeground(new Color(101, 31, 16));
         btnBack.setContentAreaFilled(false);
         btnBack.setBorderPainted(false);
@@ -71,9 +68,8 @@ public class EdirMembersPanel extends JPanel {
             innerLayout.show(parentWrapper, "EdirDetail");
         });
 
-        // ✅ Localized Component Title Configuration Block with safe Ge'ez support
-        lblTitle = new JLabel(LanguageManager.getFormattedString("edir.members.title", groupDisplayName));
-        lblTitle.setFont(FontManager.getBoldFont(22));
+        lblTitle = new JLabel("Membership Directory for " + groupDisplayName);
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 22));
         lblTitle.setForeground(new Color(101, 31, 16));
         lblTitle.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
 
@@ -110,33 +106,29 @@ public class EdirMembersPanel extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1.0;
 
-        // ✅ Localized Registration Title
-        JLabel lblFormTitle = new JLabel(LanguageManager.getString("edir.members.form_title"));
-        lblFormTitle.setFont(FontManager.getBoldFont(16));
+        JLabel lblFormTitle = new JLabel("Register New Associate Member");
+        lblFormTitle.setFont(new Font("SansSerif", Font.BOLD, 16));
         lblFormTitle.setForeground(new Color(101, 31, 16));
         gbc.gridx = 0; gbc.gridy = 0;
         formContainer.add(lblFormTitle, gbc);
 
-        // ✅ Localized Name Input Blocks
         gbc.gridy = 1;
-        formContainer.add(createFieldLabel(LanguageManager.getString("edir.members.lbl_name")), gbc);
+        formContainer.add(createFieldLabel("Full Legal Name"), gbc);
         txtFullName = new JTextField();
-        txtFullName.setFont(FontManager.getPlainFont(14));
+        txtFullName.setFont(new Font("SansSerif", Font.PLAIN, 14));
         txtFullName.setPreferredSize(new Dimension(0, 35));
         gbc.gridy = 2;
         formContainer.add(txtFullName, gbc);
 
-        // ✅ Localized Phone Input Blocks
         gbc.gridy = 3;
-        formContainer.add(createFieldLabel(LanguageManager.getString("edir.members.lbl_phone")), gbc);
+        formContainer.add(createFieldLabel("Phone Contact Number"), gbc);
         txtPhone = new JTextField();
-        txtPhone.setFont(FontManager.getPlainFont(14));
+        txtPhone.setFont(new Font("SansSerif", Font.PLAIN, 14));
         txtPhone.setPreferredSize(new Dimension(0, 35));
         gbc.gridy = 4;
         formContainer.add(txtPhone, gbc);
 
-        // ✅ Localized Form Submit Button with dynamic typography pipeline mapping
-        JButton btnSubmit = new JButton(LanguageManager.getString("edir.members.btn_submit")) {
+        JButton btnSubmit = new JButton("Add Member Reference") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -147,7 +139,7 @@ public class EdirMembersPanel extends JPanel {
                 super.paintComponent(g);
             }
         };
-        btnSubmit.setFont(FontManager.getBoldFont(14));
+        btnSubmit.setFont(new Font("SansSerif", Font.BOLD, 14));
         btnSubmit.setForeground(Color.WHITE);
         btnSubmit.setContentAreaFilled(false);
         btnSubmit.setBorderPainted(false);
@@ -155,15 +147,14 @@ public class EdirMembersPanel extends JPanel {
         btnSubmit.setPreferredSize(new Dimension(0, 42));
 
         btnSubmit.addActionListener(e -> {
-            // ✅ Map JOptionPane alert layout options to dynamic Ge'ez font properties
-            UIManager.put("OptionPane.messageFont", FontManager.getPlainFont(14));
-            UIManager.put("OptionPane.buttonFont", FontManager.getPlainFont(13));
+            UIManager.put("OptionPane.messageFont", new Font("SansSerif", Font.PLAIN, 14));
+            UIManager.put("OptionPane.buttonFont", new Font("SansSerif", Font.PLAIN, 13));
 
             String name = txtFullName.getText().trim();
             String phone = txtPhone.getText().trim();
 
             if (name.isEmpty() || phone.isEmpty()) {
-                JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.members.err.validation"), LanguageManager.getString("msg.validation_error"), JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Please completely fill out all the structural data registry input attributes.", "Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
@@ -172,9 +163,9 @@ public class EdirMembersPanel extends JPanel {
                 loadMembersData();
                 txtFullName.setText("");
                 txtPhone.setText("");
-                JOptionPane.showMessageDialog(this, LanguageManager.getFormattedString("edir.members.success", name, groupDisplayName), LanguageManager.getString("msg.success"), JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Successfully enrolled " + name + " into " + groupDisplayName + " databases.", "Success", JOptionPane.INFORMATION_MESSAGE);
             } else {
-                JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.members.err.database"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Failed to write structural parameters into system data files.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -185,20 +176,13 @@ public class EdirMembersPanel extends JPanel {
         JPanel tableContainer = new JPanel(new BorderLayout());
         tableContainer.setOpaque(false);
 
-        // ✅ Localized Table Container Section Header
-        JLabel lblTableTitle = new JLabel(LanguageManager.getString("edir.members.table_title"));
-        lblTableTitle.setFont(FontManager.getBoldFont(15));
+        JLabel lblTableTitle = new JLabel("Currently Active Registered Members");
+        lblTableTitle.setFont(new Font("SansSerif", Font.BOLD, 15));
         lblTableTitle.setForeground(new Color(101, 31, 16));
         lblTableTitle.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
         tableContainer.add(lblTableTitle, BorderLayout.NORTH);
 
-        // ✅ Localized Column Mapping Tables Definition Headers
-        String[] cols = {
-                LanguageManager.getString("edir.members.col.num"),
-                LanguageManager.getString("edir.members.col.name"),
-                LanguageManager.getString("edir.members.col.phone"),
-                LanguageManager.getString("edir.members.col.status")
-        };
+        String[] cols = { "Index", "Full Legal Name", "Phone Contact", "Account Status" };
         tableModel = new DefaultTableModel(null, cols) {
             @Override
             public boolean isCellEditable(int row, int col) { return false; }
@@ -208,9 +192,9 @@ public class EdirMembersPanel extends JPanel {
         membersTable.setRowHeight(38);
         membersTable.setBackground(Color.WHITE);
         membersTable.setShowGrid(false);
-        membersTable.setFont(FontManager.getPlainFont(13));
+        membersTable.setFont(new Font("SansSerif", Font.PLAIN, 13));
         membersTable.getTableHeader().setBackground(new Color(249, 237, 222));
-        membersTable.getTableHeader().setFont(FontManager.getBoldFont(13));
+        membersTable.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 13));
 
         JScrollPane sp = new JScrollPane(membersTable);
         sp.setBorder(BorderFactory.createLineBorder(new Color(230, 215, 195)));
@@ -225,7 +209,7 @@ public class EdirMembersPanel extends JPanel {
         Map<String, String> details = edirService.getGroupDetails(this.groupId);
         if (details != null && !details.isEmpty()) {
             this.groupDisplayName = details.getOrDefault("name", "Edir Group");
-            lblTitle.setText(LanguageManager.getFormattedString("edir.members.title", this.groupDisplayName));
+            lblTitle.setText("Membership Directory for " + this.groupDisplayName);
         }
 
         tableModel.setRowCount(0);
@@ -245,7 +229,7 @@ public class EdirMembersPanel extends JPanel {
 
     private JLabel createFieldLabel(String text) {
         JLabel lbl = new JLabel(text);
-        lbl.setFont(FontManager.getBoldFont(12)); // ✅ Securely resolved layout metric string references
+        lbl.setFont(new Font("SansSerif", Font.BOLD, 12));
         lbl.setForeground(Color.DARK_GRAY);
         return lbl;
     }

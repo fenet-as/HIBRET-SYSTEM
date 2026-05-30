@@ -3,8 +3,6 @@ package ui.reports;
 import service.ReportService;
 import model.ReportDataModels.MemberReport;
 import model.ReportDataModels.TransactionRow;
-import util.LanguageManager;
-import util.FontManager; // ✅ Imported FontManager
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -37,15 +35,13 @@ public class MemberReportPanel extends JPanel {
         JPanel headerRow = new JPanel(new BorderLayout());
         headerRow.setOpaque(false);
 
-        // ✅ Localized Main Title
-        JLabel lblTitle = new JLabel(LanguageManager.getString("member.report.title"));
-        lblTitle.setFont(FontManager.getBoldFont(28)); // ✅ Integrated FontManager
+        JLabel lblTitle = new JLabel("Member Account Statement Report");
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 28));
         lblTitle.setForeground(new Color(101, 53, 15));
         headerRow.add(lblTitle, BorderLayout.WEST);
 
-        // ✅ Localized Back Button
-        JButton btnBack = new JButton(LanguageManager.getString("member.report.btn_back"));
-        btnBack.setFont(FontManager.getBoldFont(13)); // ✅ Integrated FontManager
+        JButton btnBack = new JButton("Back to Overview");
+        btnBack.setFont(new Font("SansSerif", Font.BOLD, 13));
         btnBack.setForeground(new Color(130, 90, 40));
         btnBack.setContentAreaFilled(false);
         btnBack.setBorderPainted(false);
@@ -87,16 +83,15 @@ public class MemberReportPanel extends JPanel {
         gbc.weighty = 0.0;
         gbc.insets = new Insets(0, 0, 6, 0);
 
-        // ✅ Localized Sidebar Title
-        JLabel lblListHeader = new JLabel(LanguageManager.getString("member.report.sidebar_title"));
-        lblListHeader.setFont(FontManager.getBoldFont(14)); // ✅ Integrated FontManager
+        JLabel lblListHeader = new JLabel("Registered System Members:");
+        lblListHeader.setFont(new Font("SansSerif", Font.BOLD, 14));
         lblListHeader.setForeground(new Color(101, 53, 15));
         sidebar.add(lblListHeader, gbc);
 
         gbc.gridy = 1;
         gbc.insets = new Insets(0, 0, 12, 0);
         txtListSearch = new JTextField();
-        txtListSearch.setFont(FontManager.getPlainFont(14)); // ✅ Integrated FontManager
+        txtListSearch.setFont(new Font("SansSerif", Font.PLAIN, 14));
         txtListSearch.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(215, 205, 185), 1, true),
                 BorderFactory.createEmptyBorder(8, 12, 8, 12)
@@ -111,7 +106,7 @@ public class MemberReportPanel extends JPanel {
 
         listModel = new DefaultListModel<>();
         memberJList = new JList<>(listModel);
-        memberJList.setFont(FontManager.getPlainFont(14)); // ✅ Integrated FontManager
+        memberJList.setFont(new Font("SansSerif", Font.PLAIN, 14));
         memberJList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         memberJList.setFixedCellHeight(38);
         memberJList.setSelectionBackground(new Color(225, 212, 190));
@@ -159,24 +154,23 @@ public class MemberReportPanel extends JPanel {
         profileSummaryCard.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel lblAvatar = new JLabel("👤");
-        lblAvatar.setFont(FontManager.getPlainFont(52)); // ✅ Integrated FontManager
+        lblAvatar.setFont(new Font("SansSerif", Font.PLAIN, 52));
         profileSummaryCard.add(lblAvatar);
 
         JPanel textWrapper = new JPanel();
         textWrapper.setOpaque(false);
         textWrapper.setLayout(new BoxLayout(textWrapper, BoxLayout.Y_AXIS));
 
-        // ✅ Localized Content Structure overview labels
-        JLabel lblStaticType = new JLabel(LanguageManager.getString("member.report.static_overview"));
-        lblStaticType.setFont(FontManager.getPlainFont(12)); // ✅ Integrated FontManager
+        JLabel lblStaticType = new JLabel("PARTICIPANT SUMMARY STATEMENT");
+        lblStaticType.setFont(new Font("SansSerif", Font.PLAIN, 12));
         lblStaticType.setForeground(new Color(130, 125, 115));
 
-        lblNameValue = new JLabel(LanguageManager.getString("member.report.select_prompt"));
-        lblNameValue.setFont(FontManager.getBoldFont(22)); // ✅ Integrated FontManager
+        lblNameValue = new JLabel("Select a member from sidebar");
+        lblNameValue.setFont(new Font("SansSerif", Font.BOLD, 22));
         lblNameValue.setForeground(new Color(46, 117, 59));
 
-        lblStatsSubLine = new JLabel(LanguageManager.getString("member.report.stats_placeholder"));
-        lblStatsSubLine.setFont(FontManager.getBoldFont(13)); // ✅ Integrated FontManager
+        lblStatsSubLine = new JLabel("Total Transactions: - | Value Pool Metrics Unloaded");
+        lblStatsSubLine.setFont(new Font("SansSerif", Font.BOLD, 13));
         lblStatsSubLine.setForeground(new Color(101, 53, 15));
 
         textWrapper.add(lblStaticType);
@@ -188,13 +182,12 @@ public class MemberReportPanel extends JPanel {
         detailsPanel.add(profileSummaryCard);
         detailsPanel.add(Box.createVerticalStrut(20));
 
-        // ✅ Localized Column Metadata Headers Configuration Matrix Array
         String[] columnHeaders = {
-                LanguageManager.getString("member.report.col.tx_id"),
-                LanguageManager.getString("member.report.col.date"),
-                LanguageManager.getString("member.report.col.asset"),
-                LanguageManager.getString("member.report.col.flow_type"),
-                LanguageManager.getString("member.report.col.narration")
+                "Transaction ID",
+                "Posting Date",
+                "Target Association Group",
+                "Flow Direction",
+                "Activity Narration / Memo"
         };
         tableModel = new DefaultTableModel(null, columnHeaders) {
             @Override
@@ -204,8 +197,8 @@ public class MemberReportPanel extends JPanel {
         JTable table = new JTable(tableModel);
         table.setRowHeight(34);
         table.setShowGrid(false);
-        table.setFont(FontManager.getPlainFont(13)); // ✅ Integrated FontManager
-        table.getTableHeader().setFont(FontManager.getBoldFont(13)); // ✅ Integrated FontManager
+        table.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 13));
         table.getTableHeader().setBackground(new Color(240, 232, 215));
         table.getTableHeader().setPreferredSize(new Dimension(0, 36));
 
@@ -217,10 +210,6 @@ public class MemberReportPanel extends JPanel {
         return detailsPanel;
     }
 
-    /**
-     * ✅ THREAD-SAFE INITIALIZATION ROUTINE:
-     * Pulls data safely from database thread and marshals rendering updates directly to the EDT.
-     */
     private void initializeSidebarList() {
         java.util.List<String> allNames = reportService.getAllManagedMemberNames();
 
@@ -235,9 +224,8 @@ public class MemberReportPanel extends JPanel {
                 }
                 memberJList.setSelectedIndex(0);
             } else {
-                // ✅ Localized Initial Directory Verification Fallbacks
-                lblNameValue.setText(LanguageManager.getString("member.report.no_members_title"));
-                lblStatsSubLine.setText(LanguageManager.getString("member.report.no_members_desc"));
+                lblNameValue.setText("No Registered Members Found");
+                lblStatsSubLine.setText("Please register participants into the database to populate reports.");
                 tableModel.setRowCount(0);
             }
 
@@ -248,9 +236,6 @@ public class MemberReportPanel extends JPanel {
         });
     }
 
-    /**
-     * Local in-memory filtering logic to handle search inputs.
-     */
     private void filterSidebarList() {
         String filterText = txtListSearch.getText().trim().toLowerCase();
         listModel.clear();
@@ -274,10 +259,9 @@ public class MemberReportPanel extends JPanel {
         if (!listModel.isEmpty()) {
             memberJList.setSelectedIndex(0);
         } else {
-            // ✅ Localized Filter Non-Match Text Block Elements
             tableModel.setRowCount(0);
-            lblNameValue.setText(LanguageManager.getString("member.report.no_match_title"));
-            lblStatsSubLine.setText(LanguageManager.getString("member.report.no_match_desc"));
+            lblNameValue.setText("No Filter Match Found");
+            lblStatsSubLine.setText("Try adjusting spelling constraints or lookup alternative initials.");
         }
 
         revalidate();
@@ -291,8 +275,7 @@ public class MemberReportPanel extends JPanel {
         if (report != null && report.name != null) {
             lblNameValue.setText(report.name);
 
-            // ✅ Localized Dynamic Dashboard Row Tracker String Output Format Rule
-            lblStatsSubLine.setText(String.format(LanguageManager.getString("member.report.stats_format"),
+            lblStatsSubLine.setText(String.format("Total Activity Items: %d | Total Capital Outlays: %,.2f ETB | Enrolled Groups: %d",
                     report.transactionCount, report.totalPaid, report.groupsJoinedCount));
 
             if (report.transactions != null && !report.transactions.isEmpty()) {
@@ -306,8 +289,7 @@ public class MemberReportPanel extends JPanel {
                     });
                 }
             } else {
-                // ✅ Localized Table Historical Rows Verification Empty Label Fallback
-                tableModel.addRow(new Object[]{"-", LanguageManager.getString("member.report.empty_table"), "-", "-", "-"});
+                tableModel.addRow(new Object[]{"-", "No transaction historical logs exist for this participant statement.", "-", "-", "-"});
             }
         }
 
@@ -315,10 +297,6 @@ public class MemberReportPanel extends JPanel {
         repaint();
     }
 
-    /**
-     * ✅ LIFECYCLE TARGET INTERFACE:
-     * Invoked by parent panel containers when this dashboard panel gains screen visibility.
-     */
     public void refreshViewOnLifecycleSignal() {
         initializeSidebarList();
     }

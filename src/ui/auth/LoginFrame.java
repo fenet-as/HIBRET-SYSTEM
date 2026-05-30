@@ -2,19 +2,17 @@ package ui.auth;
 
 import javax.swing.*;
 import java.awt.*;
-import util.LanguageManager;
-import util.FontManager; // ✅ Imported FontManager
 
 public class LoginFrame extends JFrame {
     private CardLayout cardLayout;
     private JPanel mainContainer;
 
-    // Maintain references to panels that might need dynamic structural refreshes
+    // Maintain references to panels
     private RegisterPanel registerPanel;
     private ForgotPasswordPanel forgotPanel;
 
     public LoginFrame() {
-        // ✅ i18n Bound Window Title and Dialog Box Typography configuration
+        // Configure standard English window title and basic defaults
         updateFrameMetadata();
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(950, 680);
@@ -39,22 +37,20 @@ public class LoginFrame extends JFrame {
     }
 
     /**
-     * ✅ Internal helper method to set window title dynamically and prepare JOptionPane font defaults
+     * Set window title and configure default option pane typography settings
      */
     private void updateFrameMetadata() {
-        setTitle(LanguageManager.getString("app.title"));
+        setTitle("Hibret System");
 
-        // Globally configures any dialog box notifications thrown during auth steps to read Amharic correctly
-        UIManager.put("OptionPane.messageFont", FontManager.getPlainFont(14));
-        UIManager.put("OptionPane.buttonFont", FontManager.getPlainFont(13));
+        // Globally configures standard fonts for popups/dialog notifications
+        UIManager.put("OptionPane.messageFont", new Font("SansSerif", Font.PLAIN, 14));
+        UIManager.put("OptionPane.buttonFont", new Font("SansSerif", Font.PLAIN, 13));
     }
 
     /**
-     * Swaps the visible view.
-     * ✅ UPDATED: Automatically updates frame titles and refreshes sibling views to pick up font properties.
+     * Swaps the visible view panel.
      */
     public void showPage(String pageName) {
-        // Enforce native typography properties and title layouts at runtime
         updateFrameMetadata();
 
         if ("login".equalsIgnoreCase(pageName)) {
@@ -66,11 +62,11 @@ public class LoginFrame extends JFrame {
                     break;
                 }
             }
-            // Add a fresh instance using the new language locale configuration properties
+            // Add a fresh clean instance
             mainContainer.add(new LoginPanel(this), "login");
         }
         else if ("forgot".equalsIgnoreCase(pageName)) {
-            // Remove stale forgot panel instance to catch runtime language translations instantly
+            // Remove stale forgot panel instance
             Component[] components = mainContainer.getComponents();
             for (Component comp : components) {
                 if (comp instanceof ForgotPasswordPanel) {
@@ -81,7 +77,7 @@ public class LoginFrame extends JFrame {
             mainContainer.add(new ForgotPasswordPanel(this), "forgot");
         }
         else if ("register".equalsIgnoreCase(pageName)) {
-            // Remove stale register panel instance to clear placeholder boxes instantly
+            // Remove stale register panel instance
             Component[] components = mainContainer.getComponents();
             for (Component comp : components) {
                 if (comp instanceof RegisterPanel) {

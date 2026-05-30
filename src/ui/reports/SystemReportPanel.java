@@ -3,8 +3,6 @@ package ui.reports;
 import service.ReportService;
 import model.ReportDataModels.SystemReport;
 import model.ReportDataModels.TransactionRow;
-import util.LanguageManager;
-import util.FontManager; // ✅ Imported FontManager
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -26,15 +24,13 @@ public class SystemReportPanel extends JPanel {
         headerRow.setOpaque(false);
         headerRow.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // ✅ Localized Main Title
-        JLabel lblTitle = new JLabel(LanguageManager.getString("system.report.title"));
-        lblTitle.setFont(FontManager.getBoldFont(30)); // ✅ Updated to FontManager
+        JLabel lblTitle = new JLabel("System Audit & Management Report");
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 30));
         lblTitle.setForeground(new Color(101, 53, 15));
         headerRow.add(lblTitle, BorderLayout.WEST);
 
-        // ✅ Localized Back Button
-        JButton btnBack = new JButton(LanguageManager.getString("system.report.btn_back"));
-        btnBack.setFont(FontManager.getBoldFont(13)); // ✅ Updated to FontManager
+        JButton btnBack = new JButton("Back to Overview");
+        btnBack.setFont(new Font("SansSerif", Font.BOLD, 13));
         btnBack.setForeground(new Color(130, 90, 40));
         btnBack.setContentAreaFilled(false);
         btnBack.setBorderPainted(false);
@@ -56,21 +52,19 @@ public class SystemReportPanel extends JPanel {
         add(metricsGrid);
         add(Box.createVerticalStrut(30));
 
-        // ✅ Localized Table Header Section Title Label Descriptor
-        JLabel lblTableTitle = new JLabel(LanguageManager.getString("system.report.table_title"));
-        lblTableTitle.setFont(FontManager.getBoldFont(18)); // ✅ Updated to FontManager
+        JLabel lblTableTitle = new JLabel("Global Real-Time Transaction Audit Trail");
+        lblTableTitle.setFont(new Font("SansSerif", Font.BOLD, 18));
         lblTableTitle.setForeground(new Color(101, 53, 15));
         lblTableTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
         add(lblTableTitle);
         add(Box.createVerticalStrut(10));
 
-        // ✅ Localized Column Meta Headers Mapping Matrix Array
         String[] headers = {
-                LanguageManager.getString("system.report.col.date"),
-                LanguageManager.getString("system.report.col.amount"),
-                LanguageManager.getString("system.report.col.group"),
-                LanguageManager.getString("system.report.col.type"),
-                LanguageManager.getString("system.report.col.description")
+                "Timestamp / Date",
+                "Transaction Volume",
+                "Associated Group",
+                "Audit Flow Category",
+                "Activity Details & Descriptions"
         };
         tableModel = new DefaultTableModel(null, headers) {
             @Override
@@ -78,8 +72,8 @@ public class SystemReportPanel extends JPanel {
         };
         JTable table = new JTable(tableModel);
         table.setRowHeight(32);
-        table.setFont(FontManager.getPlainFont(13)); // ✅ Updated to FontManager
-        table.getTableHeader().setFont(FontManager.getBoldFont(13)); // ✅ Updated to FontManager
+        table.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 13));
 
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -94,13 +88,12 @@ public class SystemReportPanel extends JPanel {
         metricsGrid.removeAll();
 
         if (report != null) {
-            String unit = " " + LanguageManager.getString("currency.unit");
+            String unit = " ETB";
 
-            // ✅ Localized Dynamic Analytic Metric Card Identifiers
-            metricsGrid.add(createMiniStatCard(LanguageManager.getString("system.report.stat.total_members"), String.valueOf(report.totalMembers), new Color(101, 53, 15)));
-            metricsGrid.add(createMiniStatCard(LanguageManager.getString("system.report.stat.total_groups"), String.valueOf(report.totalGroups), new Color(46, 117, 59)));
-            metricsGrid.add(createMiniStatCard(LanguageManager.getString("system.report.stat.total_transactions"), String.valueOf(report.totalTransactions), new Color(101, 53, 15)));
-            metricsGrid.add(createMiniStatCard(LanguageManager.getString("system.report.stat.total_money"), String.format("%,.0f" + unit, report.totalMoneyInSystem), new Color(46, 117, 59)));
+            metricsGrid.add(createMiniStatCard("Total System Members", String.valueOf(report.totalMembers), new Color(101, 53, 15)));
+            metricsGrid.add(createMiniStatCard("Total Managed Groups", String.valueOf(report.totalGroups), new Color(46, 117, 59)));
+            metricsGrid.add(createMiniStatCard("Total Processed Logs", String.valueOf(report.totalTransactions), new Color(101, 53, 15)));
+            metricsGrid.add(createMiniStatCard("Total System Capital", String.format("%,.0f" + unit, report.totalMoneyInSystem), new Color(46, 117, 59)));
 
             if (report.recentTransactions != null) {
                 for (TransactionRow tx : report.recentTransactions) {
@@ -132,11 +125,11 @@ public class SystemReportPanel extends JPanel {
         card.setPreferredSize(new Dimension(150, 75));
 
         JLabel lblMsg = new JLabel("<html>" + label + "</html>");
-        lblMsg.setFont(FontManager.getBoldFont(11)); // ✅ Updated to FontManager
+        lblMsg.setFont(new Font("SansSerif", Font.BOLD, 11));
         lblMsg.setForeground(new Color(130, 125, 115));
 
         JLabel lblVal = new JLabel(value);
-        lblVal.setFont(FontManager.getBoldFont(17)); // ✅ Updated to FontManager
+        lblVal.setFont(new Font("SansSerif", Font.BOLD, 17));
         lblVal.setForeground(textValueColor);
 
         card.add(lblMsg);
@@ -146,7 +139,7 @@ public class SystemReportPanel extends JPanel {
     }
 
     /**
-     * ✅ LIFECYCLE HOOK CONNECTOR:
+     * LIFECYCLE HOOK CONNECTOR:
      * Guarantees database information syncs correctly every time a user views this panel layout dashboard.
      */
     public void refreshViewOnLifecycleSignal() {

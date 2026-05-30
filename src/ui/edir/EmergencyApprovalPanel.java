@@ -8,7 +8,6 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import util.DBConnection;
-import util.FontManager;
 
 public class EmergencyApprovalPanel extends JPanel {
     private final JPanel containerPanel;
@@ -55,7 +54,7 @@ public class EmergencyApprovalPanel extends JPanel {
 
         // Header Title Layout Setup (Hardcoded English)
         JLabel title = new JLabel("Emergency Cases Approval Management");
-        title.setFont(FontManager.getBoldFont(22));
+        title.setFont(new Font("SansSerif", Font.BOLD, 22));
         title.setForeground(new Color(101, 53, 15));
         add(title, BorderLayout.NORTH);
 
@@ -68,7 +67,7 @@ public class EmergencyApprovalPanel extends JPanel {
         // LEFT COLUMN: JList Menu Block
         listModel = new DefaultListModel<>();
         claimList = new JList<>(listModel);
-        claimList.setFont(FontManager.getPlainFont(14));
+        claimList.setFont(new Font("SansSerif", Font.PLAIN, 14));
         claimList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         claimList.setFixedCellHeight(40);
 
@@ -76,7 +75,7 @@ public class EmergencyApprovalPanel extends JPanel {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                label.setFont(FontManager.getPlainFont(14));
+                label.setFont(new Font("SansSerif", Font.PLAIN, 14));
                 label.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
                 return label;
             }
@@ -137,7 +136,7 @@ public class EmergencyApprovalPanel extends JPanel {
         detailCard.add(createStaticLabel("Case Descriptions / Narrative Log:"), gbc);
 
         txtDetailDesc = new JTextArea(4, 25);
-        txtDetailDesc.setFont(FontManager.getPlainFont(13));
+        txtDetailDesc.setFont(new Font("SansSerif", Font.PLAIN, 13));
         txtDetailDesc.setLineWrap(true);
         txtDetailDesc.setWrapStyleWord(true);
         txtDetailDesc.setEditable(false);
@@ -195,14 +194,14 @@ public class EmergencyApprovalPanel extends JPanel {
 
     private JLabel createStaticLabel(String text) {
         JLabel label = new JLabel(text);
-        label.setFont(FontManager.getBoldFont(13));
+        label.setFont(new Font("SansSerif", Font.BOLD, 13));
         label.setForeground(Color.DARK_GRAY);
         return label;
     }
 
     private JLabel createDynamicValueLabel(String text) {
         JLabel label = new JLabel(text);
-        label.setFont(FontManager.getPlainFont(14));
+        label.setFont(new Font("SansSerif", Font.PLAIN, 14));
         label.setForeground(new Color(40, 40, 40));
         return label;
     }

@@ -3,9 +3,6 @@ package ui.edir;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
-import java.util.Map;
-import util.LanguageManager;
-import util.FontManager; // ✅ Imported FontManager
 
 public class AddMemberPanel extends JPanel {
     private final JPanel parentWrapper;
@@ -58,9 +55,9 @@ public class AddMemberPanel extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.WEST;
 
-        // 1. HEADER SECTION - Localized with dynamic font mappings
-        JLabel lblTitle = new JLabel(LanguageManager.getString("edir.add_member.title"));
-        lblTitle.setFont(FontManager.getBoldFont(24));
+        // 1. HEADER SECTION - Plain English with standard typography mapping
+        JLabel lblTitle = new JLabel("Add New Member");
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 24));
         lblTitle.setForeground(new Color(101, 31, 16));
         gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
         gbc.insets = new Insets(12, 12, 20, 12); // Clean structural spacing without subheader text
@@ -69,16 +66,16 @@ public class AddMemberPanel extends JPanel {
         // Reset baseline insets for form rows
         gbc.insets = new Insets(10, 12, 10, 12);
 
-        // 2. FULL NAME FIELD LAYOUT - Localized with dynamic font mappings
+        // 2. FULL NAME FIELD LAYOUT - Plain English with standard typography mapping
         gbc.gridwidth = 1; gbc.gridy = 2; gbc.gridx = 0;
-        JLabel lblName = new JLabel(LanguageManager.getString("edir.add_member.lbl_name"));
-        lblName.setFont(FontManager.getBoldFont(14));
+        JLabel lblName = new JLabel("Full Name");
+        lblName.setFont(new Font("SansSerif", Font.BOLD, 14));
         lblName.setForeground(new Color(70, 60, 50));
         cardPanel.add(lblName, gbc);
 
         txtFullName = new JTextField();
         txtFullName.setPreferredSize(new Dimension(360, 42));
-        txtFullName.setFont(FontManager.getPlainFont(14));
+        txtFullName.setFont(new Font("SansSerif", Font.PLAIN, 14));
         txtFullName.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(210, 200, 185), 1, true),
                 BorderFactory.createEmptyBorder(0, 12, 0, 12)
@@ -86,16 +83,16 @@ public class AddMemberPanel extends JPanel {
         gbc.gridx = 1;
         cardPanel.add(txtFullName, gbc);
 
-        // 3. PHONE NUMBER FIELD LAYOUT - Localized with dynamic font mappings
+        // 3. PHONE NUMBER FIELD LAYOUT - Plain English with standard typography mapping
         gbc.gridx = 0; gbc.gridy = 3;
-        JLabel lblPhone = new JLabel(LanguageManager.getString("edir.add_member.lbl_phone"));
-        lblPhone.setFont(FontManager.getBoldFont(14));
+        JLabel lblPhone = new JLabel("Phone Number");
+        lblPhone.setFont(new Font("SansSerif", Font.BOLD, 14));
         lblPhone.setForeground(new Color(70, 60, 50));
         cardPanel.add(lblPhone, gbc);
 
         txtPhone = new JTextField();
         txtPhone.setPreferredSize(new Dimension(360, 42));
-        txtPhone.setFont(FontManager.getPlainFont(14));
+        txtPhone.setFont(new Font("SansSerif", Font.PLAIN, 14));
         txtPhone.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(210, 200, 185), 1, true),
                 BorderFactory.createEmptyBorder(0, 12, 0, 12)
@@ -107,7 +104,7 @@ public class AddMemberPanel extends JPanel {
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
         btnPanel.setOpaque(false);
 
-        JButton btnCancel = new JButton(LanguageManager.getString("edir.add_member.btn_cancel")) {
+        JButton btnCancel = new JButton("Cancel") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -119,13 +116,13 @@ public class AddMemberPanel extends JPanel {
             }
         };
         btnCancel.setPreferredSize(new Dimension(110, 40));
-        btnCancel.setFont(FontManager.getBoldFont(13));
+        btnCancel.setFont(new Font("SansSerif", Font.BOLD, 13));
         btnCancel.setForeground(new Color(101, 31, 16));
         btnCancel.setContentAreaFilled(false);
         btnCancel.setBorderPainted(false);
         btnCancel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-        JButton btnSubmit = new JButton(LanguageManager.getString("edir.add_member.btn_submit")) {
+        JButton btnSubmit = new JButton("Add Member") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -137,7 +134,7 @@ public class AddMemberPanel extends JPanel {
             }
         };
         btnSubmit.setPreferredSize(new Dimension(160, 40));
-        btnSubmit.setFont(FontManager.getBoldFont(13));
+        btnSubmit.setFont(new Font("SansSerif", Font.BOLD, 13));
         btnSubmit.setForeground(Color.WHITE);
         btnSubmit.setContentAreaFilled(false);
         btnSubmit.setBorderPainted(false);
@@ -146,24 +143,23 @@ public class AddMemberPanel extends JPanel {
         btnCancel.addActionListener(e -> returnToDashboardView());
 
         btnSubmit.addActionListener(e -> {
-            UIManager.put("OptionPane.messageFont", FontManager.getPlainFont(14));
-            UIManager.put("OptionPane.buttonFont", FontManager.getPlainFont(13));
+            UIManager.put("OptionPane.messageFont", new Font("SansSerif", Font.PLAIN, 14));
+            UIManager.put("OptionPane.buttonFont", new Font("SansSerif", Font.PLAIN, 13));
 
             String name = txtFullName.getText().trim();
             String phone = txtPhone.getText().trim();
 
             if (name.isEmpty() || phone.isEmpty()) {
-                JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.add_member.err.required"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Please fill in all required fields.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
             boolean success = trackingDashboard.getEdirService().addMemberToGroup(this.groupId, name, phone);
             if (success) {
-                // ✅ FIXED: Displays a generic localized property string without database text mapping variables
-                JOptionPane.showMessageDialog(this, LanguageManager.getString("msg.success"), LanguageManager.getString("msg.success"), JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Member added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                 returnToDashboardView();
             } else {
-                JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.add_member.err.db"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Failed to save member details. Please check your database connection.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 

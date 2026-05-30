@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.Map;
 import service.EdirService;
 import model.Group;
-import util.LanguageManager;
-import util.FontManager;
 
 public class EdirHomePanel extends JPanel {
     private JTable groupTable;
@@ -50,12 +48,9 @@ public class EdirHomePanel extends JPanel {
 
             double synchronizedNetLedgerBalance = edirService.getGroupBalance(groupId);
 
-            // Clean number formatting with commas
             String feeStr = String.format("%,.0f", groupObj.getContributionAmount());
             String balanceStr = String.format("%,.2f", synchronizedNetLedgerBalance);
 
-            // ✅ FIXED: We are passing just 'feeStr' and 'balanceStr' directly.
-            // This bypasses LanguageManager entirely for these columns, displaying only numbers.
             tableModel.addRow(new Object[]{
                     String.valueOf(counter++),
                     groupObj.getName(),
@@ -71,11 +66,11 @@ public class EdirHomePanel extends JPanel {
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
 
-        JLabel lblTitle = new JLabel(LanguageManager.getString("edir.home.title"));
-        lblTitle.setFont(FontManager.getBoldFont(26));
+        JLabel lblTitle = new JLabel("My Edir Communities");
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 26));
         lblTitle.setForeground(new Color(101, 31, 16));
 
-        btnCreateGroup = new JButton(LanguageManager.getString("edir.home.btn_create")) {
+        btnCreateGroup = new JButton("Create New Association") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -87,7 +82,7 @@ public class EdirHomePanel extends JPanel {
                 super.paintComponent(g);
             }
         };
-        btnCreateGroup.setFont(FontManager.getBoldFont(14));
+        btnCreateGroup.setFont(new Font("SansSerif", Font.BOLD, 14));
         btnCreateGroup.setForeground(Color.WHITE);
         btnCreateGroup.setContentAreaFilled(false);
         btnCreateGroup.setBorderPainted(false);
@@ -118,12 +113,12 @@ public class EdirHomePanel extends JPanel {
 
     private void initTable() {
         String[] columns = {
-                LanguageManager.getString("edir.home.col.index"),
-                LanguageManager.getString("edir.home.col.name"),
-                LanguageManager.getString("edir.home.col.fee"),
-                LanguageManager.getString("edir.home.col.members"),
-                LanguageManager.getString("edir.home.col.balance"),
-                LanguageManager.getString("edir.home.col.actions")
+                "Sequence No",
+                "Community Group Name",
+                "Required Monthly Fee (ETB)",
+                "Active Members",
+                "Total Capital Balance",
+                "Operational Actions"
         };
         tableModel = new DefaultTableModel(null, columns) {
             @Override
@@ -137,15 +132,14 @@ public class EdirHomePanel extends JPanel {
         groupTable.setBackground(Color.WHITE);
         groupTable.setShowGrid(false);
         groupTable.setIntercellSpacing(new Dimension(0, 0));
-        groupTable.setFont(FontManager.getPlainFont(14));
-        groupTable.getTableHeader().setFont(FontManager.getBoldFont(14));
+        groupTable.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        groupTable.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 14));
         groupTable.getTableHeader().setBackground(new Color(249, 237, 222));
         groupTable.getTableHeader().setForeground(new Color(101, 31, 16));
 
-        // Center rendering configuration
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(JLabel.CENTER);
-        centerRenderer.setFont(FontManager.getPlainFont(14));
+        centerRenderer.setFont(new Font("SansSerif", Font.PLAIN, 14));
 
         groupTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
         groupTable.getColumnModel().getColumn(2).setCellRenderer(centerRenderer);
@@ -169,8 +163,8 @@ public class EdirHomePanel extends JPanel {
             setOpaque(true);
             setBackground(Color.WHITE);
             setLayout(new FlowLayout(FlowLayout.CENTER, 8, 10));
-            add(createActionButton(LanguageManager.getString("edir.home.action.open"), new Color(46, 117, 89)));
-            add(createActionButton(LanguageManager.getString("edir.home.action.delete"), new Color(217, 83, 79)));
+            add(createActionButton("Open", new Color(46, 117, 89)));
+            add(createActionButton("Delete", new Color(217, 83, 79)));
         }
         @Override
         public Component getTableCellRendererComponent(JTable t, Object v, boolean s, boolean f, int r, int c) {
@@ -187,8 +181,8 @@ public class EdirHomePanel extends JPanel {
             panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 10));
             panel.setBackground(Color.WHITE);
 
-            JButton openBtn = createActionButton(LanguageManager.getString("edir.home.action.open"), new Color(46, 117, 89));
-            JButton deleteBtn = createActionButton(LanguageManager.getString("edir.home.action.delete"), new Color(217, 83, 79));
+            JButton openBtn = createActionButton("Open", new Color(46, 117, 89));
+            JButton deleteBtn = createActionButton("Delete", new Color(217, 83, 79));
 
             openBtn.addActionListener(e -> {
                 int row = currentEditingRow;
@@ -209,8 +203,8 @@ public class EdirHomePanel extends JPanel {
             });
 
             deleteBtn.addActionListener(e -> {
-                UIManager.put("OptionPane.messageFont", FontManager.getPlainFont(14));
-                UIManager.put("OptionPane.buttonFont", FontManager.getPlainFont(13));
+                UIManager.put("OptionPane.messageFont", new Font("SansSerif", Font.PLAIN, 14));
+                UIManager.put("OptionPane.buttonFont", new Font("SansSerif", Font.PLAIN, 13));
 
                 int row = currentEditingRow;
                 fireEditingStopped();
@@ -223,17 +217,17 @@ public class EdirHomePanel extends JPanel {
                         int groupId = (value instanceof Number) ? ((Number) value).intValue() : Integer.parseInt(value.toString().trim());
 
                         int confirm = JOptionPane.showConfirmDialog(panel,
-                                LanguageManager.getFormattedString("edir.home.delete.confirm", groupName),
-                                LanguageManager.getString("edir.home.delete.title"),
+                                "Are you completely sure you want to permanently delete the group: " + groupName + "? All linked structural profiles and historical transaction files will be wiped.",
+                                "Confirm Dissolution Request",
                                 JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
                         if (confirm == JOptionPane.YES_OPTION) {
                             boolean deleted = edirService.deleteGroup(groupId);
                             if (deleted) {
-                                JOptionPane.showMessageDialog(panel, LanguageManager.getString("edir.home.delete.success"), LanguageManager.getString("msg.success"), JOptionPane.INFORMATION_MESSAGE);
+                                JOptionPane.showMessageDialog(panel, "The community group profile has been deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
                                 loadGroups();
                             } else {
-                                JOptionPane.showMessageDialog(panel, LanguageManager.getString("edir.home.delete.fail"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
+                                JOptionPane.showMessageDialog(panel, "Failed to purge database records. Please analyze error logs.", "Error", JOptionPane.ERROR_MESSAGE);
                             }
                         }
                     }
@@ -276,7 +270,7 @@ public class EdirHomePanel extends JPanel {
                 super.paintComponent(g);
             }
         };
-        btn.setFont(FontManager.getBoldFont(12));
+        btn.setFont(new Font("SansSerif", Font.BOLD, 12));
         btn.setForeground(color);
         btn.setBackground(Color.WHITE);
         btn.setContentAreaFilled(false);

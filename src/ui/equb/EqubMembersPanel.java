@@ -3,8 +3,6 @@ package ui.equb;
 import service.EqubService;
 import model.Group;
 import model.Member;
-import util.LanguageManager;
-import util.FontManager; // ✅ Imported FontManager
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -35,15 +33,13 @@ public class EqubMembersPanel extends JPanel {
         JPanel headPanel = new JPanel(new BorderLayout());
         headPanel.setOpaque(false);
 
-        // ✅ Localized Panel Header Title with dynamic font engine mapping
-        JLabel lblTitle = new JLabel(LanguageManager.getFormattedString("equb.members.title", groupCtx.getName()));
-        lblTitle.setFont(FontManager.getBoldFont(24));
+        JLabel lblTitle = new JLabel("Manage Members: " + groupCtx.getName());
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 24));
         lblTitle.setForeground(new Color(101, 53, 15));
         headPanel.add(lblTitle, BorderLayout.WEST);
 
-        // ✅ Localized Cancel / Back Button Text Label
-        JButton btnCancel = new JButton(LanguageManager.getString("equb.members.btn_back"));
-        btnCancel.setFont(FontManager.getBoldFont(13));
+        JButton btnCancel = new JButton("Back to Details");
+        btnCancel.setFont(new Font("SansSerif", Font.BOLD, 13));
         btnCancel.addActionListener(e -> navigateBackToDetails());
         headPanel.add(btnCancel, BorderLayout.EAST);
         add(headPanel, BorderLayout.NORTH);
@@ -60,32 +56,25 @@ public class EqubMembersPanel extends JPanel {
         JPanel leftCard = createStyledFormCard();
         leftCard.setLayout(new BorderLayout(0, 15));
 
-        // ✅ Localized Listing Subtitle Label
-        JLabel lblLeftTitle = new JLabel(LanguageManager.getString("equb.members.left_title"));
-        lblLeftTitle.setFont(FontManager.getBoldFont(16));
+        JLabel lblLeftTitle = new JLabel("Current Registered Participants");
+        lblLeftTitle.setFont(new Font("SansSerif", Font.BOLD, 16));
         lblLeftTitle.setForeground(new Color(101, 53, 15));
         leftCard.add(lblLeftTitle, BorderLayout.NORTH);
 
-        // ✅ Localized Table Column Meta Descriptors
-        String[] columns = {
-                LanguageManager.getString("equb.members.col.rank"),
-                LanguageManager.getString("equb.members.col.name"),
-                LanguageManager.getString("equb.members.col.phone")
-        };
+        String[] columns = { "Position", "Full Name", "Contact Phone" };
         tableModel = new DefaultTableModel(null, columns) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
 
         JTable table = new JTable(tableModel);
         table.setRowHeight(35);
-        table.setFont(FontManager.getPlainFont(13)); // ✅ Safe font for multi-language table body text
-        table.getTableHeader().setFont(FontManager.getBoldFont(12));
+        table.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 12));
         table.getTableHeader().setBackground(new Color(242, 238, 228));
 
         JScrollPane scrollPane = new JScrollPane(table);
         leftCard.add(scrollPane, BorderLayout.CENTER);
 
-        // Load active data rows directly into table views
         loadGroupMembersData();
         splitBodyPanel.add(leftCard);
 
@@ -95,39 +84,35 @@ public class EqubMembersPanel extends JPanel {
         JPanel rightCard = createStyledFormCard();
         rightCard.setLayout(new BoxLayout(rightCard, BoxLayout.Y_AXIS));
 
-        // ✅ Localized Registration Section Subtitle
-        JLabel lblRightTitle = new JLabel(LanguageManager.getString("equb.members.right_title"));
-        lblRightTitle.setFont(FontManager.getBoldFont(16));
+        JLabel lblRightTitle = new JLabel("Add New Participant Profile");
+        lblRightTitle.setFont(new Font("SansSerif", Font.BOLD, 16));
         lblRightTitle.setForeground(new Color(34, 100, 51));
         rightCard.add(lblRightTitle);
         rightCard.add(Box.createVerticalStrut(25));
 
-        // ✅ Localized Form Field Input Titles and Placeholders
-        rightCard.add(createFormLabel(LanguageManager.getString("equb.members.lbl_name")));
-        String placeholderName = LanguageManager.getString("equb.members.placeholder_name");
+        rightCard.add(createFormLabel("Full Legal Name"));
+        String placeholderName = "Enter legal first and last name";
         txtNewFullName = createStyledTextField(placeholderName);
         rightCard.add(txtNewFullName);
         rightCard.add(Box.createVerticalStrut(20));
 
-        rightCard.add(createFormLabel(LanguageManager.getString("equb.members.lbl_phone")));
-        String placeholderPhone = LanguageManager.getString("equb.members.placeholder_phone");
+        rightCard.add(createFormLabel("Mobile Phone Number"));
+        String placeholderPhone = "Enter active mobile number";
         txtNewPhone = createStyledTextField(placeholderPhone);
         rightCard.add(txtNewPhone);
         rightCard.add(Box.createVerticalStrut(40));
 
-        // ✅ Localized Action Button Registration Label
-        JButton btnRegisterNew = createStyledButton(LanguageManager.getString("equb.members.btn_register"), new Color(34, 100, 51));
+        JButton btnRegisterNew = createStyledButton("Register & Add to Group", new Color(34, 100, 51));
         btnRegisterNew.addActionListener(e -> {
-            // Apply proper fallback fonts onto the JOptionPane global parameters
-            UIManager.put("OptionPane.messageFont", FontManager.getPlainFont(14));
-            UIManager.put("OptionPane.buttonFont", FontManager.getPlainFont(13));
+            UIManager.put("OptionPane.messageFont", new Font("SansSerif", Font.PLAIN, 14));
+            UIManager.put("OptionPane.buttonFont", new Font("SansSerif", Font.PLAIN, 13));
 
             String fullName = txtNewFullName.getText().trim();
             String phone = txtNewPhone.getText().trim();
 
             if (fullName.isEmpty() || fullName.equals(placeholderName) ||
                     phone.isEmpty() || phone.equals(placeholderPhone)) {
-                JOptionPane.showMessageDialog(this, LanguageManager.getString("equb.members.err.validation"), LanguageManager.getString("msg.validation_error"), JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Please completely fill out all text input fields.", "Validation Error", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
@@ -136,18 +121,14 @@ public class EqubMembersPanel extends JPanel {
             newMemberProfile.setPhone(phone);
             newMemberProfile.setStatus("Active");
 
-            // 1. Establish the unique profile sequence entry inside master ledger
             int generatedMemberId = service.createNewSystemMember(newMemberProfile);
 
             if (generatedMemberId > 0) {
-                // 2. Link the verified freshly allocated ID cleanly to this specific group
                 service.addMemberToGroup(groupCtx.getId(), generatedMemberId);
 
-                // ✅ Localized Dynamic Integration Prompt Context String
-                String successMessage = LanguageManager.getFormattedString("equb.members.success", fullName, groupCtx.getName());
-                JOptionPane.showMessageDialog(this, successMessage, LanguageManager.getString("msg.success"), JOptionPane.INFORMATION_MESSAGE);
+                String successMessage = String.format("Successfully registered %s and allocated them to %s.", fullName, groupCtx.getName());
+                JOptionPane.showMessageDialog(this, successMessage, "Registration Successful", JOptionPane.INFORMATION_MESSAGE);
 
-                // Reset text inputs and reload data components instantly using safe dynamic labels
                 txtNewFullName.setText(placeholderName);
                 txtNewFullName.setForeground(Color.LIGHT_GRAY);
                 txtNewPhone.setText(placeholderPhone);
@@ -155,7 +136,7 @@ public class EqubMembersPanel extends JPanel {
 
                 loadGroupMembersData();
             } else {
-                JOptionPane.showMessageDialog(this, LanguageManager.getString("equb.members.err.database"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Failed to write parameter modifications back to system database files.", "Database Error", JOptionPane.ERROR_MESSAGE);
             }
         });
         rightCard.add(btnRegisterNew);
@@ -205,7 +186,7 @@ public class EqubMembersPanel extends JPanel {
 
     private JLabel createFormLabel(String content) {
         JLabel l = new JLabel(content);
-        l.setFont(FontManager.getBoldFont(13));
+        l.setFont(new Font("SansSerif", Font.BOLD, 13));
         l.setForeground(new Color(80, 75, 65));
         l.setAlignmentX(Component.LEFT_ALIGNMENT);
         return l;
@@ -213,7 +194,7 @@ public class EqubMembersPanel extends JPanel {
 
     private JTextField createStyledTextField(String placeholder) {
         JTextField tf = new JTextField(placeholder);
-        tf.setFont(FontManager.getPlainFont(14)); // ✅ Fixed hardcoded placeholder font layout anomalies
+        tf.setFont(new Font("SansSerif", Font.PLAIN, 14));
         tf.setPreferredSize(new Dimension(Integer.MAX_VALUE, 40));
         tf.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         tf.setForeground(Color.LIGHT_GRAY);
@@ -250,7 +231,7 @@ public class EqubMembersPanel extends JPanel {
                 super.paintComponent(g);
             }
         };
-        btn.setFont(FontManager.getBoldFont(14));
+        btn.setFont(new Font("SansSerif", Font.BOLD, 14));
         btn.setForeground(Color.WHITE);
         btn.setContentAreaFilled(false);
         btn.setBorderPainted(false);

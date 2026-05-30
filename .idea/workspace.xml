@@ -5,22 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5b7356a4-aa8c-4987-80a5-fc90f559eb29" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/util/FontManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/dao/EdirDAO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dao/EdirDAO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/dao/ReportDAO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dao/ReportDAO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/dao/impl/DashboardDAOImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dao/impl/DashboardDAOImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/dao/impl/EdirDAOImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dao/impl/EdirDAOImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/dao/impl/ReportDAOImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dao/impl/ReportDAOImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/model/ReportDataModels.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/model/ReportDataModels.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/resources/language_am.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/resources/language_en.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/service/EdirService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/EdirService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/service/ReportService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/ReportService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/service/impl/EdirServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/impl/EdirServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/service/impl/ReportServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/impl/ReportServiceImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ui/auth/ForgotPasswordPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/auth/ForgotPasswordPanel.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ui/auth/LoginFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/auth/LoginFrame.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ui/auth/LoginPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/auth/LoginPanel.java" afterDir="false" />
@@ -53,11 +38,6 @@
       <change beforePath="$PROJECT_DIR$/src/ui/reports/ReportHomePanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/reports/ReportHomePanel.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ui/reports/SystemReportPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/reports/SystemReportPanel.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ui/settings/SettingsPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/settings/SettingsPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/util/LanguageManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/util/LanguageManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/Main.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Main.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/service/EdirService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/EdirService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/service/ReportService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/ReportService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/ReportServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/impl/ReportServiceImpl.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/ui/auth/ForgotPasswordPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/auth/ForgotPasswordPanel.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/ui/auth/LoginPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/auth/LoginPanel.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/ui/core/ContentPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/core/ContentPanel.class" afterDir="false" />
@@ -87,7 +67,6 @@
       <change beforePath="$PROJECT_DIR$/target/classes/ui/reports/ReportHomePanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/reports/ReportHomePanel.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/ui/reports/SystemReportPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/reports/SystemReportPanel.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/ui/settings/SettingsPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/settings/SettingsPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/util/LanguageManager.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/util/LanguageManager.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -125,7 +104,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "p4-core-system",
+    "git-widget-placeholder": "e11ef060",
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/Student4/OneDrive/Documents/java/OOP project/HIBRET-SYSTEM/src/resources/images",

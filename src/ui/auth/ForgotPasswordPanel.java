@@ -4,7 +4,7 @@ import service.AuthService;
 import service.impl.AuthServiceImpl;
 import model.User;
 import util.LanguageManager;
-import util.FontManager; // ✅ Imported FontManager
+import util.FontManager;
 
 import ui.auth.components.RoundedButton;
 import ui.auth.components.RoundedPasswordField;
@@ -24,7 +24,6 @@ public class ForgotPasswordPanel extends JPanel {
     private CardLayout formCardLayout;
     private JPanel dynamicFormContainer;
 
-    // --- State-Driven Business Services ---
     private final AuthService authService = new AuthServiceImpl();
     private User currentUser;
 
@@ -39,21 +38,17 @@ public class ForgotPasswordPanel extends JPanel {
 
         setLayout(new GridBagLayout());
 
-        // --- Center Container ---
         JPanel centerCard = new JPanel(new GridLayout(1, 2, 40, 0));
         centerCard.setOpaque(false);
         centerCard.setPreferredSize(new Dimension(750, 520));
 
-        // Left Side: Spacer for Background Art
         JPanel leftSpacer = new JPanel();
         leftSpacer.setOpaque(false);
 
-        // Right Side: Base Form Container
         JPanel baseFormPanel = new JPanel();
         baseFormPanel.setLayout(new BoxLayout(baseFormPanel, BoxLayout.Y_AXIS));
         baseFormPanel.setOpaque(false);
 
-        // ✅ Applied dynamic FontManager configs to primary headings
         JLabel lblTitle = new JLabel(LanguageManager.getString("forgot.title"));
         lblTitle.setFont(FontManager.getBoldFont(46));
         lblTitle.setForeground(new Color(101, 53, 15));
@@ -64,20 +59,17 @@ public class ForgotPasswordPanel extends JPanel {
         lblSubTitle.setForeground(new Color(34, 112, 43));
         lblSubTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // --- Dynamic Content Container (Card Layout for Step 1 & Step 2) ---
         formCardLayout = new CardLayout();
         dynamicFormContainer = new JPanel(formCardLayout);
         dynamicFormContainer.setOpaque(false);
         dynamicFormContainer.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Initialize Steps
         JPanel step1Panel = createSecurityQuestionStep();
         JPanel step2Panel = createNewPasswordStep();
 
         dynamicFormContainer.add(step1Panel, "step1");
         dynamicFormContainer.add(step2Panel, "step2");
 
-        // --- Back to Login Link ---
         JPanel backPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
         backPanel.setOpaque(false);
         backPanel.setMaximumSize(new Dimension(320, 25));
@@ -94,7 +86,6 @@ public class ForgotPasswordPanel extends JPanel {
         lblLogin.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                // Clear user session cache state
                 currentUser = null;
                 formCardLayout.show(dynamicFormContainer, "step1");
                 parentFrame.showPage("login");
@@ -111,43 +102,12 @@ public class ForgotPasswordPanel extends JPanel {
         backPanel.add(lblRemember);
         backPanel.add(lblLogin);
 
-        // --- Language Toggle Panel ---
-        JPanel langPanel = new JPanel(new GridLayout(1, 2));
-        langPanel.setOpaque(false);
-        langPanel.setMaximumSize(new Dimension(160, 35));
-        langPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JButton btnEng = new JButton("English");
-        btnEng.setFont(new Font("SansSerif", Font.BOLD, 12));
-        btnEng.setFocusPainted(false);
-
-        JButton btnAmh = new JButton("አማርኛ");
-        btnAmh.setFont(new Font(FontManager.getAmharicFontName(), Font.PLAIN, 14));
-        btnAmh.setFocusPainted(false);
-
-        // ✅ Context Translation Change Listeners
-        btnEng.addActionListener(e -> {
-            LanguageManager.setLanguage("en");
-            parentFrame.showPage("forgot");
-        });
-
-        btnAmh.addActionListener(e -> {
-            LanguageManager.setLanguage("am");
-            parentFrame.showPage("forgot");
-        });
-
-        langPanel.add(btnEng);
-        langPanel.add(btnAmh);
-
-        // Assembly
         baseFormPanel.add(lblTitle);
         baseFormPanel.add(lblSubTitle);
         baseFormPanel.add(Box.createVerticalStrut(20));
         baseFormPanel.add(dynamicFormContainer);
         baseFormPanel.add(Box.createVerticalStrut(15));
         baseFormPanel.add(backPanel);
-        baseFormPanel.add(Box.createVerticalStrut(25));
-        baseFormPanel.add(langPanel);
 
         centerCard.add(leftSpacer);
         centerCard.add(baseFormPanel);
@@ -158,7 +118,6 @@ public class ForgotPasswordPanel extends JPanel {
         add(centerCard, gbc);
     }
 
-    // --- STEP 1: Security Verification Card ---
     private JPanel createSecurityQuestionStep() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -198,7 +157,6 @@ public class ForgotPasswordPanel extends JPanel {
         lblQuestion.setForeground(new Color(70, 70, 70));
         lblQuestion.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // ✅ Re-uses localized question text array configurations
         String[] questions = {
                 LanguageManager.getString("register.q0"),
                 LanguageManager.getString("register.q1"),
@@ -210,7 +168,6 @@ public class ForgotPasswordPanel extends JPanel {
         JComboBox<String> comboQuestions = new JComboBox<>(questions);
         comboQuestions.setFont(FontManager.getPlainFont(13));
 
-        // ✅ CRUCIAL FIX: Override dropdown popover panel canvas typography mapping settings
         Object cellRenderer = comboQuestions.getRenderer();
         if (cellRenderer instanceof JComponent) {
             ((JComponent) cellRenderer).setFont(FontManager.getPlainFont(13));
@@ -239,7 +196,6 @@ public class ForgotPasswordPanel extends JPanel {
                     txtAnswer.setForeground(Color.BLACK);
                 }
             }
-
             @Override
             public void focusLost(java.awt.event.FocusEvent e) {
                 if (txtAnswer.getText().trim().isEmpty()) {
@@ -257,7 +213,6 @@ public class ForgotPasswordPanel extends JPanel {
         btnVerify.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         btnVerify.addActionListener(e -> {
-            // Apply dynamic typography to JOptionPane popups inside handlers
             UIManager.put("OptionPane.messageFont", FontManager.getPlainFont(14));
             UIManager.put("OptionPane.buttonFont", FontManager.getPlainFont(13));
 
@@ -307,7 +262,6 @@ public class ForgotPasswordPanel extends JPanel {
         return panel;
     }
 
-    // --- STEP 2: New Password Input Card ---
     private JPanel createNewPasswordStep() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));

@@ -5,8 +5,6 @@ import java.awt.*;
 import model.DashboardMetrics;
 import service.DashboardService;
 import service.impl.DashboardServiceImpl;
-import util.LanguageManager;
-import util.FontManager; // ✅ Imported FontManager
 
 public class ContentPanel extends JPanel {
     private final MainFrame parentFrame;
@@ -30,9 +28,9 @@ public class ContentPanel extends JPanel {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBorder(BorderFactory.createEmptyBorder(25, 35, 40, 35));
 
-        // ✅ Fixed Header Font with dynamic Amharic Font mapping
-        JLabel lblHeader = new JLabel(LanguageManager.getString("dashboard.header"));
-        lblHeader.setFont(FontManager.getBoldFont(32));
+        // Use standard Java Fonts with localized English strings
+        JLabel lblHeader = new JLabel("Dashboard Overview");
+        lblHeader.setFont(new Font("SansSerif", Font.BOLD, 32));
         lblHeader.setForeground(TEXT_DARK_BROWN);
         lblHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
         add(lblHeader);
@@ -47,18 +45,18 @@ public class ContentPanel extends JPanel {
         metricsContainer.setOpaque(false);
         metricsContainer.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // ✅ Bound Information Metrics Cards Text properties
+        // Information Metrics Cards using plain English
         lblTotalMembersValue = new JLabel("0");
-        metricsContainer.add(createInfoCard("👤", LanguageManager.getString("dashboard.card.total_members"), lblTotalMembersValue, new Color(40, 40, 40)));
+        metricsContainer.add(createInfoCard("👤", "Total Members", lblTotalMembersValue, new Color(40, 40, 40)));
 
-        lblTotalFundsValue = new JLabel("0.00 " + LanguageManager.getString("dashboard.currency_suffix"));
-        metricsContainer.add(createInfoCard("💰", LanguageManager.getString("dashboard.card.vault_capital"), lblTotalFundsValue, new Color(34, 112, 43)));
+        lblTotalFundsValue = new JLabel("0.00 ETB");
+        metricsContainer.add(createInfoCard("💰", "Vault Capital Balance", lblTotalFundsValue, new Color(34, 112, 43)));
 
         lblEqubCirclesValue = new JLabel("0");
-        metricsContainer.add(createInfoCard("👥", LanguageManager.getString("dashboard.card.equb_groups"), lblEqubCirclesValue, new Color(160, 40, 20)));
+        metricsContainer.add(createInfoCard("👥", "Active Equb Groups", lblEqubCirclesValue, new Color(160, 40, 20)));
 
         lblEdirGroupsValue = new JLabel("0");
-        metricsContainer.add(createInfoCard("🤝", LanguageManager.getString("dashboard.card.edir_groups"), lblEdirGroupsValue, new Color(184, 91, 23)));
+        metricsContainer.add(createInfoCard("🤝", "Active Edir Groups", lblEdirGroupsValue, new Color(184, 91, 23)));
 
         add(metricsContainer);
         add(Box.createVerticalStrut(40));
@@ -73,11 +71,11 @@ public class ContentPanel extends JPanel {
         modulesGrid.setOpaque(false);
         modulesGrid.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // ✅ Bound Module Routing Menu Tiles Texts properties
-        modulesGrid.add(createModuleTile("🏘️", LanguageManager.getString("dashboard.tile.equb"), "Equb", new Color(46, 117, 59)));
-        modulesGrid.add(createModuleTile("❤️", LanguageManager.getString("dashboard.tile.edir"), "Edir", new Color(184, 91, 23)));
-        modulesGrid.add(createModuleTile("📊", LanguageManager.getString("dashboard.tile.reports"), "Reports", new Color(207, 142, 19)));
-        modulesGrid.add(createModuleTile("⚙️", LanguageManager.getString("dashboard.tile.settings"), "Settings", new Color(33, 91, 166)));
+        // Module Routing Menu Tiles in English
+        modulesGrid.add(createModuleTile("🏘️", "Equb Management", "Equb", new Color(46, 117, 59)));
+        modulesGrid.add(createModuleTile("❤️", "Edir Management", "Edir", new Color(184, 91, 23)));
+        modulesGrid.add(createModuleTile("📊", "Financial Reports", "Reports", new Color(207, 142, 19)));
+        modulesGrid.add(createModuleTile("⚙️", "System Settings", "Settings", new Color(33, 91, 166)));
 
         add(modulesGrid);
 
@@ -91,9 +89,9 @@ public class ContentPanel extends JPanel {
         lblEqubCirclesValue.setText(String.valueOf(metrics.getTotalEqubCircles()));
         lblEdirGroupsValue.setText(String.valueOf(metrics.getTotalEdirGroups()));
 
-        // ✅ Dynamic Internationalized Currency Formatter injection
+        // Appending default English currency suffix
         double totalCombinedFunds = metrics.getTotalEqubVaultBalance() + metrics.getTotalEdirVaultBalance();
-        lblTotalFundsValue.setText(String.format("%,.2f", totalCombinedFunds) + LanguageManager.getString("dashboard.currency_suffix"));
+        lblTotalFundsValue.setText(String.format("%,.2f", totalCombinedFunds) + " ETB");
 
         revalidate();
         repaint();
@@ -124,7 +122,7 @@ public class ContentPanel extends JPanel {
         card.setBorder(BorderFactory.createEmptyBorder(18, 20, 18, 20));
 
         JLabel lblIcon = new JLabel(iconSymbol);
-        lblIcon.setFont(new Font("SansSerif", Font.PLAIN, 32)); // Standard Emojis can retain SansSerif mapping
+        lblIcon.setFont(new Font("SansSerif", Font.PLAIN, 32));
         lblIcon.setForeground(valueColor);
         card.add(lblIcon, BorderLayout.WEST);
 
@@ -132,14 +130,12 @@ public class ContentPanel extends JPanel {
         textStack.setOpaque(false);
         textStack.setLayout(new BoxLayout(textStack, BoxLayout.Y_AXIS));
 
-        // ✅ Replaced hardcoded title fonts with FontManager configurations
         JLabel lblTitle = new JLabel(title);
-        lblTitle.setFont(FontManager.getBoldFont(13));
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 13));
         lblTitle.setForeground(TEXT_MUTED_GRAY);
         lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // ✅ Replaced numerical values font configurations
-        lblValue.setFont(FontManager.getBoldFont(22));
+        lblValue.setFont(new Font("SansSerif", Font.BOLD, 22));
         lblValue.setForeground(valueColor);
         lblValue.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -152,10 +148,9 @@ public class ContentPanel extends JPanel {
     }
 
     private JButton createModuleTile(String iconSymbol, String title, String targetRoute, Color bgTheme) {
-        // ✅ Forcing explicit dynamic font-family properties inside the raw HTML formatting block
-        String currentFontFamily = FontManager.getAmharicFontName();
+        // Strip out FontManager configurations from raw HTML styling properties
         String cleanTitle = title.replaceAll("\n", "<br>");
-        String formattedTitle = "<html><body style='font-family: " + currentFontFamily + "; text-align: center;'><center>" + cleanTitle + "</center></body></html>";
+        String formattedTitle = "<html><body style='font-family: SansSerif; text-align: center;'><center>" + cleanTitle + "</center></body></html>";
 
         JButton tile = new JButton(formattedTitle) {
             @Override
@@ -164,7 +159,7 @@ public class ContentPanel extends JPanel {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(bgTheme);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
-                g2.setFont(new Font("SansSerif", Font.PLAIN, 42)); // Render graphic symbols safely
+                g2.setFont(new Font("SansSerif", Font.PLAIN, 42));
                 FontMetrics fm = g2.getFontMetrics();
                 g2.drawString(iconSymbol, (getWidth() - fm.stringWidth(iconSymbol)) / 2, (getHeight() / 2) - 10);
                 super.paintComponent(g2);
@@ -172,8 +167,7 @@ public class ContentPanel extends JPanel {
             }
         };
 
-        // ✅ Applied dynamic Font configurations to JButton component defaults
-        tile.setFont(FontManager.getBoldFont(14));
+        tile.setFont(new Font("SansSerif", Font.BOLD, 14));
         tile.setForeground(Color.WHITE);
         tile.setContentAreaFilled(false);
         tile.setBorderPainted(false);

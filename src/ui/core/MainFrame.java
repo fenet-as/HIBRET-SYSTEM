@@ -9,8 +9,6 @@ import ui.edir.EdirHomePanel;
 import ui.settings.SettingsPanel;
 import session.Session;
 import ui.reports.ReportHomePanel;
-import util.LanguageManager;
-import util.FontManager; // ✅ Imported FontManager
 
 import javax.swing.*;
 import java.awt.*;
@@ -46,7 +44,7 @@ public class MainFrame extends JFrame {
         // Attach the logged-in User profile directly to the Global Session context immediately
         Session.setCurrentUser(user);
 
-        // ✅ Dynamic Internationalized Frame Title
+        // Configure plain English metadata and default configurations
         updateFrameTitle();
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -77,20 +75,18 @@ public class MainFrame extends JFrame {
     }
 
     /**
-     * ✅ Helper method to set window title dynamically based on local language and explicit font mapping configuration
+     * Set window title and global option pane typography settings
      */
     private void updateFrameTitle() {
-        // Enforce fallback mappings inside the main window native OS handle
-        String titleText = LanguageManager.getString("app.title") + LanguageManager.getString("frame.title_suffix");
-        setTitle(titleText);
+        setTitle("Hibret System - Financial Management Portal");
 
-        // Globally configures any dynamic Swing popup windows (like JOptionPanes) to match the dynamic text script
-        UIManager.put("OptionPane.messageFont", FontManager.getPlainFont(14));
-        UIManager.put("OptionPane.buttonFont", FontManager.getPlainFont(13));
+        // Globally configures standard fonts for popups/dialog notifications
+        UIManager.put("OptionPane.messageFont", new Font("SansSerif", Font.PLAIN, 14));
+        UIManager.put("OptionPane.buttonFont", new Font("SansSerif", Font.PLAIN, 13));
     }
 
     /**
-     * ✅ Re-creates panel instances in the CardLayout matrix to seamlessly pick up fresh strings on the fly
+     * Re-creates panel instances in the CardLayout matrix
      */
     private void rebuildCenterViewport() {
         centerViewportContainer.removeAll();
@@ -133,26 +129,19 @@ public class MainFrame extends JFrame {
     }
 
     /**
-     * ✅ PUBLIC ACCESS SWEEPER: Called whenever language properties are changed from anywhere in the system
+     * Forces system UI updates and container revalidation routines
      */
     public void reloadLanguageContext() {
         updateFrameTitle();
-
-        // Rebuild and refresh panels to instantly match chosen language locale properties
         rebuildCenterViewport();
-
-        // Re-route clean display mapping to active workspace route context
         switchDashboardView(activeRoute);
 
-        // ✅ Notifies top navigation layout panels to refresh structural text bundles
         if (topBar != null) {
-            // If topBar has a rebuild or language refresh method, execute it here:
             topBar.revalidate();
             topBar.repaint();
         }
 
         if (sidebar != null) {
-            // If sidebar has an internal menu item re-layout strategy, force refresh context updates
             sidebar.revalidate();
             sidebar.repaint();
         }
@@ -256,8 +245,7 @@ public class MainFrame extends JFrame {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setOpaque(false);
         JLabel label = new JLabel(textTitle);
-        // ✅ Replaced hardcoded font family declaration with FontManager mappings
-        label.setFont(FontManager.getBoldFont(20));
+        label.setFont(new Font("SansSerif", Font.BOLD, 20));
         label.setForeground(new Color(101, 53, 15));
         panel.add(label);
         return panel;

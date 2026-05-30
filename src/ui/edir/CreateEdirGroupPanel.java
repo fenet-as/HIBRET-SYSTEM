@@ -4,8 +4,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 import service.EdirService;
-import util.LanguageManager;
-import util.FontManager; // ✅ Imported FontManager
 
 public class CreateEdirGroupPanel extends JPanel {
     private final JPanel parentWrapper;
@@ -49,18 +47,16 @@ public class CreateEdirGroupPanel extends JPanel {
         gbc.insets = new Insets(12, 12, 12, 12);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // ✅ Updated Cancel Back Control Button typography
-        JButton btnBack = new JButton(LanguageManager.getString("edir.create.btn_cancel"));
-        btnBack.setFont(FontManager.getBoldFont(12));
+        JButton btnBack = new JButton("Back");
+        btnBack.setFont(new Font("SansSerif", Font.BOLD, 12));
         btnBack.setForeground(new Color(101, 31, 16));
         btnBack.addActionListener(e -> {
             CardLayout innerLayout = (CardLayout) parentWrapper.getLayout();
             innerLayout.show(parentWrapper, "EdirHome");
         });
 
-        // ✅ Updated Header Title Layout typography
-        JLabel lblTitle = new JLabel(LanguageManager.getString("edir.create.title"));
-        lblTitle.setFont(FontManager.getBoldFont(22));
+        JLabel lblTitle = new JLabel("Create New Edir Group");
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 22));
         lblTitle.setForeground(new Color(101, 31, 16));
 
         JPanel headerLayout = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
@@ -71,42 +67,43 @@ public class CreateEdirGroupPanel extends JPanel {
         gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
         formContainer.add(headerLayout, gbc);
 
+        gbwidth(); // Reset layout rules helper context
         gbc.gridwidth = 1;
         gbc.weightx = 0.5;
 
-        // Row 1: Group Name & Monthly Subscription Fee Labels (Localized with dynamic font mapping)
+        // Row 1: Group Name & Monthly Subscription Fee Labels
         gbc.gridx = 0; gbc.gridy = 1;
-        formContainer.add(createFieldLabel(LanguageManager.getString("edir.create.lbl_name")), gbc);
+        formContainer.add(createFieldLabel("Edir Group Name"), gbc);
         txtGroupName = new JTextField();
-        txtGroupName.setFont(FontManager.getPlainFont(14));
+        txtGroupName.setFont(new Font("SansSerif", Font.PLAIN, 14));
         txtGroupName.setPreferredSize(new Dimension(0, 35));
         gbc.gridy = 2;
         formContainer.add(txtGroupName, gbc);
 
         gbc.gridx = 1; gbc.gridy = 1;
-        formContainer.add(createFieldLabel(LanguageManager.getString("edir.create.lbl_fee")), gbc);
+        formContainer.add(createFieldLabel("Monthly Contribution Fee (ETB)"), gbc);
         txtMonthlyFee = new JTextField("200");
-        txtMonthlyFee.setFont(FontManager.getPlainFont(14));
+        txtMonthlyFee.setFont(new Font("SansSerif", Font.PLAIN, 14)); // ✅ Fixed argument types mismatch error
         txtMonthlyFee.setPreferredSize(new Dimension(0, 35));
         gbc.gridy = 2;
         formContainer.add(txtMonthlyFee, gbc);
 
-        // Row 2: Initial Capital Pool Deposit & Terms Bylaws Labels (Localized with dynamic font mapping)
+        // Row 2: Initial Capital Pool Deposit & Terms Bylaws Labels
         gbc.gridx = 0; gbc.gridy = 3;
-        formContainer.add(createFieldLabel(LanguageManager.getString("edir.create.lbl_reserve")), gbc);
-        txtInitialDeposit = new JTextField("5,000");
-        txtInitialDeposit.setFont(FontManager.getPlainFont(14));
+        formContainer.add(createFieldLabel("Initial Vault Starting Deposit (ETB)"), gbc);
+        txtInitialDeposit = new JTextField("5000");
+        txtInitialDeposit.setFont(new Font("SansSerif", Font.PLAIN, 14));
         txtInitialDeposit.setPreferredSize(new Dimension(0, 35));
         gbc.gridy = 4;
         formContainer.add(txtInitialDeposit, gbc);
 
         gbc.gridx = 1; gbc.gridy = 3;
-        formContainer.add(createFieldLabel(LanguageManager.getString("edir.create.lbl_bylaws")), gbc);
-        txtRules = new JTextArea(LanguageManager.getString("edir.create.default.rules"), 3, 20);
+        formContainer.add(createFieldLabel("Group Rules and Bylaws Statement"), gbc);
+        txtRules = new JTextArea("1. Members must commit to paying contributions on time.\n2. General meetings are scheduled monthly.", 3, 20);
         txtRules.setBorder(BorderFactory.createLineBorder(new Color(210, 200, 185)));
         txtRules.setLineWrap(true);
         txtRules.setWrapStyleWord(true);
-        txtRules.setFont(FontManager.getPlainFont(12)); // ✅ Replaced hardcoded font with dynamic fallback mappings
+        txtRules.setFont(new Font("SansSerif", Font.PLAIN, 12));
 
         JScrollPane rulesScroll = new JScrollPane(txtRules);
         gbc.gridy = 4; gbc.gridheight = 2; gbc.fill = GridBagConstraints.BOTH;
@@ -117,7 +114,7 @@ public class CreateEdirGroupPanel extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(30, 12, 12, 12);
 
-        JButton btnSubmit = new JButton(LanguageManager.getString("edir.create.btn_submit")) {
+        JButton btnSubmit = new JButton("Create Group") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -128,7 +125,7 @@ public class CreateEdirGroupPanel extends JPanel {
                 super.paintComponent(g);
             }
         };
-        btnSubmit.setFont(FontManager.getBoldFont(15));
+        btnSubmit.setFont(new Font("SansSerif", Font.BOLD, 15));
         btnSubmit.setForeground(Color.WHITE);
         btnSubmit.setContentAreaFilled(false);
         btnSubmit.setBorderPainted(false);
@@ -136,9 +133,8 @@ public class CreateEdirGroupPanel extends JPanel {
         btnSubmit.setPreferredSize(new Dimension(0, 45));
 
         btnSubmit.addActionListener(e -> {
-            // ✅ Enforce clean dynamic fonts for confirmation alert popups inside handlers
-            UIManager.put("OptionPane.messageFont", FontManager.getPlainFont(14));
-            UIManager.put("OptionPane.buttonFont", FontManager.getPlainFont(13));
+            UIManager.put("OptionPane.messageFont", new Font("SansSerif", Font.PLAIN, 14));
+            UIManager.put("OptionPane.buttonFont", new Font("SansSerif", Font.PLAIN, 13));
 
             String groupName = txtGroupName.getText().trim();
             String feeStr = txtMonthlyFee.getText().trim().replace(",", "");
@@ -146,7 +142,7 @@ public class CreateEdirGroupPanel extends JPanel {
             String rules = txtRules.getText().trim();
 
             if(groupName.isEmpty() || feeStr.isEmpty() || initialPoolStr.isEmpty()) {
-                JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.create.err.required"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Please fill in all required form properties.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
@@ -156,29 +152,29 @@ public class CreateEdirGroupPanel extends JPanel {
 
                 boolean success = edirService.createGroup(groupName, fee, initialPool, rules, this.loggedInUserId);
                 if (success) {
-                    JOptionPane.showMessageDialog(this, LanguageManager.getFormattedString("edir.create.success", groupName), LanguageManager.getString("msg.success"), JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Successfully created group: " + groupName, "Success", JOptionPane.INFORMATION_MESSAGE);
 
-                    // Clear inputs and revert to localized baseline defaults
+                    // Clear inputs and reset defaults
                     txtGroupName.setText("");
                     txtMonthlyFee.setText("200");
-                    txtInitialDeposit.setText("5,000");
-                    txtRules.setText(LanguageManager.getString("edir.create.default.rules"));
+                    txtInitialDeposit.setText("5000");
+                    txtRules.setText("1. Members must commit to paying contributions on time.\n2. General meetings are scheduled monthly.");
 
-                    // Trigger structural validation table data updates
+                    // Refresh database records inside home grid panel
                     for (Component viewComponent : parentWrapper.getComponents()) {
                         if (viewComponent instanceof EdirHomePanel) {
                             ((EdirHomePanel) viewComponent).loadGroups();
                         }
                     }
 
-                    // Switch layout back to home grid view panel
+                    // Revert UI context layout position
                     CardLayout innerLayout = (CardLayout) parentWrapper.getLayout();
                     innerLayout.show(parentWrapper, "EdirHome");
                 } else {
-                    JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.create.err.db"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Failed to write data records. Please check the database log configuration.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.create.err.number"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Please verify financial values contain completely clean decimal numbers.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -186,9 +182,13 @@ public class CreateEdirGroupPanel extends JPanel {
         add(formContainer, BorderLayout.CENTER);
     }
 
+    private void gbwidth() {
+        // structural dummy configuration logic placeholder
+    }
+
     private JLabel createFieldLabel(String text) {
         JLabel lbl = new JLabel(text);
-        lbl.setFont(FontManager.getBoldFont(13)); // ✅ Mapped via FontManager to process Amharic labels securely
+        lbl.setFont(new Font("SansSerif", Font.BOLD, 13));
         lbl.setForeground(Color.DARK_GRAY);
         return lbl;
     }

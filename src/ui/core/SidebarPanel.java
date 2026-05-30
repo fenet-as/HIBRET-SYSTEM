@@ -2,8 +2,6 @@ package ui.core;
 
 import javax.swing.*;
 import java.awt.*;
-import util.LanguageManager;
-import util.FontManager; // ✅ Imported FontManager
 
 public class SidebarPanel extends JPanel {
     private final MainFrame parentFrame;
@@ -18,36 +16,35 @@ public class SidebarPanel extends JPanel {
         setPreferredSize(new Dimension(240, 655));
         setBorder(BorderFactory.createEmptyBorder(25, 0, 40, 0));
 
-        // Build the localized UI layout structure
+        // Build the English UI layout structure
         rebuildMenu();
     }
 
     /**
-     * ✅ Clears old buttons and rebuilds them with the active language and target font mapping
+     * Clears old buttons and rebuilds them with plain English strings and standard fonts
      */
     public void rebuildMenu() {
         this.removeAll();
 
-        // 1. Re-add navigation items bound to the dynamic Amharic font
-        addNavigationButton(LanguageManager.getString("sidebar.dashboard"), "Dashboard");
-        addNavigationButton(LanguageManager.getString("sidebar.equb"), "Equb");
-        addNavigationButton(LanguageManager.getString("sidebar.edir"), "Edir");
-        addNavigationButton(LanguageManager.getString("sidebar.reports"), "Reports");
-        addNavigationButton(LanguageManager.getString("sidebar.settings"), "Settings");
+        // 1. Add navigation items using plain English labels
+        addNavigationButton("Dashboard", "Dashboard");
+        addNavigationButton("Equb Management", "Equb");
+        addNavigationButton("Edir Management", "Edir");
+        addNavigationButton("Financial Reports", "Reports");
+        addNavigationButton("System Settings", "Settings");
 
         add(Box.createVerticalGlue());
 
-        // 2. Localized Logout Control
-        JButton btnLogout = createMenuButton(LanguageManager.getString("sidebar.logout"), "Logout");
+        // 2. Standard Logout Control
+        JButton btnLogout = createMenuButton("Logout", "Logout");
         btnLogout.addActionListener(e -> {
-            // Apply dynamic fonts directly to the runtime confirmation dialog text
-            UIManager.put("OptionPane.messageFont", FontManager.getPlainFont(14));
-            UIManager.put("OptionPane.buttonFont", FontManager.getPlainFont(13));
+            UIManager.put("OptionPane.messageFont", new Font("SansSerif", Font.PLAIN, 14));
+            UIManager.put("OptionPane.buttonFont", new Font("SansSerif", Font.PLAIN, 13));
 
             int option = JOptionPane.showConfirmDialog(
                     parentFrame,
-                    LanguageManager.getString("sidebar.logout.confirm"),
-                    LanguageManager.getString("sidebar.logout.title"),
+                    "Are you sure you want to log out of the system?",
+                    "Confirm Logout",
                     JOptionPane.YES_NO_OPTION
             );
             if (option == JOptionPane.YES_OPTION) {
@@ -60,8 +57,8 @@ public class SidebarPanel extends JPanel {
         this.repaint();
     }
 
-    private void addNavigationButton(String localizedLabel, String routeTarget) {
-        JButton btn = createMenuButton(localizedLabel, routeTarget);
+    private void addNavigationButton(String plainTextLabel, String routeTarget) {
+        JButton btn = createMenuButton(plainTextLabel, routeTarget);
         btn.addActionListener(e -> {
             // Invoke the centralized dashboard layout router framework
             parentFrame.switchDashboardView(routeTarget);
@@ -89,8 +86,7 @@ public class SidebarPanel extends JPanel {
             }
         };
 
-        // ✅ Replaced hardcoded "SansSerif" with dynamic FontManager mapping
-        button.setFont(FontManager.getBoldFont(13));
+        button.setFont(new Font("SansSerif", Font.BOLD, 13));
         button.setForeground(Color.WHITE);
         button.setContentAreaFilled(false);
         button.setBorderPainted(false);
