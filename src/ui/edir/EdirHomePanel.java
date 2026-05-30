@@ -19,12 +19,12 @@ public class EdirHomePanel extends JPanel {
     // Core references for routing & database
     private JPanel parentWrapper;
     private EdirService edirService;
-    private int loggedInUserId; // ✅ TRACK CONTEXT IDENTIFIER
+    private int loggedInUserId;
 
     public EdirHomePanel(JPanel parentWrapper, EdirService edirService, int loggedInUserId) {
         this.parentWrapper = parentWrapper;
         this.edirService = edirService;
-        this.loggedInUserId = loggedInUserId; // ✅ STORE CURRENT SESSION ID
+        this.loggedInUserId = loggedInUserId;
 
         setLayout(new BorderLayout(20, 20));
         setBackground(new Color(253, 247, 237));
@@ -32,26 +32,28 @@ public class EdirHomePanel extends JPanel {
 
         initHeader();
         initTable();
-        loadGroups(); // Call data fetch automatically on creation
+        loadGroups();
     }
 
     // Database dynamic loading function directly mapped with your transactions Postgres backend
     public void loadGroups() {
         tableModel.setRowCount(0);
 
-        // ✅ FIXED: Scoped explicitly to display only groups the logged-in user belongs to
         List<Map<String, String>> rawGroups = edirService.getEdirGroupsForUser(this.loggedInUserId);
         int counter = 1;
 
         for (Map<String, String> rowMap : rawGroups) {
             Group groupObj = Group.fromMap(rowMap);
 
+            // ✅ FIXED: References the functional context string lookup getGroupBalance(String) to match your stack implementation
+            double synchronizedNetLedgerBalance = edirService.getGroupBalance(groupObj.getName());
+
             tableModel.addRow(new Object[]{
                     String.valueOf(counter++),
                     groupObj.getName(),
                     String.format("%,.0f birr", groupObj.getContributionAmount()),
                     String.valueOf(groupObj.getActiveMemberCount()),
-                    String.format("%,.0f birr", groupObj.getFundBalance()),
+                    String.format("%,.2f birr", synchronizedNetLedgerBalance), // Displays real dynamic live ledger balance
                     ""
             });
         }
@@ -72,14 +74,10 @@ public class EdirHomePanel extends JPanel {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(new Color(28, 85, 163));
                 g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
-                g2.dispose();
+                g2.dispose(); // Safely dispose custom context clone background asset layer
 
-                FontMetrics fm = g.getFontMetrics();
-                int x = (getWidth() - fm.stringWidth(getText())) / 2;
-                int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
-                g.setColor(getForeground());
-                g.setFont(getFont());
-                g.drawString(getText(), x, y);
+                // ✅ FIXED: Calls the native text layout painter safely on the default intact canvas pipeline context
+                super.paintComponent(g);
             }
         };
         btnCreateGroup.setFont(new Font("SansSerif", Font.BOLD, 14));
@@ -89,10 +87,6 @@ public class EdirHomePanel extends JPanel {
         btnCreateGroup.setFocusPainted(false);
         btnCreateGroup.setPreferredSize(new Dimension(180, 40));
 
-
-
-
-        // Open ui/edir/EdirHomePanel.java and find this section inside initHeader():
         btnCreateGroup.addActionListener(e -> {
             boolean found = false;
             for (Component c : parentWrapper.getComponents()) {
@@ -103,9 +97,6 @@ public class EdirHomePanel extends JPanel {
             }
 
             if (!found) {
-                // ❌ BEFORE: parentWrapper.add(new CreateEdirGroupPanel(parentWrapper, edirService), "CreateEdirGroup");
-
-                //  FIX THIS LINE: Pass 'this.loggedInUserId' as the 3rd argument context 👇
                 parentWrapper.add(new CreateEdirGroupPanel(parentWrapper, edirService, this.loggedInUserId), "CreateEdirGroup");
             }
 
@@ -233,11 +224,7 @@ public class EdirHomePanel extends JPanel {
                 g2.draw(new RoundRectangle2D.Float(0, 0, getWidth()-1, getHeight()-1, 8, 8));
                 g2.dispose();
 
-                FontMetrics fm = g.getFontMetrics();
-                int x = (getWidth() - fm.stringWidth(getText())) / 2;
-                int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
-                g.setColor(getForeground());
-                g.drawString(getText(), x, y);
+                super.paintComponent(g);
             }
         };
         btn.setFont(new Font("SansSerif", Font.BOLD, 12));

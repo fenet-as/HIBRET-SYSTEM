@@ -33,12 +33,29 @@ public class EdirMembersPanel extends JPanel {
     }
 
     private void initHeader() {
-        JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 0));
+        JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
+        headerPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, 45));
 
-        JButton btnBack = new JButton("← Back");
+        // Styled back button exactly like Return Overview buttons
+        JButton btnBack = new JButton("← Return Dashboard") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(235, 225, 210));
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
         btnBack.setFont(new Font("SansSerif", Font.BOLD, 12));
         btnBack.setForeground(new Color(101, 31, 16));
+        btnBack.setContentAreaFilled(false);
+        btnBack.setBorderPainted(false);
+        btnBack.setPreferredSize(new Dimension(150, 38));
+        btnBack.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
         btnBack.addActionListener(e -> {
             for (Component comp : parentWrapper.getComponents()) {
                 if (comp instanceof EdirGroupDetailPanel) {
@@ -52,9 +69,14 @@ public class EdirMembersPanel extends JPanel {
         JLabel lblTitle = new JLabel("Manage Members — " + groupName);
         lblTitle.setFont(new Font("SansSerif", Font.BOLD, 22));
         lblTitle.setForeground(new Color(101, 31, 16));
+        lblTitle.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
 
-        headerPanel.add(btnBack);
-        headerPanel.add(lblTitle);
+        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        leftPanel.setOpaque(false);
+        leftPanel.add(btnBack);
+        leftPanel.add(lblTitle);
+
+        headerPanel.add(leftPanel, BorderLayout.WEST);
         add(headerPanel, BorderLayout.NORTH);
     }
 
@@ -120,7 +142,6 @@ public class EdirMembersPanel extends JPanel {
         btnSubmit.setFocusPainted(false);
         btnSubmit.setPreferredSize(new Dimension(0, 42));
 
-        // ✅ FIX IS HERE: The action listener now extracts and passes exactly 3 String values
         btnSubmit.addActionListener(e -> {
             String name = txtFullName.getText().trim();
             String phone = txtPhone.getText().trim();
@@ -130,10 +151,9 @@ public class EdirMembersPanel extends JPanel {
                 return;
             }
 
-            // Invoking the backend layer with correct types (String, String, String)
             boolean ok = edirService.addMemberToGroup(groupName, name, phone);
             if (ok) {
-                loadMembersData(); // Refresh table from live DB records
+                loadMembersData();
                 txtFullName.setText("");
                 txtPhone.setText("");
                 JOptionPane.showMessageDialog(this, name + " added successfully to " + groupName);
@@ -155,8 +175,12 @@ public class EdirMembersPanel extends JPanel {
         lblTableTitle.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
         tableContainer.add(lblTableTitle, BorderLayout.NORTH);
 
-        String[] cols = {"ID", "Full Name", "Phone", "Status"};
-        tableModel = new DefaultTableModel(null, cols);
+        // ✅ FIXED: Header context set explicitly to "Member No."
+        String[] cols = {"Member No.", "Full Name", "Phone", "Status"};
+        tableModel = new DefaultTableModel(null, cols) {
+            @Override
+            public boolean isCellEditable(int row, int col) { return false; }
+        };
 
         membersTable = new JTable(tableModel);
         membersTable.setRowHeight(38);
@@ -177,9 +201,17 @@ public class EdirMembersPanel extends JPanel {
     private void loadMembersData() {
         tableModel.setRowCount(0);
         List<Map<String, String>> members = edirService.getMembersByGroup(groupName);
-        int id = 1;
+
+        // ✅ FIXED: Pure UI counter increments strictly by 1 (1, 2, 3...)
+        // to avoid printing back-end database auto-increment keys.
+        int sequenceNo = 1;
         for (Map<String, String> m : members) {
-            tableModel.addRow(new Object[]{String.valueOf(id++), m.get("full_name"), m.get("phone"), m.get("status")});
+            tableModel.addRow(new Object[]{
+                    String.valueOf(sequenceNo++),
+                    m.get("full_name"),
+                    m.get("phone"),
+                    m.get("status")
+            });
         }
     }
 

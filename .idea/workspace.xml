@@ -5,42 +5,22 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5b7356a4-aa8c-4987-80a5-fc90f559eb29" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/dao/DashboardDAO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/dao/impl/DashboardDAOImpl.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/model/DashboardMetrics.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/dao/EdirDAO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dao/EdirDAO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/dao/EqubDAO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dao/EqubDAO.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/dao/impl/EdirDAOImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dao/impl/EdirDAOImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/dao/impl/EqubDAOImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dao/impl/EqubDAOImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/service/DashboardService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/DashboardService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/service/EdirService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/EdirService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/service/EqubService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/EqubService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/service/impl/DashboardServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/impl/DashboardServiceImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/service/impl/EdirServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/impl/EdirServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/service/impl/EqubServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/service/impl/EqubServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/auth/LoginPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/auth/LoginPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/core/ContentPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/core/ContentPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/core/MainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/core/MainFrame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/edir/CreateEdirGroupPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/CreateEdirGroupPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/edir/AddMemberPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/AddMemberPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/edir/DistributeFundPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/DistributeFundPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/edir/EdirGroupDetailPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/EdirGroupDetailPanel.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ui/edir/EdirHomePanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/EdirHomePanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/equb/CreateEqubGroupPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/CreateEqubGroupPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/equb/EqubGroupDetailPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/EqubGroupDetailPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/equb/EqubHomePanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/EqubHomePanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/equb/EqubMembersPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/EqubMembersPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/equb/EqubPayoutPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/EqubPayoutPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/equb/EqubRotationPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/EqubRotationPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/service/DashboardService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/DashboardService.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/edir/EdirMembersPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/EdirMembersPanel.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/service/EdirService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/EdirService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/service/EqubService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/EqubService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/DashboardServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/impl/DashboardServiceImpl.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/EqubServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/impl/EqubServiceImpl.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/auth/LoginPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/auth/LoginPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/core/ContentPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/core/ContentPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/core/MainFrame.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/core/MainFrame.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/CreateEdirGroupPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/CreateEdirGroupPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/DistributeFundPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/DistributeFundPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EdirGroupDetailPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/EdirGroupDetailPanel.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EdirHomePanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/EdirHomePanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/equb/EqubRotationPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/equb/EqubRotationPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EdirMembersPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/EdirMembersPanel.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

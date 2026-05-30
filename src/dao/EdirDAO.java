@@ -20,5 +20,12 @@ public interface EdirDAO {
 
     List<Map<String, String>> getGroupTransactionLedger(String groupName);
     List<Map<String, String>> getEdirGroupsForUser(int userId);
+    double getActualAvailableRoundPool(int groupId);
+    public double getGroupBalance(String groupName);
+
+    void clearGroupTransactions(String groupName);
+
+    // Append this inside your public interface EdirDAO block:
+    boolean removeMemberFromGroup(String groupName, String memberName);
 
 }

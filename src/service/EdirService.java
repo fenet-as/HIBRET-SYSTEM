@@ -35,4 +35,12 @@ public interface EdirService {
 
 
     List<Map<String, String>> getEdirGroupsForUser(int userId);
+
+    double getActualAvailableRoundPool(int groupId);
+
+    double getGroupBalance(String groupName);
+
+    void clearGroupTransactions(String groupName);
+
+    boolean removeMemberFromGroup(String groupName, String memberName);
 }

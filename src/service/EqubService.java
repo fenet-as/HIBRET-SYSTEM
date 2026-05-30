@@ -33,4 +33,6 @@ public interface EqubService {
     // ✅ NEW ADDITIONS: Structural Validation Hooks
     boolean haveAllMembersPaidCurrentRound(int groupId);
     boolean clearAllTransactionsForGroup(int groupId);
+
+
 }

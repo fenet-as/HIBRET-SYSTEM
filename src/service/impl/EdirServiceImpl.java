@@ -86,4 +86,30 @@ public class EdirServiceImpl implements EdirService {
         // This delegates the database call straight to your updated DAO implementation
         return edirDAO.getEdirGroupsForUser(userId);
     }
+
+
+    @Override
+    public double getActualAvailableRoundPool(int groupId) {
+        return edirDAO.getActualAvailableRoundPool(groupId);// or however your DAO is named
+    }
+
+    @Override
+    public double getGroupBalance(String groupName) {
+        // This delegates the live transactional calculation directly to your DAO layer
+        return edirDAO.getGroupBalance(groupName);
+    }
+
+    @Override
+    public void clearGroupTransactions(String groupName) {
+        edirDAO.clearGroupTransactions(groupName);
+    }
+
+
+    @Override
+    public boolean removeMemberFromGroup(String groupName, String memberName) {
+        // Delegates execution safely down to the implemented DAO data layer pipeline
+        return edirDAO.removeMemberFromGroup(groupName, memberName);
+    }
+
+
 }

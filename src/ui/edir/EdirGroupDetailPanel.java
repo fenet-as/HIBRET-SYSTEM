@@ -2,6 +2,8 @@ package ui.edir;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableCellEditor;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 import java.util.List;
@@ -43,7 +45,6 @@ public class EdirGroupDetailPanel extends JPanel {
         return this.edirService;
     }
 
-    // ✅ FIXED LOOKUP MAP HOOK KEYS
     public void refreshDashboardMetricsAndLedger() {
         Map<String, String> metrics = edirService.getGroupDetails(groupName);
 
@@ -181,7 +182,7 @@ public class EdirGroupDetailPanel extends JPanel {
     }
 
     private void initActionButtons() {
-        JPanel actionPanel = new JPanel(new GridLayout(1, 5, 15, 0));
+        JPanel actionPanel = new JPanel(new GridLayout(1, 6, 12, 0));
         actionPanel.setOpaque(false);
         actionPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, 50));
 
@@ -190,6 +191,9 @@ public class EdirGroupDetailPanel extends JPanel {
         JButton btnEmergency = createModuleButton("Emergency Case", "🚨");
         JButton btnDistribute = createModuleButton("Disbursed Payout", "📤");
         JButton btnViewMembers = createModuleButton("View Members", "👥");
+
+        JButton btnClearLogs = createModuleButton("Clear Logs", "🗑️");
+        btnClearLogs.setForeground(new Color(175, 30, 20));
 
         btnAddMember.addActionListener(e -> {
             model.EdirGroup genericGroupObj = new model.EdirGroup();
@@ -209,21 +213,13 @@ public class EdirGroupDetailPanel extends JPanel {
             lblHeading.setForeground(new Color(101, 31, 16));
             membersPanel.add(lblHeading, BorderLayout.NORTH);
 
-            String[] cols = {"Member Registry ID", "Full Legal Name", "Phone Mapping Line", "Profile Status"};
+            String[] cols = {"Member No.", "Full Legal Name", "Phone Mapping Line", "Profile Status", "Action"};
             DefaultTableModel membersModel = new DefaultTableModel(null, cols) {
                 @Override
-                public boolean isCellEditable(int r, int c) { return false; }
+                public boolean isCellEditable(int r, int c) {
+                    return c == 4;
+                }
             };
-
-            List<Map<String, String>> membersList = edirService.getMembersByGroup(groupName);
-            for (Map<String, String> m : membersList) {
-                membersModel.addRow(new Object[]{
-                        m.get("id"),
-                        m.get("full_name"),
-                        m.get("phone"),
-                        m.getOrDefault("status", "Active")
-                });
-            }
 
             JTable table = new JTable(membersModel);
             table.setRowHeight(38);
@@ -233,6 +229,25 @@ public class EdirGroupDetailPanel extends JPanel {
             table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 13));
             table.getTableHeader().setPreferredSize(new Dimension(0, 36));
 
+            Runnable loadViewData = () -> {
+                membersModel.setRowCount(0);
+                List<Map<String, String>> membersList = edirService.getMembersByGroup(groupName);
+                int sequenceNo = 1;
+                for (Map<String, String> m : membersList) {
+                    membersModel.addRow(new Object[]{
+                            String.valueOf(sequenceNo++),
+                            m.get("full_name"),
+                            m.get("phone"),
+                            m.getOrDefault("status", "Active"),
+                            m.get("full_name") // Holds name explicitly as contextual fallback
+                    });
+                }
+            };
+            loadViewData.run();
+
+            table.getColumnModel().getColumn(4).setCellRenderer(new DeleteButtonRenderer());
+            table.getColumnModel().getColumn(4).setCellEditor(new DeleteButtonEditor(table, edirService, groupName, loadViewData, this));
+
             JScrollPane scroll = new JScrollPane(table);
             scroll.setBorder(BorderFactory.createLineBorder(new Color(230, 215, 195)));
             membersPanel.add(scroll, BorderLayout.CENTER);
@@ -241,6 +256,7 @@ public class EdirGroupDetailPanel extends JPanel {
             btnReturn.setFont(new Font("SansSerif", Font.BOLD, 13));
             btnReturn.setPreferredSize(new Dimension(200, 40));
             btnReturn.addActionListener(ev -> {
+                refreshDashboardMetricsAndLedger();
                 CardLayout cl = (CardLayout) parentWrapper.getLayout();
                 cl.show(parentWrapper, "EdirDetail");
             });
@@ -272,11 +288,32 @@ public class EdirGroupDetailPanel extends JPanel {
             ((CardLayout) parentWrapper.getLayout()).show(parentWrapper, "DistributeFund");
         });
 
+        btnClearLogs.addActionListener(e -> {
+            int option = JOptionPane.showConfirmDialog(this,
+                    "⚠️ DANGER ZONE: This will wipe out all transaction ledger history logs for '" + groupName + "'.\n" +
+                            "This action resets the net balance calculation back to 0.00 ETB and cannot be undone.\n\n" +
+                            "Are you absolutely certain you want to proceed?",
+                    "Clear Transaction History Logs",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE);
+
+            if (option == JOptionPane.YES_OPTION) {
+                try {
+                    edirService.clearGroupTransactions(groupName);
+                    JOptionPane.showMessageDialog(this, "Success! Audit ledger history logs have been cleared cleanly.", "Execution Complete", JOptionPane.INFORMATION_MESSAGE);
+                    refreshDashboardMetricsAndLedger();
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Wipe workflow pipeline failed: " + ex.getMessage(), "Execution Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
         actionPanel.add(btnAddMember);
         actionPanel.add(btnRecordContribution);
         actionPanel.add(btnEmergency);
         actionPanel.add(btnDistribute);
         actionPanel.add(btnViewMembers);
+        actionPanel.add(btnClearLogs);
 
         add(actionPanel);
     }
@@ -371,5 +408,100 @@ public class EdirGroupDetailPanel extends JPanel {
         btn.setFocusPainted(false);
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         return btn;
+    }
+
+    private static class DeleteButtonRenderer extends JButton implements TableCellRenderer {
+        public DeleteButtonRenderer() {
+            setText("Delete 🗑️");
+            setFont(new Font("SansSerif", Font.BOLD, 11));
+            setForeground(new Color(175, 30, 20));
+            setBackground(new Color(255, 235, 235));
+            setBorderPainted(false);
+            setFocusable(false);
+        }
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object val, boolean sel, boolean focus, int row, int col) {
+            return this;
+        }
+    }
+
+    // ✅ Decisively Fixed Editor Class Logic
+    private static class DeleteButtonEditor extends AbstractCellEditor implements TableCellEditor {
+        private final JButton btn;
+        private final JTable table;
+        private final EdirService service;
+        private final String group;
+        private final Runnable reloadViewCallback;
+        private final Component parentCtx;
+        private String targetMemberName;
+
+        public DeleteButtonEditor(JTable table, EdirService service, String group, Runnable reloadViewCallback, Component parentCtx) {
+            this.table = table;
+            this.service = service;
+            this.group = group;
+            this.reloadViewCallback = reloadViewCallback;
+            this.parentCtx = parentCtx;
+
+            this.btn = new JButton("Delete 🗑️");
+            this.btn.setFont(new Font("SansSerif", Font.BOLD, 11));
+            this.btn.setForeground(Color.WHITE);
+            this.btn.setBackground(new Color(175, 30, 20));
+            this.btn.setBorderPainted(false);
+
+            this.btn.addActionListener(e -> {
+                // Determine precise row tracking context inside action event dispatching threads
+                int editingRow = table.getEditingRow();
+                if (editingRow == -1) {
+                    editingRow = table.getSelectedRow();
+                }
+
+                if (editingRow != -1) {
+                    // Pull full name text context value right out of Column index 1 ("Full Legal Name")
+                    Object nameValue = table.getValueAt(editingRow, 1);
+                    if (nameValue != null) {
+                        targetMemberName = nameValue.toString().trim();
+                    }
+                }
+
+                if (targetMemberName == null || targetMemberName.isEmpty() || targetMemberName.equalsIgnoreCase("Delete 🗑️")) {
+                    JOptionPane.showMessageDialog(parentCtx, "Error: Could not extract member context value cleanly.", "Tracking Failure", JOptionPane.ERROR_MESSAGE);
+                    fireEditingStopped();
+                    return;
+                }
+
+                int confirm = JOptionPane.showConfirmDialog(parentCtx,
+                        "Are you absolutely sure you want to remove '" + targetMemberName + "' from " + group + "?",
+                        "Remove Group Enrollment Record",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE);
+
+                if (confirm == JOptionPane.YES_OPTION) {
+                    boolean ok = service.removeMemberFromGroup(group, targetMemberName);
+                    if (ok) {
+                        JOptionPane.showMessageDialog(parentCtx, targetMemberName + " removed successfully.");
+                        fireEditingStopped(); // 1. Terminate edit loop thread locks
+                        reloadViewCallback.run(); // 2. Perform table visual component refresh
+                    } else {
+                        JOptionPane.showMessageDialog(parentCtx, "Database Error: Failed to remove member.\nEnsure there are no underlying schema constraints.", "Execution Failed", JOptionPane.ERROR_MESSAGE);
+                        fireEditingStopped();
+                    }
+                } else {
+                    fireEditingStopped();
+                }
+            });
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable tbl, Object val, boolean isSel, int r, int c) {
+            // Pre-seed backing value tracker inside context selection mapping hook variables
+            Object fallbackValue = tbl.getValueAt(r, 1);
+            this.targetMemberName = (fallbackValue != null) ? fallbackValue.toString().trim() : "";
+            return btn;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            return targetMemberName;
+        }
     }
 }

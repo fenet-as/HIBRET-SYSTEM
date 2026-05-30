@@ -485,4 +485,116 @@ public class EdirDAOImpl implements EdirDAO {
             return false;
         }
     }
+
+
+    @Override
+    public double getActualAvailableRoundPool(int groupId) {
+        // This calculates true ledger balance: (Total Payments) - (Total Payouts/Expenses)
+        String sql = "SELECT " +
+                " (SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE group_id = ? AND UPPER(type) IN ('PAYMENT', 'CONTRIBUTION')) as total_in, " +
+                " (SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE group_id = ? AND UPPER(type) IN ('PAYOUT', 'EXPENSE', 'CLAIM')) as total_out";
+        try (Connection conn = util.DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, groupId);
+            ps.setInt(2, groupId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getDouble("total_in") - rs.getDouble("total_out");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0.0;
+    }
+
+    @Override
+    public double getGroupBalance(String groupName) {
+        String sql = "SELECT " +
+                "  (SELECT COALESCE(SUM(t.amount), 0) FROM transactions t JOIN groups g ON t.group_id = g.id WHERE g.name = ? AND UPPER(t.type) IN ('PAYMENT', 'CONTRIBUTION')) as total_contributions, " +
+                "  (SELECT COALESCE(SUM(t.amount), 0) FROM transactions t JOIN groups g ON t.group_id = g.id WHERE g.name = ? AND UPPER(t.type) IN ('PAYOUT', 'EXPENSE', 'CLAIM')) as total_payouts";
+
+        try (Connection conn = util.DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, groupName);
+            ps.setString(2, groupName);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getDouble("total_contributions") - rs.getDouble("total_payouts");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0.0;
+    }
+
+
+    @Override
+    public void clearGroupTransactions(String groupName) {
+        // ✅ FIXED: Changed '=' to 'IN' to safely handle multiple groups sharing the same name string
+        String sql = "DELETE FROM transactions WHERE group_id IN (SELECT id FROM groups WHERE name = ?)";
+
+        try (Connection conn = util.DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, groupName);
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Database error occurred while clearing logs: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public boolean removeMemberFromGroup(String groupName, String memberName) {
+        String sqlFindGroup = "SELECT id FROM groups WHERE name = ? AND type = 'EDIR'";
+        String sqlFindMember = "SELECT id FROM members WHERE full_name = ? LIMIT 1";
+        String sqlUnlinkMember = "DELETE FROM group_members WHERE group_id = ? AND member_id = ?";
+
+        try (Connection conn = DBConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            int groupId = -1;
+            int memberId = -1;
+
+            // 1. Resolve Group ID
+            try (PreparedStatement psG = conn.prepareStatement(sqlFindGroup)) {
+                psG.setString(1, groupName);
+                try (ResultSet rs = psG.executeQuery()) {
+                    if (rs.next()) groupId = rs.getInt("id");
+                }
+            }
+
+            // 2. Resolve Member ID
+            try (PreparedStatement psM = conn.prepareStatement(sqlFindMember)) {
+                psM.setString(1, memberName);
+                try (ResultSet rs = psM.executeQuery()) {
+                    if (rs.next()) memberId = rs.getInt("id");
+                }
+            }
+
+            // If either entry was not found in the DB registry, abort transaction safely
+            if (groupId == -1 || memberId == -1) {
+                conn.rollback();
+                return false;
+            }
+
+            // 3. Remove the association link mapping entry from the group_members join table
+            int rowsDeleted = 0;
+            try (PreparedStatement psDel = conn.prepareStatement(sqlUnlinkMember)) {
+                psDel.setInt(1, groupId);
+                psDel.setInt(2, memberId);
+                rowsDeleted = psDel.executeUpdate();
+            }
+
+            conn.commit();
+            return rowsDeleted > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
