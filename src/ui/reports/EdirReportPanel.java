@@ -3,6 +3,8 @@ package ui.reports;
 import service.ReportService;
 import model.ReportDataModels.EdirReport;
 import model.ReportDataModels.EdirEmergencyRow;
+import util.LanguageManager;
+import util.FontManager; // ✅ Imported FontManager
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -18,6 +20,7 @@ public class EdirReportPanel extends JPanel {
     private final JLabel lblApproved;
     private final JLabel lblPending;
     private final JLabel lblBalance;
+    private boolean isListeningToDropdown = true; // Prevents triggering queries mid-rebuild
 
     public EdirReportPanel(ReportHomePanel subCoordinator, ReportService reportService) {
         this.reportService = reportService;
@@ -30,13 +33,15 @@ public class EdirReportPanel extends JPanel {
         headerRow.setOpaque(false);
         headerRow.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lblTitle = new JLabel("❤️ Edir Report Panel");
-        lblTitle.setFont(new Font("Serif", Font.BOLD, 30));
+        // ✅ Localized Main Title Layout
+        JLabel lblTitle = new JLabel(LanguageManager.getString("edir.report.title"));
+        lblTitle.setFont(FontManager.getBoldFont(30)); // ✅ Updated to FontManager
         lblTitle.setForeground(new Color(101, 53, 15));
         headerRow.add(lblTitle, BorderLayout.WEST);
 
-        JButton btnBack = new JButton("⬅ Back to Reports");
-        btnBack.setFont(new Font("SansSerif", Font.BOLD, 13));
+        // ✅ Localized Return Back Action Layout
+        JButton btnBack = new JButton(LanguageManager.getString("edir.report.btn_back"));
+        btnBack.setFont(FontManager.getBoldFont(13)); // ✅ Updated to FontManager
         btnBack.setForeground(new Color(130, 90, 40));
         btnBack.setContentAreaFilled(false);
         btnBack.setBorderPainted(false);
@@ -49,12 +54,15 @@ public class EdirReportPanel extends JPanel {
         JPanel selectorRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         selectorRow.setOpaque(false);
         selectorRow.setAlignmentX(Component.LEFT_ALIGNMENT);
-        JLabel lblFilterLabel = new JLabel("Select Edir group");
-        lblFilterLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
+
+        // ✅ Localized Select Filter Combo Box Description Text
+        JLabel lblFilterLabel = new JLabel(LanguageManager.getString("edir.report.lbl_select_group"));
+        lblFilterLabel.setFont(FontManager.getBoldFont(14)); // ✅ Updated to FontManager
         lblFilterLabel.setForeground(new Color(101, 53, 15));
 
         dropdownFilterOptions = new JComboBox<>();
-        dropdownFilterOptions.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        dropdownFilterOptions.setFont(FontManager.getPlainFont(13)); // ✅ Updated to FontManager
+        dropdownFilterOptions.setPreferredSize(new Dimension(220, 30));
         selectorRow.add(lblFilterLabel);
         selectorRow.add(dropdownFilterOptions);
         add(selectorRow);
@@ -69,63 +77,107 @@ public class EdirReportPanel extends JPanel {
         metricsGrid.setOpaque(false);
         metricsGrid.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        metricsGrid.add(createMiniStatCard("Total contributions", lblContributions = new JLabel("- birr"), new Color(46, 117, 59)));
-        metricsGrid.add(createMiniStatCard("Total emergency cases", lblCases = new JLabel("-"), new Color(101, 53, 15)));
-        metricsGrid.add(createMiniStatCard("Approved emergencies", lblApproved = new JLabel("-"), new Color(101, 53, 15)));
-        metricsGrid.add(createMiniStatCard("Pending emergencies", lblPending = new JLabel("-"), new Color(184, 91, 23)));
-        metricsGrid.add(createMiniStatCard("Remaining fund Balance", lblBalance = new JLabel("- birr"), new Color(46, 117, 59)));
+        // ✅ Localized Statistical Metric Segment Card Arrays
+        String defaultCurrency = " - " + LanguageManager.getString("currency.unit");
+        metricsGrid.add(createMiniStatCard(LanguageManager.getString("edir.report.stat.total_contrib"), lblContributions = new JLabel(defaultCurrency), new Color(46, 117, 59)));
+        metricsGrid.add(createMiniStatCard(LanguageManager.getString("edir.report.stat.total_cases"), lblCases = new JLabel("-"), new Color(101, 53, 15)));
+        metricsGrid.add(createMiniStatCard(LanguageManager.getString("edir.report.stat.approved_cases"), lblApproved = new JLabel("-"), new Color(101, 53, 15)));
+        metricsGrid.add(createMiniStatCard(LanguageManager.getString("edir.report.stat.pending_cases"), lblPending = new JLabel("-"), new Color(184, 91, 23)));
+        metricsGrid.add(createMiniStatCard(LanguageManager.getString("edir.report.stat.rem_balance"), lblBalance = new JLabel(defaultCurrency), new Color(46, 117, 59)));
         add(metricsGrid);
         add(Box.createVerticalStrut(25));
 
-        JLabel lblTableTitle = new JLabel("Emergency history table");
-        lblTableTitle.setFont(new Font("SansSerif", Font.BOLD, 18));
+        // ✅ Localized Secondary Workspace Subtitle Meta Headers
+        JLabel lblTableTitle = new JLabel(LanguageManager.getString("edir.report.table_title"));
+        lblTableTitle.setFont(FontManager.getBoldFont(18)); // ✅ Updated to FontManager
         lblTableTitle.setForeground(new Color(101, 53, 15));
         lblTableTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
         add(lblTableTitle);
         add(Box.createVerticalStrut(10));
 
-        String[] headers = {"Date", "Member", "Type", "Status", "Amount"};
+        // ✅ Localized Table Column Meta Descriptions Matrix
+        String[] headers = {
+                LanguageManager.getString("edir.report.col.date"),
+                LanguageManager.getString("edir.report.col.member"),
+                LanguageManager.getString("edir.report.col.type"),
+                LanguageManager.getString("edir.report.col.status"),
+                LanguageManager.getString("edir.report.col.amount")
+        };
         tableModel = new DefaultTableModel(null, headers) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
         };
         JTable table = new JTable(tableModel);
         table.setRowHeight(32);
+        table.setShowGrid(false);
+        table.setFont(FontManager.getPlainFont(13)); // ✅ Updated to FontManager
+        table.getTableHeader().setFont(FontManager.getBoldFont(13)); // ✅ Updated to FontManager
+        table.getTableHeader().setBackground(new Color(240, 232, 215));
+        table.getTableHeader().setPreferredSize(new Dimension(0, 36));
+
         JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(225, 215, 195)));
         scrollPane.setAlignmentX(Component.LEFT_ALIGNMENT);
         add(scrollPane);
 
-        // Populate dropdown from Database
-        List<String> groups = reportService.getAllEdirGroups();
-        for (String group : groups) {
-            dropdownFilterOptions.addItem(group);
-        }
+        // Bind data change listener securely
+        dropdownFilterOptions.addActionListener(e -> {
+            if (isListeningToDropdown) {
+                loadData((String) dropdownFilterOptions.getSelectedItem());
+            }
+        });
 
-        dropdownFilterOptions.addActionListener(e -> loadData((String) dropdownFilterOptions.getSelectedItem()));
-
-        if (dropdownFilterOptions.getItemCount() > 0) {
-            loadData((String) dropdownFilterOptions.getSelectedItem());
-        }
+        // Initialize display configuration state elements
+        refreshViewOnLifecycleSignal();
     }
 
     private void loadData(String groupName) {
-        if (groupName == null) return;
-        EdirReport report = reportService.getEdirReportData(groupName);
+        if (groupName == null || groupName.trim().isEmpty()) {
+            clearDashboardDisplay();
+            return;
+        }
+
         tableModel.setRowCount(0);
+        EdirReport report = reportService.getEdirReportData(groupName);
 
         if (report != null) {
-            lblContributions.setText(String.format("%,.2f birr", report.totalContributions));
+            // ✅ Localized Financial Value Suffix Rules
+            String unit = " " + LanguageManager.getString("currency.unit");
+            lblContributions.setText(String.format("%,.2f" + unit, report.totalContributions));
             lblCases.setText(String.valueOf(report.totalEmergencyCases));
             lblApproved.setText(String.valueOf(report.approvedEmergencies));
             lblPending.setText(String.valueOf(report.pendingEmergencies));
-            lblBalance.setText(String.format("%,.2f birr", report.remainingFundBalance));
+            lblBalance.setText(String.format("%,.2f" + unit, report.remainingFundBalance));
 
-            if (report.emergencyRows != null) {
+            if (report.emergencyRows != null && !report.emergencyRows.isEmpty()) {
                 for (EdirEmergencyRow row : report.emergencyRows) {
-                    tableModel.addRow(new Object[]{row.date, row.memberName, row.type, row.status, String.format("%,.2f birr", row.amount)});
+                    tableModel.addRow(new Object[]{
+                            row.date,
+                            row.memberName,
+                            row.type,
+                            row.status,
+                            String.format("%,.2f" + unit, row.amount)
+                    });
                 }
+            } else {
+                // ✅ Localized Empty Directory Query Fallback Label Text
+                tableModel.addRow(new Object[]{"-", "-", LanguageManager.getString("edir.report.table.empty_row"), "-", "-"});
             }
+        } else {
+            clearDashboardDisplay();
         }
+        revalidate();
+        repaint();
+    }
+
+    private void clearDashboardDisplay() {
+        String defaultCurrency = "- " + LanguageManager.getString("currency.unit");
+        lblContributions.setText(defaultCurrency);
+        lblCases.setText("-");
+        lblApproved.setText("-");
+        lblPending.setText("-");
+        lblBalance.setText(defaultCurrency);
+        tableModel.setRowCount(0);
     }
 
     private JPanel createMiniStatCard(String label, JLabel lblValueRef, Color textValueColor) {
@@ -147,15 +199,41 @@ public class EdirReportPanel extends JPanel {
         card.setPreferredSize(new Dimension(150, 75));
 
         JLabel lblMsg = new JLabel(label);
-        lblMsg.setFont(new Font("SansSerif", Font.BOLD, 11));
+        lblMsg.setFont(FontManager.getBoldFont(11)); // ✅ Updated to FontManager
         lblMsg.setForeground(new Color(130, 125, 115));
 
-        lblValueRef.setFont(new Font("SansSerif", Font.BOLD, 16));
+        lblValueRef.setFont(FontManager.getBoldFont(16)); // ✅ Updated to FontManager
         lblValueRef.setForeground(textValueColor);
 
         card.add(lblMsg);
         card.add(Box.createVerticalStrut(4));
         card.add(lblValueRef);
         return card;
+    }
+
+    /**
+     * ✅ DYNAMIC LIFECYCLE HOOK:
+     * Rebuilds the collection options directly from the database schema layer
+     * to prevent stale data display anomalies.
+     */
+    public void refreshViewOnLifecycleSignal() {
+        isListeningToDropdown = false;
+        dropdownFilterOptions.removeAllItems();
+
+        List<String> groups = reportService.getAllEdirGroups();
+
+        if (groups != null && !groups.isEmpty()) {
+            for (String group : groups) {
+                dropdownFilterOptions.addItem(group);
+            }
+            isListeningToDropdown = true;
+            dropdownFilterOptions.setSelectedIndex(0);
+            loadData((String) dropdownFilterOptions.getSelectedItem());
+        } else {
+            isListeningToDropdown = true;
+            clearDashboardDisplay();
+        }
+        revalidate();
+        repaint();
     }
 }

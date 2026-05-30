@@ -4,6 +4,8 @@ import service.EqubService;
 import model.Group;
 import model.Member;
 import model.Transaction;
+import util.LanguageManager;
+import util.FontManager; // ✅ Imported FontManager
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
@@ -41,19 +43,23 @@ public class EqubGroupDetailPanel extends JPanel {
 
         JPanel titleBlock = new JPanel(new GridLayout(2, 1, 0, 4));
         titleBlock.setOpaque(false);
-        JLabel lblGroupName = new JLabel("🏦 Pool: " + groupCtx.getName());
-        lblGroupName.setFont(new Font("SansSerif", Font.BOLD, 22));
+
+        // ✅ Localized Group Name with dynamic font metrics lookup
+        JLabel lblGroupName = new JLabel(LanguageManager.getFormattedString("equb.detail.pool", groupCtx.getName()));
+        lblGroupName.setFont(FontManager.getBoldFont(22));
         lblGroupName.setForeground(new Color(101, 53, 15));
 
-        JLabel lblGroupMeta = new JLabel(String.format("Cycle Rate: %,.2f Birr per member", groupCtx.getContributionAmount()));
-        lblGroupMeta.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        String formattedRate = String.format("%,.2f", groupCtx.getContributionAmount());
+        JLabel lblGroupMeta = new JLabel(LanguageManager.getFormattedString("equb.detail.meta", formattedRate));
+        lblGroupMeta.setFont(FontManager.getPlainFont(13));
         lblGroupMeta.setForeground(new Color(120, 110, 95));
         titleBlock.add(lblGroupName);
         titleBlock.add(lblGroupMeta);
         headPanel.add(titleBlock, BorderLayout.WEST);
 
-        JButton btnBack = new JButton("⬅ Back to Pools Grid");
-        btnBack.setFont(new Font("SansSerif", Font.BOLD, 13));
+        // ✅ Localized Back Navigation Action Title Text Label
+        JButton btnBack = new JButton(LanguageManager.getString("equb.detail.btn_back"));
+        btnBack.setFont(FontManager.getBoldFont(13));
         btnBack.addActionListener(e -> navigateBackToHome());
         headPanel.add(btnBack, BorderLayout.EAST);
         add(headPanel, BorderLayout.NORTH);
@@ -66,14 +72,15 @@ public class EqubGroupDetailPanel extends JPanel {
         summaryRibbon.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
 
         lblMemberCount = createCardMetricLabel("0");
-        summaryRibbon.add(createMetricCard("Registered Members", lblMemberCount, new Color(54, 122, 204)));
+        summaryRibbon.add(createMetricCard(LanguageManager.getString("equb.detail.card.members"), lblMemberCount, new Color(54, 122, 204)));
 
         lblTotalFunds = createCardMetricLabel("0.00 ETB");
-        summaryRibbon.add(createMetricCard("Aggregated Capital Box", lblTotalFunds, new Color(34, 112, 43)));
+        summaryRibbon.add(createMetricCard(LanguageManager.getString("equb.detail.card.funds"), lblTotalFunds, new Color(34, 112, 43)));
 
-        lblPayoutReceiver = createCardMetricLabel("No Draw Active");
-        lblPayoutReceiver.setFont(new Font("SansSerif", Font.BOLD, 16));
-        summaryRibbon.add(createMetricCard("Latest Cycle Payout Winner", lblPayoutReceiver, new Color(176, 90, 32)));
+        // ✅ Localized Fallback Winner Value Text with responsive layout boundaries
+        lblPayoutReceiver = createCardMetricLabel(LanguageManager.getString("equb.detail.no_draw"));
+        lblPayoutReceiver.setFont(FontManager.getBoldFont(16));
+        summaryRibbon.add(createMetricCard(LanguageManager.getString("equb.detail.card.winner"), lblPayoutReceiver, new Color(176, 90, 32)));
 
         // ==========================================================
         // 3. TRANSACTION CONSOLE WORKFLOW HOOKS
@@ -81,50 +88,59 @@ public class EqubGroupDetailPanel extends JPanel {
         JPanel controlConsole = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 10));
         controlConsole.setOpaque(false);
 
-        JButton btnAddMember = createStyledActionButton("👤 Add Member to Group", new Color(33, 115, 70));
+        // ✅ Localized Actions Form Management Label Targets
+        JButton btnAddMember = createStyledActionButton(LanguageManager.getString("equb.detail.btn.add_member"), new Color(33, 115, 70));
         btnAddMember.addActionListener(e -> {
             EqubMembersPanel allocationScreen = new EqubMembersPanel(containerPanel, service, this.groupCtx);
             containerPanel.add(allocationScreen, "GroupMembersAllocation");
             ((CardLayout) containerPanel.getLayout()).show(containerPanel, "GroupMembersAllocation");
         });
 
-        JButton btnRecordPayment = createStyledActionButton("💰 Record Member Payment", new Color(40, 96, 144));
+        JButton btnRecordPayment = createStyledActionButton(LanguageManager.getString("equb.detail.btn.record_payment"), new Color(40, 96, 144));
         btnRecordPayment.addActionListener(e -> {
             EqubPaymentPanel paymentScreen = new EqubPaymentPanel(containerPanel, service, this.groupCtx);
             containerPanel.add(paymentScreen, "GroupPaymentAllocation");
             ((CardLayout) containerPanel.getLayout()).show(containerPanel, "GroupPaymentAllocation");
         });
 
-        JButton btnTriggerRotation = createStyledActionButton("🔄 Payout Rotation Wheel", new Color(139, 69, 19));
+        JButton btnTriggerRotation = createStyledActionButton(LanguageManager.getString("equb.detail.btn.rotation"), new Color(139, 69, 19));
         btnTriggerRotation.addActionListener(e -> {
             EqubRotationPanel rotationScreen = new EqubRotationPanel(containerPanel, service, this.groupCtx);
             containerPanel.add(rotationScreen, "RotationWheelContext");
             ((CardLayout) containerPanel.getLayout()).show(containerPanel, "RotationWheelContext");
         });
 
-        // ✅ ADDED: Guarded Master Reset/Wipe button functionality
-        JButton btnResetLedger = createStyledActionButton("🗑️ Clear & Reset Ledger", new Color(192, 41, 43));
+        JButton btnResetLedger = createStyledActionButton(LanguageManager.getString("equb.detail.btn.reset"), new Color(192, 41, 43));
         btnResetLedger.addActionListener(e -> {
+            // Apply font configurations before triggering alert boxes
+            UIManager.put("OptionPane.messageFont", FontManager.getPlainFont(14));
+            UIManager.put("OptionPane.buttonFont", FontManager.getPlainFont(13));
+            UIManager.put("OptionPane.inputFont", FontManager.getPlainFont(14));
+
+            // ✅ Localized Security Wiping Messages Box Prompts
             int firstCheck = JOptionPane.showConfirmDialog(this,
-                    "Are you absolutely sure you want to drop ALL transactions for this pool?\nThis resets your Aggregated Capital Box to 0.00 ETB.",
-                    "⚠️ CRITICAL SYSTEM RESET WARNING",
+                    LanguageManager.getString("equb.detail.reset.confirm"),
+                    LanguageManager.getString("equb.detail.reset.title"),
                     JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE);
 
             if (firstCheck == JOptionPane.YES_OPTION) {
                 String passwordCheck = JOptionPane.showInputDialog(this,
-                        "Type the administrator password 'admin' to execute ledger database clear:",
-                        "Master Authentication Required",
+                        LanguageManager.getString("equb.detail.reset.auth_prompt"),
+                        LanguageManager.getString("equb.detail.reset.auth_title"),
                         JOptionPane.WARNING_MESSAGE);
 
                 if (passwordCheck != null && passwordCheck.equals("admin")) {
                     if (service.clearAllTransactionsForGroup(groupCtx.getId())) {
-                        JOptionPane.showMessageDialog(this, "Ledger records cleared successfully. Pool balance restored to 0.00.", "Purge Complete", JOptionPane.INFORMATION_MESSAGE);
+                        JOptionPane.showMessageDialog(this,
+                                LanguageManager.getString("equb.detail.reset.success"),
+                                LanguageManager.getString("equb.detail.reset.success_title"),
+                                JOptionPane.INFORMATION_MESSAGE);
                         refreshViewGridData();
                     } else {
-                        JOptionPane.showMessageDialog(this, "Database execution error occurred while processing requests.", "Error", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.members.err.database"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
                     }
                 } else if (passwordCheck != null) {
-                    JOptionPane.showMessageDialog(this, "Incorrect password. Data operation aborted.", "Access Denied", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, LanguageManager.getString("msg.access_denied"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
@@ -132,7 +148,7 @@ public class EqubGroupDetailPanel extends JPanel {
         controlConsole.add(btnAddMember);
         controlConsole.add(btnRecordPayment);
         controlConsole.add(btnTriggerRotation);
-        controlConsole.add(btnResetLedger); // Appended button layout index array matrix
+        controlConsole.add(btnResetLedger);
 
         JPanel topWrapper = new JPanel(new BorderLayout());
         topWrapper.setOpaque(false);
@@ -149,12 +165,18 @@ public class EqubGroupDetailPanel extends JPanel {
         // LEFT SIDE PANEL: Active Members List
         JPanel leftMembersContainer = new JPanel(new BorderLayout(0, 8));
         leftMembersContainer.setOpaque(false);
-        JLabel lblLeftHeading = new JLabel("👥 Active Group Participants");
-        lblLeftHeading.setFont(new Font("SansSerif", Font.BOLD, 14));
+        JLabel lblLeftHeading = new JLabel(LanguageManager.getString("equb.detail.heading.participants"));
+        lblLeftHeading.setFont(FontManager.getBoldFont(14));
         lblLeftHeading.setForeground(new Color(101, 53, 15));
         leftMembersContainer.add(lblLeftHeading, BorderLayout.NORTH);
 
-        modelMembers = new DefaultTableModel(new String[]{"ID", "Full Name", "Phone Registry"}, 0) {
+        // ✅ Localized Columns Def Row Meta Matrix Left Hand Side table
+        String[] leftColumns = {
+                LanguageManager.getString("equb.detail.col.id"),
+                LanguageManager.getString("equb.detail.col.name"),
+                LanguageManager.getString("equb.detail.col.phone")
+        };
+        modelMembers = new DefaultTableModel(leftColumns, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
         tableMembers = new JTable(modelMembers);
@@ -164,12 +186,20 @@ public class EqubGroupDetailPanel extends JPanel {
         // RIGHT SIDE PANEL: Recent Financial Log Ledger
         JPanel rightTxContainer = new JPanel(new BorderLayout(0, 8));
         rightTxContainer.setOpaque(false);
-        JLabel lblRightHeading = new JLabel("📜 Recent Group Transactions Ledger");
-        lblRightHeading.setFont(new Font("SansSerif", Font.BOLD, 14));
+        JLabel lblRightHeading = new JLabel(LanguageManager.getString("equb.detail.heading.transactions"));
+        lblRightHeading.setFont(FontManager.getBoldFont(14));
         lblRightHeading.setForeground(new Color(101, 53, 15));
         rightTxContainer.add(lblRightHeading, BorderLayout.NORTH);
 
-        modelTransactions = new DefaultTableModel(new String[]{"TX ID", "Record Date", "Member Name", "Amount", "Action"}, 0) {
+        // ✅ Localized Table Model Column Data Schemas Row Definitions
+        String[] rightColumns = {
+                LanguageManager.getString("equb.detail.col.tx_id"),
+                LanguageManager.getString("equb.detail.col.date"),
+                LanguageManager.getString("equb.detail.col.name"),
+                LanguageManager.getString("equb.detail.col.amount"),
+                LanguageManager.getString("equb.detail.col.action")
+        };
+        modelTransactions = new DefaultTableModel(rightColumns, 0) {
             @Override public boolean isCellEditable(int r, int c) { return c == 4; }
         };
         tableTransactions = new JTable(modelTransactions);
@@ -181,9 +211,9 @@ public class EqubGroupDetailPanel extends JPanel {
 
         // IMMEDIATE INLINE TRANSACTION ROLLBACK RENDERING ENGINE
         tableTransactions.getColumnModel().getColumn(4).setCellRenderer(new TableCellRenderer() {
-            private final JButton btnUndo = new JButton("↩ Undo");
+            private final JButton btnUndo = new JButton(LanguageManager.getString("equb.detail.table.undo"));
             {
-                btnUndo.setFont(new Font("SansSerif", Font.BOLD, 11));
+                btnUndo.setFont(FontManager.getBoldFont(11));
                 btnUndo.setMargin(new Insets(2, 4, 2, 4));
             }
             @Override
@@ -194,20 +224,30 @@ public class EqubGroupDetailPanel extends JPanel {
 
         tableTransactions.getColumnModel().getColumn(4).setCellEditor(new DefaultCellEditor(new JCheckBox()) {
             private int targetTxId;
-            private final JButton btnUndo = new JButton("↩ Undo");
+            private final JButton btnUndo = new JButton(LanguageManager.getString("equb.detail.table.undo"));
             {
-                btnUndo.setFont(new Font("SansSerif", Font.BOLD, 11));
+                btnUndo.setFont(FontManager.getBoldFont(11));
                 btnUndo.addActionListener(e -> {
                     fireEditingStopped();
+
+                    UIManager.put("OptionPane.messageFont", FontManager.getPlainFont(14));
+                    UIManager.put("OptionPane.buttonFont", FontManager.getPlainFont(13));
+
+                    // ✅ Localized Inline Table Dynamic Validation Box Triggers
                     int choice = JOptionPane.showConfirmDialog(null,
-                            "Do you want to reverse transaction #" + targetTxId + "?\nThis rolls back the capital box balance instantly.",
-                            "Confirm Undo Reversal", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                            LanguageManager.getFormattedString("equb.detail.table.undo_confirm", String.valueOf(targetTxId)),
+                            LanguageManager.getString("equb.detail.table.undo_title"),
+                            JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+
                     if (choice == JOptionPane.YES_OPTION) {
                         if (service.reverseTransaction(targetTxId)) {
-                            JOptionPane.showMessageDialog(null, "Transaction successfully reversed.", "Reversal Complete", JOptionPane.INFORMATION_MESSAGE);
+                            JOptionPane.showMessageDialog(null,
+                                    LanguageManager.getString("equb.detail.table.undo_success"),
+                                    LanguageManager.getString("equb.detail.table.undo_success_title"),
+                                    JOptionPane.INFORMATION_MESSAGE);
                             refreshViewGridData();
                         } else {
-                            JOptionPane.showMessageDialog(null, "Error executing database deletion payload.", "Error", JOptionPane.ERROR_MESSAGE);
+                            JOptionPane.showMessageDialog(null, LanguageManager.getString("edir.home.delete.fail"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
                         }
                     }
                 });
@@ -261,7 +301,7 @@ public class EqubGroupDetailPanel extends JPanel {
                     tx.getDateString(),
                     tx.getMemberName(),
                     String.format("%,.2f Birr", tx.getAmount()),
-                    "Undo"
+                    LanguageManager.getString("equb.detail.table.undo")
             });
         }
 
@@ -270,7 +310,7 @@ public class EqubGroupDetailPanel extends JPanel {
         double freshVaultFunds = service.getActualAvailableRoundPool(groupCtx.getId());
         lblTotalFunds.setText(String.format("%,.2f ETB", freshVaultFunds));
 
-        String receiver = (groupCtx.getNextPayoutMemberName() == null) ? "No Draw Active" : groupCtx.getNextPayoutMemberName();
+        String receiver = (groupCtx.getNextPayoutMemberName() == null) ? LanguageManager.getString("equb.detail.no_draw") : groupCtx.getNextPayoutMemberName();
         lblPayoutReceiver.setText(receiver);
 
         this.revalidate();
@@ -312,7 +352,7 @@ public class EqubGroupDetailPanel extends JPanel {
         card.setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 15));
 
         JLabel lblCaption = new JLabel(caption.toUpperCase());
-        lblCaption.setFont(new Font("SansSerif", Font.BOLD, 11));
+        lblCaption.setFont(FontManager.getBoldFont(11));
         lblCaption.setForeground(new Color(130, 125, 115));
 
         card.add(lblCaption);
@@ -323,14 +363,14 @@ public class EqubGroupDetailPanel extends JPanel {
 
     private JLabel createCardMetricLabel(String valueText) {
         JLabel l = new JLabel(valueText);
-        l.setFont(new Font("SansSerif", Font.BOLD, 22));
+        l.setFont(FontManager.getBoldFont(22));
         l.setForeground(new Color(50, 45, 35));
         return l;
     }
 
     private JButton createStyledActionButton(String text, Color baseColor) {
         JButton btn = new JButton(text);
-        btn.setFont(new Font("SansSerif", Font.BOLD, 13));
+        btn.setFont(FontManager.getBoldFont(13));
         btn.setForeground(baseColor);
         btn.setBackground(Color.WHITE);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -359,12 +399,12 @@ public class EqubGroupDetailPanel extends JPanel {
         table.setRowHeight(32);
         table.setShowGrid(false);
         table.setIntercellSpacing(new Dimension(0, 0));
-        table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 12));
+        table.getTableHeader().setFont(FontManager.getBoldFont(12));
         table.getTableHeader().setBackground(new Color(242, 238, 228));
         table.getTableHeader().setForeground(new Color(101, 53, 15));
         table.getTableHeader().setReorderingAllowed(false);
         table.setSelectionBackground(new Color(235, 243, 232));
         table.setSelectionForeground(Color.BLACK);
-        table.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        table.setFont(FontManager.getPlainFont(12));
     }
 }

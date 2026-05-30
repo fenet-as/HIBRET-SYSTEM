@@ -7,40 +7,40 @@ public interface EdirService {
 
     List<Map<String, String>> getAllGroups();
 
+    List<Map<String, String>> getEdirGroupsForUser(int userId);
 
     boolean createGroup(String groupName, double monthlyFee, double initialPool, String rules, int creatorUserId);
-    boolean deleteGroup(String groupName);
 
-    Map<String, String> getGroupDetails(String groupName);
+    // ✅ ALL CRITICAL ACCESS METHODS UPDATED FROM 'String groupName' TO 'int groupId'
+    boolean deleteGroup(int groupId);
 
-    List<Map<String, String>> getMembersByGroup(String groupName);
+    Map<String, String> getGroupDetails(int groupId);
 
-    boolean addMemberToGroup(String groupName, String fullName, String phone);
+    List<Map<String, String>> getMembersByGroup(int groupId);
 
-    boolean recordContribution(String groupName, String memberName, String month, double amount, String receiptNo);
+    boolean addMemberToGroup(int groupId, String fullName, String phone);
 
-    List<Map<String, String>> getRecentContributions(String groupName);
+    boolean recordContribution(int groupId, String memberName, String month, double amount, String receiptNo);
 
-    boolean registerEmergencyCase(String groupName, String memberName, String type, double amount, String description);
+    List<Map<String, String>> getRecentContributions(int groupId);
 
-    boolean authorizePayout(String groupName, String caseTxId, double amount, String approvedBy, String notes);
+    boolean registerEmergencyCase(int groupId, String memberName, String type, double amount, String description);
+
+    boolean authorizePayout(int groupId, String caseTxId, double amount, String approvedBy, String notes);
 
     /**
-     * Fetches unresolved emergency records ('PENDING_CLAIM') from the ledger.
+     * Fetches unresolved emergency records ('PENDING') from the ledger.
      * Tied explicitly to the Distribute Payout screen drop-down lookup grid.
      */
-    List<Map<String, String>> getPendingClaimsByGroup(String groupName);
+    List<Map<String, String>> getPendingClaimsByGroup(int groupId);
 
-    List<Map<String, String>> getGroupTransactionLedger(String groupName);
-
-
-    List<Map<String, String>> getEdirGroupsForUser(int userId);
+    List<Map<String, String>> getGroupTransactionLedger(int groupId);
 
     double getActualAvailableRoundPool(int groupId);
 
-    double getGroupBalance(String groupName);
+    double getGroupBalance(int groupId);
 
-    void clearGroupTransactions(String groupName);
+    void clearGroupTransactions(int groupId);
 
-    boolean removeMemberFromGroup(String groupName, String memberName);
+    boolean removeMemberFromGroup(int groupId, String memberName);
 }

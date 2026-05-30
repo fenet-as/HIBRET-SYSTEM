@@ -14,7 +14,7 @@ public class EdirDAOImpl implements EdirDAO {
         // Core DB Initialization Hook
     }
 
-    // ✅ SCOPED: Shows only Edir Groups that the logged-in User belongs to via group_members
+    // ✅ FIXED: Scoped explicitly to groups created/managed by the logged-in user, calculated strictly by primary key ID
     @Override
     public List<Map<String, String>> getEdirGroupsForUser(int userId) {
         List<Map<String, String>> list = new ArrayList<>();
@@ -24,9 +24,7 @@ public class EdirDAOImpl implements EdirDAO {
                 "   COALESCE((SELECT SUM(t.amount) FROM transactions t WHERE t.group_id = g.id AND t.type = 'PAYOUT'), 0)) AS fund_balance " +
                 "FROM groups g " +
                 "JOIN edir_groups eg ON g.id = eg.id " +
-                "JOIN group_members gm ON g.id = gm.group_id " +
-                "JOIN members m ON gm.member_id = m.id " +
-                "WHERE g.type = 'EDIR' AND m.user_id = ? " +
+                "WHERE g.type = 'EDIR' AND g.created_by = ? " +
                 "ORDER BY g.name ASC";
 
         try (Connection conn = DBConnection.getConnection();
@@ -78,11 +76,11 @@ public class EdirDAOImpl implements EdirDAO {
         return list;
     }
 
-
-
-
     @Override
     public boolean createGroup(String groupName, double monthlyFee, double initialPool, String rules, int creatorUserId) {
+        // ✅ USER-SCOPED HARDENING: Bound to creators' own account profile scope
+        String sqlCheckName = "SELECT COUNT(*) FROM groups WHERE UPPER(TRIM(name)) = UPPER(TRIM(?)) AND type = 'EDIR' AND created_by = ?";
+
         String sqlGroup = "INSERT INTO groups (name, type, created_by) VALUES (?, 'EDIR', ?) RETURNING id";
         String sqlEdirSettings = "INSERT INTO edir_groups (id, name, contribution_amount) VALUES (?, ?, ?)";
         String sqlFindMember = "SELECT id FROM members WHERE user_id = ?";
@@ -92,6 +90,20 @@ public class EdirDAOImpl implements EdirDAO {
 
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
+
+            // Step 0: Block duplicate group names for THIS user context
+            try (PreparedStatement psCheck = conn.prepareStatement(sqlCheckName)) {
+                psCheck.setString(1, groupName);
+                psCheck.setInt(2, creatorUserId);
+                try (ResultSet rsCheck = psCheck.executeQuery()) {
+                    if (rsCheck.next() && rsCheck.getInt(1) > 0) {
+                        System.err.println("⚠️ Validation Abort: Edir Group name '" + groupName + "' already exists for User ID: " + creatorUserId);
+                        conn.rollback();
+                        return false;
+                    }
+                }
+            }
+
             int generatedGroupId = -1;
 
             // Step 1: Insert the master group recording WHO created it
@@ -126,7 +138,6 @@ public class EdirDAOImpl implements EdirDAO {
             }
 
             if (memberId == -1) {
-                // Safe fallback: pull full_name from users to create the initial system member profile
                 String fetchUserName = "SELECT full_name FROM users WHERE id = ?";
                 String creatorName = "Group Administrator";
                 try (PreparedStatement psName = conn.prepareStatement(fetchUserName)) {
@@ -169,9 +180,9 @@ public class EdirDAOImpl implements EdirDAO {
         }
     }
 
+    // ✅ FIXED: Scoped strictly to ID constraint parameters
     @Override
-    public boolean deleteGroup(String groupName) {
-        String sqlGetId = "SELECT id FROM groups WHERE name = ? AND type = 'EDIR'";
+    public boolean deleteGroup(int groupId) {
         String sqlDelTx = "DELETE FROM transactions WHERE group_id = ?";
         String sqlDelMembers = "DELETE FROM group_members WHERE group_id = ?";
         String sqlDelEdir = "DELETE FROM edir_groups WHERE id = ?";
@@ -179,32 +190,22 @@ public class EdirDAOImpl implements EdirDAO {
 
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
-            int groupId = -1;
 
-            try (PreparedStatement psId = conn.prepareStatement(sqlGetId)) {
-                psId.setString(1, groupName);
-                try (ResultSet rs = psId.executeQuery()) {
-                    if (rs.next()) groupId = rs.getInt("id");
-                }
+            try (PreparedStatement psTx = conn.prepareStatement(sqlDelTx)) {
+                psTx.setInt(1, groupId);
+                psTx.executeUpdate();
             }
-
-            if (groupId != -1) {
-                try (PreparedStatement psTx = conn.prepareStatement(sqlDelTx)) {
-                    psTx.setInt(1, groupId);
-                    psTx.executeUpdate();
-                }
-                try (PreparedStatement psMem = conn.prepareStatement(sqlDelMembers)) {
-                    psMem.setInt(1, groupId);
-                    psMem.executeUpdate();
-                }
-                try (PreparedStatement psEdir = conn.prepareStatement(sqlDelEdir)) {
-                    psEdir.setInt(1, groupId);
-                    psEdir.executeUpdate();
-                }
-                try (PreparedStatement psGrp = conn.prepareStatement(sqlDelGroup)) {
-                    psGrp.setInt(1, groupId);
-                    psGrp.executeUpdate();
-                }
+            try (PreparedStatement psMem = conn.prepareStatement(sqlDelMembers)) {
+                psMem.setInt(1, groupId);
+                psMem.executeUpdate();
+            }
+            try (PreparedStatement psEdir = conn.prepareStatement(sqlDelEdir)) {
+                psEdir.setInt(1, groupId);
+                psEdir.executeUpdate();
+            }
+            try (PreparedStatement psGrp = conn.prepareStatement(sqlDelGroup)) {
+                psGrp.setInt(1, groupId);
+                psGrp.executeUpdate();
             }
 
             conn.commit();
@@ -215,21 +216,23 @@ public class EdirDAOImpl implements EdirDAO {
         }
     }
 
+    // ✅ FIXED: Calculates and scopes strictly by Group ID
     @Override
-    public Map<String, String> getGroupDetails(String groupName) {
+    public Map<String, String> getGroupDetails(int groupId) {
         Map<String, String> map = new HashMap<>();
-        String sql = "SELECT g.id, " +
+        String sql = "SELECT g.id, g.name, " +
                 "COALESCE((SELECT SUM(amount) FROM transactions WHERE group_id = g.id AND type = 'CONTRIBUTION'), 0) - " +
                 "COALESCE((SELECT SUM(amount) FROM transactions WHERE group_id = g.id AND type = 'PAYOUT'), 0) as fund_balance, " +
                 "(SELECT COUNT(*) FROM group_members WHERE group_id = g.id) as total_members, " +
-                "(SELECT COUNT(*) FROM transactions WHERE group_id = g.id AND type = 'PENDING_CLAIM') as active_cases " +
-                "FROM groups g WHERE g.name = ? AND g.type = 'EDIR'";
+                "(SELECT COUNT(*) FROM emergency_cases WHERE group_id = g.id AND UPPER(TRIM(status)) = 'PENDING') as active_cases " +
+                "FROM groups g WHERE g.id = ? AND g.type = 'EDIR'";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, groupName);
+            pstmt.setInt(1, groupId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     map.put("id", String.valueOf(rs.getInt("id")));
+                    map.put("name", rs.getString("name"));
                     map.put("fund_balance", String.format("%.2f", rs.getDouble("fund_balance")));
                     map.put("total_members", String.valueOf(rs.getInt("total_members")));
                     map.put("active_cases", String.valueOf(rs.getInt("active_cases")));
@@ -242,16 +245,16 @@ public class EdirDAOImpl implements EdirDAO {
     }
 
     @Override
-    public List<Map<String, String>> getMembersByGroup(String groupName) {
+    public List<Map<String, String>> getMembersByGroup(int groupId) {
         List<Map<String, String>> list = new ArrayList<>();
         String sql = "SELECT m.id, m.full_name, m.phone " +
                 "FROM members m " +
                 "JOIN group_members gm ON m.id = gm.member_id " +
                 "JOIN groups g ON gm.group_id = g.id " +
-                "WHERE g.name = ? AND g.type = 'EDIR'";
+                "WHERE g.id = ? AND g.type = 'EDIR'";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, groupName);
+            pstmt.setInt(1, groupId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     Map<String, String> map = new HashMap<>();
@@ -269,28 +272,14 @@ public class EdirDAOImpl implements EdirDAO {
     }
 
     @Override
-    public boolean addMemberToGroup(String groupName, String fullName, String phone) {
-        String sqlFindGroup = "SELECT id FROM groups WHERE name = ? AND type = 'EDIR'";
+    public boolean addMemberToGroup(int groupId, String fullName, String phone) {
         String sqlInsertMember = "INSERT INTO members (full_name, phone, user_id) VALUES (?, ?, null) RETURNING id";
         String sqlLinkMember = "INSERT INTO group_members (group_id, member_id) VALUES (?, ?)";
 
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
-            int groupId = -1;
-
-            try (PreparedStatement psG = conn.prepareStatement(sqlFindGroup)) {
-                psG.setString(1, groupName);
-                try (ResultSet rs = psG.executeQuery()) {
-                    if (rs.next()) groupId = rs.getInt("id");
-                }
-            }
-
-            if (groupId == -1) {
-                conn.rollback();
-                return false;
-            }
-
             int memberId = -1;
+
             try (PreparedStatement psM = conn.prepareStatement(sqlInsertMember)) {
                 psM.setString(1, fullName);
                 psM.setString(2, phone);
@@ -314,25 +303,20 @@ public class EdirDAOImpl implements EdirDAO {
     }
 
     @Override
-    public boolean recordContribution(String groupName, String memberName, String month, double amount, String receiptNo) {
-        String sqlFindGroup = "SELECT id FROM groups WHERE name = ? AND type = 'EDIR'";
+    public boolean recordContribution(int groupId, String memberName, String month, double amount, String receiptNo) {
         String sqlFindMember = "SELECT id FROM members WHERE full_name = ? LIMIT 1";
         String sqlInsertTx = "INSERT INTO transactions (member_id, group_id, amount, type, description) VALUES (?, ?, ?, 'CONTRIBUTION', ?)";
 
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
-            int groupId = -1, memberId = -1;
+            int memberId = -1;
 
-            try (PreparedStatement psG = conn.prepareStatement(sqlFindGroup)) {
-                psG.setString(1, groupName);
-                try (ResultSet rs = psG.executeQuery()) { if (rs.next()) groupId = rs.getInt("id"); }
-            }
             try (PreparedStatement psM = conn.prepareStatement(sqlFindMember)) {
                 psM.setString(1, memberName);
                 try (ResultSet rs = psM.executeQuery()) { if (rs.next()) memberId = rs.getInt("id"); }
             }
 
-            if (groupId == -1 || memberId == -1) { conn.rollback(); return false; }
+            if (memberId == -1) { conn.rollback(); return false; }
 
             try (PreparedStatement psTx = conn.prepareStatement(sqlInsertTx)) {
                 psTx.setInt(1, memberId);
@@ -351,22 +335,21 @@ public class EdirDAOImpl implements EdirDAO {
     }
 
     @Override
-    public List<Map<String, String>> getRecentContributions(String groupName) {
-        return getGroupTransactionLedger(groupName);
+    public List<Map<String, String>> getRecentContributions(int groupId) {
+        return getGroupTransactionLedger(groupId);
     }
 
     @Override
-    public List<Map<String, String>> getGroupTransactionLedger(String groupName) {
+    public List<Map<String, String>> getGroupTransactionLedger(int groupId) {
         List<Map<String, String>> list = new ArrayList<>();
         String sql = "SELECT COALESCE(m.full_name, 'SYSTEM/OFFICER') as party_name, t.amount, t.type, t.description " +
                 "FROM transactions t " +
                 "LEFT JOIN members m ON t.member_id = m.id " +
-                "JOIN groups g ON t.group_id = g.id " +
-                "WHERE g.name = ? AND t.type IN ('CONTRIBUTION', 'PENDING_CLAIM', 'APPROVED_CLAIM', 'PAYOUT', 'REGISTRATION') " +
+                "WHERE t.group_id = ? AND t.type IN ('CONTRIBUTION', 'PAYOUT', 'REGISTRATION') " +
                 "ORDER BY t.id DESC LIMIT 15";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, groupName);
+            pstmt.setInt(1, groupId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     Map<String, String> map = new HashMap<>();
@@ -389,29 +372,25 @@ public class EdirDAOImpl implements EdirDAO {
     }
 
     @Override
-    public boolean registerEmergencyCase(String groupName, String memberName, String type, double amount, String description) {
-        String sqlFindGroup = "SELECT id FROM groups WHERE name = ? AND type = 'EDIR'";
+    public boolean registerEmergencyCase(int groupId, String memberName, String type, double amount, String description) {
         String sqlFindMember = "SELECT id FROM members WHERE full_name = ? LIMIT 1";
-        String sqlInsertTx = "INSERT INTO transactions (member_id, group_id, amount, type, description) VALUES (?, ?, ?, 'PENDING_CLAIM', ?)";
+        String sqlInsertCase = "INSERT INTO emergency_cases (group_id, member_id, title, description, requested_amount, status) VALUES (?, ?, ?, ?, ?, 'PENDING')";
 
         try (Connection conn = DBConnection.getConnection()) {
-            int groupId = -1, memberId = -1;
-            try (PreparedStatement psG = conn.prepareStatement(sqlFindGroup)) {
-                psG.setString(1, groupName);
-                try (ResultSet rs = psG.executeQuery()) { if (rs.next()) groupId = rs.getInt("id"); }
-            }
+            int memberId = -1;
             try (PreparedStatement psM = conn.prepareStatement(sqlFindMember)) {
                 psM.setString(1, memberName);
                 try (ResultSet rs = psM.executeQuery()) { if (rs.next()) memberId = rs.getInt("id"); }
             }
-            if (groupId == -1 || memberId == -1) return false;
+            if (memberId == -1) return false;
 
-            try (PreparedStatement psTx = conn.prepareStatement(sqlInsertTx)) {
-                psTx.setInt(1, memberId);
-                psTx.setInt(2, groupId);
-                psTx.setDouble(3, amount);
-                psTx.setString(4, "Type: " + type + " | Details: " + description);
-                return psTx.executeUpdate() > 0;
+            try (PreparedStatement psCase = conn.prepareStatement(sqlInsertCase)) {
+                psCase.setInt(1, groupId);
+                psCase.setInt(2, memberId);
+                psCase.setString(3, type);
+                psCase.setString(4, description);
+                psCase.setDouble(5, amount);
+                return psCase.executeUpdate() > 0;
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -420,23 +399,22 @@ public class EdirDAOImpl implements EdirDAO {
     }
 
     @Override
-    public List<Map<String, String>> getPendingClaimsByGroup(String groupName) {
+    public List<Map<String, String>> getPendingClaimsByGroup(int groupId) {
         List<Map<String, String>> list = new ArrayList<>();
-        String sql = "SELECT t.id, m.full_name, t.amount, t.description " +
-                "FROM transactions t " +
-                "JOIN groups g ON t.group_id = g.id " +
-                "JOIN members m ON t.member_id = m.id " +
-                "WHERE g.name = ? AND g.type = 'EDIR' AND t.type = 'PENDING_CLAIM' " +
-                "ORDER BY t.id ASC";
+        String sql = "SELECT ec.id, m.full_name, ec.requested_amount, ec.description " +
+                "FROM emergency_cases ec " +
+                "JOIN members m ON ec.member_id = m.id " +
+                "WHERE ec.group_id = ? AND UPPER(TRIM(ec.status)) = 'PENDING' " +
+                "ORDER BY ec.id ASC";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, groupName);
+            pstmt.setInt(1, groupId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     Map<String, String> map = new HashMap<>();
                     map.put("tx_id", String.valueOf(rs.getInt("id")));
                     map.put("member_name", rs.getString("full_name"));
-                    map.put("amount", String.valueOf(rs.getDouble("amount")));
+                    map.put("amount", String.valueOf(rs.getDouble("requested_amount")));
                     map.put("description", rs.getString("description"));
                     list.add(map);
                 }
@@ -448,30 +426,22 @@ public class EdirDAOImpl implements EdirDAO {
     }
 
     @Override
-    public boolean authorizePayout(String groupName, String caseTxId, double amount, String approvedBy, String notes) {
-        String sqlFindGroup = "SELECT id FROM groups WHERE name = ? AND type = 'EDIR'";
-        String sqlUpdateClaim = "UPDATE transactions SET type = 'APPROVED_CLAIM' WHERE id = ?";
+    public boolean authorizePayout(int groupId, String caseTxId, double amount, String approvedBy, String notes) {
+        String sqlUpdateCase = "UPDATE emergency_cases SET status = 'APPROVED' WHERE id = ?";
         String sqlInsertPayout = "INSERT INTO transactions (member_id, group_id, amount, type, description) VALUES " +
-                "((SELECT member_id FROM transactions WHERE id = ?), ?, ?, 'PAYOUT', ?)";
+                "((SELECT member_id FROM emergency_cases WHERE id = ?), ?, ?, 'PAYOUT', ?)";
 
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
-            int groupId = -1;
-            try (PreparedStatement psG = conn.prepareStatement(sqlFindGroup)) {
-                psG.setString(1, groupName);
-                try (ResultSet rs = psG.executeQuery()) { if (rs.next()) groupId = rs.getInt("id"); }
-            }
-            if (groupId == -1) return false;
+            int caseId = Integer.parseInt(caseTxId);
 
-            int claimId = Integer.parseInt(caseTxId);
-
-            try (PreparedStatement psUp = conn.prepareStatement(sqlUpdateClaim)) {
-                psUp.setInt(1, claimId);
+            try (PreparedStatement psUp = conn.prepareStatement(sqlUpdateCase)) {
+                psUp.setInt(1, caseId);
                 psUp.executeUpdate();
             }
 
             try (PreparedStatement psTx = conn.prepareStatement(sqlInsertPayout)) {
-                psTx.setInt(1, claimId);
+                psTx.setInt(1, caseId);
                 psTx.setInt(2, groupId);
                 psTx.setDouble(3, amount);
                 psTx.setString(4, "Approved By: " + approvedBy + " | Notes: " + notes);
@@ -486,14 +456,12 @@ public class EdirDAOImpl implements EdirDAO {
         }
     }
 
-
     @Override
     public double getActualAvailableRoundPool(int groupId) {
-        // This calculates true ledger balance: (Total Payments) - (Total Payouts/Expenses)
         String sql = "SELECT " +
-                " (SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE group_id = ? AND UPPER(type) IN ('PAYMENT', 'CONTRIBUTION')) as total_in, " +
-                " (SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE group_id = ? AND UPPER(type) IN ('PAYOUT', 'EXPENSE', 'CLAIM')) as total_out";
-        try (Connection conn = util.DBConnection.getConnection();
+                " (SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE group_id = ? AND type = 'CONTRIBUTION') as total_in, " +
+                " (SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE group_id = ? AND type = 'PAYOUT') as total_out";
+        try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, groupId);
             ps.setInt(2, groupId);
@@ -508,16 +476,17 @@ public class EdirDAOImpl implements EdirDAO {
         return 0.0;
     }
 
+    // ✅ FIXED: Now computes balances precisely tracking unique Group ID records
     @Override
-    public double getGroupBalance(String groupName) {
+    public double getGroupBalance(int groupId) {
         String sql = "SELECT " +
-                "  (SELECT COALESCE(SUM(t.amount), 0) FROM transactions t JOIN groups g ON t.group_id = g.id WHERE g.name = ? AND UPPER(t.type) IN ('PAYMENT', 'CONTRIBUTION')) as total_contributions, " +
-                "  (SELECT COALESCE(SUM(t.amount), 0) FROM transactions t JOIN groups g ON t.group_id = g.id WHERE g.name = ? AND UPPER(t.type) IN ('PAYOUT', 'EXPENSE', 'CLAIM')) as total_payouts";
+                "  (SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE group_id = ? AND type = 'CONTRIBUTION') as total_contributions, " +
+                "  (SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE group_id = ? AND type = 'PAYOUT') as total_payouts";
 
-        try (Connection conn = util.DBConnection.getConnection();
+        try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, groupName);
-            ps.setString(2, groupName);
+            ps.setInt(1, groupId);
+            ps.setInt(2, groupId);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -530,18 +499,13 @@ public class EdirDAOImpl implements EdirDAO {
         return 0.0;
     }
 
-
     @Override
-    public void clearGroupTransactions(String groupName) {
-        // ✅ FIXED: Changed '=' to 'IN' to safely handle multiple groups sharing the same name string
-        String sql = "DELETE FROM transactions WHERE group_id IN (SELECT id FROM groups WHERE name = ?)";
-
-        try (Connection conn = util.DBConnection.getConnection();
+    public void clearGroupTransactions(int groupId) {
+        String sql = "DELETE FROM transactions WHERE group_id = ?";
+        try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, groupName);
+            ps.setInt(1, groupId);
             ps.executeUpdate();
-
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException("Database error occurred while clearing logs: " + e.getMessage());
@@ -549,25 +513,14 @@ public class EdirDAOImpl implements EdirDAO {
     }
 
     @Override
-    public boolean removeMemberFromGroup(String groupName, String memberName) {
-        String sqlFindGroup = "SELECT id FROM groups WHERE name = ? AND type = 'EDIR'";
+    public boolean removeMemberFromGroup(int groupId, String memberName) {
         String sqlFindMember = "SELECT id FROM members WHERE full_name = ? LIMIT 1";
         String sqlUnlinkMember = "DELETE FROM group_members WHERE group_id = ? AND member_id = ?";
 
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
-            int groupId = -1;
             int memberId = -1;
 
-            // 1. Resolve Group ID
-            try (PreparedStatement psG = conn.prepareStatement(sqlFindGroup)) {
-                psG.setString(1, groupName);
-                try (ResultSet rs = psG.executeQuery()) {
-                    if (rs.next()) groupId = rs.getInt("id");
-                }
-            }
-
-            // 2. Resolve Member ID
             try (PreparedStatement psM = conn.prepareStatement(sqlFindMember)) {
                 psM.setString(1, memberName);
                 try (ResultSet rs = psM.executeQuery()) {
@@ -575,13 +528,11 @@ public class EdirDAOImpl implements EdirDAO {
                 }
             }
 
-            // If either entry was not found in the DB registry, abort transaction safely
-            if (groupId == -1 || memberId == -1) {
+            if (memberId == -1) {
                 conn.rollback();
                 return false;
             }
 
-            // 3. Remove the association link mapping entry from the group_members join table
             int rowsDeleted = 0;
             try (PreparedStatement psDel = conn.prepareStatement(sqlUnlinkMember)) {
                 psDel.setInt(1, groupId);
@@ -591,7 +542,6 @@ public class EdirDAOImpl implements EdirDAO {
 
             conn.commit();
             return rowsDeleted > 0;
-
         } catch (SQLException e) {
             e.printStackTrace();
             return false;

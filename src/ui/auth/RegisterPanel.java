@@ -1,9 +1,10 @@
 package ui.auth;
 
-// Added registration logic business layer imports
 import model.User;
 import service.AuthService;
 import service.impl.AuthServiceImpl;
+import util.LanguageManager;
+import util.FontManager; // ✅ Imported FontManager
 
 import ui.auth.components.RoundedButton;
 import ui.auth.components.RoundedPasswordField;
@@ -21,13 +22,12 @@ public class RegisterPanel extends JPanel {
     private Image backgroundImage;
     private final LoginFrame parentFrame;
 
-    // Added AuthService instance property
     private final AuthService authService = new AuthServiceImpl();
 
-    // Standard placeholder string constants
-    private final String NAME_HINT = "  Enter full name";
-    private final String USER_HINT = "  Choose username";
-    private final String ANSWER_HINT = "  Enter your answer";
+    // ✅ Dynamic Hints via Translation bundle properties
+    private final String NAME_HINT = LanguageManager.getString("register.hint.fullname");
+    private final String USER_HINT = LanguageManager.getString("register.hint.username");
+    private final String ANSWER_HINT = LanguageManager.getString("register.hint.answer");
 
     public RegisterPanel(LoginFrame frame) {
         this.parentFrame = frame;
@@ -40,7 +40,6 @@ public class RegisterPanel extends JPanel {
 
         setLayout(new GridBagLayout());
 
-        // Standardized card layout size to align with Login frame boundaries
         JPanel centerCard = new JPanel(new GridLayout(1, 2, 40, 0));
         centerCard.setOpaque(false);
         centerCard.setPreferredSize(new Dimension(750, 560));
@@ -52,108 +51,117 @@ public class RegisterPanel extends JPanel {
         formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
         formPanel.setOpaque(false);
 
-        // --- REDUCED TYPOGRAPHY SIZES ---
-        // Reduced from 46 to 36
-        JLabel lblTitle = new JLabel("CREATE");
-        lblTitle.setFont(new Font("Serif", Font.BOLD, 36));
+        // ✅ Fixed Headers Font with dynamic FontManager mapping configurations
+        JLabel lblTitle = new JLabel(LanguageManager.getString("register.title"));
+        lblTitle.setFont(FontManager.getBoldFont(36));
         lblTitle.setForeground(new Color(101, 53, 15));
         lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Reduced from 38 to 28
-        JLabel lblSubTitle = new JLabel("ACCOUNT");
-        lblSubTitle.setFont(new Font("SansSerif", Font.BOLD, 28));
+        JLabel lblSubTitle = new JLabel(LanguageManager.getString("register.subtitle"));
+        lblSubTitle.setFont(FontManager.getBoldFont(28));
         lblSubTitle.setForeground(new Color(34, 112, 43));
         lblSubTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // --- Inputs & Layout Optimization ---
-        JLabel lblName = new JLabel("Full Name");
-        lblName.setFont(new Font("SansSerif", Font.BOLD, 13));
+        // ✅ Fixed Form Field Annotations and Input Components Typography
+        JLabel lblName = new JLabel(LanguageManager.getString("register.fullname"));
+        lblName.setFont(FontManager.getBoldFont(13));
         lblName.setForeground(new Color(70, 70, 70));
         lblName.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JTextField txtName = new RoundedTextField("", 20);
+        txtName.setFont(FontManager.getPlainFont(13));
         configurePlaceholder(txtName, NAME_HINT);
-        txtName.setMaximumSize(new Dimension(320, 38)); // Slightly compressed field heights from 42 to 38
+        txtName.setMaximumSize(new Dimension(320, 38));
         txtName.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lblUser = new JLabel("Username");
-        lblUser.setFont(new Font("SansSerif", Font.BOLD, 13));
+        JLabel lblUser = new JLabel(LanguageManager.getString("register.username"));
+        lblUser.setFont(FontManager.getBoldFont(13));
         lblUser.setForeground(new Color(70, 70, 70));
         lblUser.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JTextField txtUser = new RoundedTextField("", 20);
+        txtUser.setFont(FontManager.getPlainFont(13));
         configurePlaceholder(txtUser, USER_HINT);
         txtUser.setMaximumSize(new Dimension(320, 38));
         txtUser.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lblPass = new JLabel("Password");
-        lblPass.setFont(new Font("SansSerif", Font.BOLD, 13));
+        JLabel lblPass = new JLabel(LanguageManager.getString("register.password"));
+        lblPass.setFont(FontManager.getBoldFont(13));
         lblPass.setForeground(new Color(70, 70, 70));
         lblPass.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JPasswordField txtPass = new RoundedPasswordField(20);
+        txtPass.setFont(FontManager.getPlainFont(13));
         txtPass.setMaximumSize(new Dimension(320, 38));
         txtPass.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // --- Security Question Component ---
-        JLabel lblSecurityQuestion = new JLabel("Security Question");
-        lblSecurityQuestion.setFont(new Font("SansSerif", Font.BOLD, 13));
+        JLabel lblSecurityQuestion = new JLabel(LanguageManager.getString("register.security_question"));
+        lblSecurityQuestion.setFont(FontManager.getBoldFont(13));
         lblSecurityQuestion.setForeground(new Color(70, 70, 70));
         lblSecurityQuestion.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-
-
+        // ✅ Bound Drop-down Security Options Array
         String[] questions = {
-                "Select a security question...",
-                "1. What is your mother’s name?",
-                "2. What is your father’s name?",
-                "3. What is your favorite place?",
-                "4. What is your hometown?",
-                "5. What is your first school name?"
+                LanguageManager.getString("register.q0"),
+                LanguageManager.getString("register.q1"),
+                LanguageManager.getString("register.q2"),
+                LanguageManager.getString("register.q3"),
+                LanguageManager.getString("register.q4"),
+                LanguageManager.getString("register.q5")
         };
         JComboBox<String> comboQuestions = new JComboBox<>(questions);
         comboQuestions.setMaximumSize(new Dimension(320, 38));
         comboQuestions.setAlignmentX(Component.LEFT_ALIGNMENT);
         comboQuestions.setBackground(Color.WHITE);
-        comboQuestions.setFont(new Font("SansSerif", Font.PLAIN, 13));
 
-        JLabel lblSecurityAnswer = new JLabel("Security Answer");
-        lblSecurityAnswer.setFont(new Font("SansSerif", Font.BOLD, 13));
+        // ✅ CRUCIAL FIX: Forcing dropdown selection list overlay elements to inherit Amharic font rendering
+        comboQuestions.setFont(FontManager.getPlainFont(13));
+        Object listRenderer = comboQuestions.getRenderer();
+        if (listRenderer instanceof JComponent) {
+            ((JComponent) listRenderer).setFont(FontManager.getPlainFont(12));
+        }
+
+        JLabel lblSecurityAnswer = new JLabel(LanguageManager.getString("register.security_answer"));
+        lblSecurityAnswer.setFont(FontManager.getBoldFont(13));
         lblSecurityAnswer.setForeground(new Color(70, 70, 70));
         lblSecurityAnswer.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JTextField txtSecurityAnswer = new RoundedTextField("", 20);
+        txtSecurityAnswer.setFont(FontManager.getPlainFont(13));
         configurePlaceholder(txtSecurityAnswer, ANSWER_HINT);
         txtSecurityAnswer.setMaximumSize(new Dimension(320, 38));
         txtSecurityAnswer.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // --- Action Button ---
-        JButton btnRegister = new RoundedButton("REGISTER", new Color(34, 112, 43));
+        JButton btnRegister = new RoundedButton(LanguageManager.getString("register.btn_register"), new Color(34, 112, 43));
         btnRegister.setForeground(Color.WHITE);
-        btnRegister.setFont(new Font("SansSerif", Font.BOLD, 14));
+        btnRegister.setFont(FontManager.getBoldFont(14));
         btnRegister.setMaximumSize(new Dimension(320, 42));
         btnRegister.setAlignmentX(Component.LEFT_ALIGNMENT);
         btnRegister.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // --- Updated Live Registration Business Logic ---
         btnRegister.addActionListener(e -> {
+            // Apply dynamic dialog fonts inside actions
+            UIManager.put("OptionPane.messageFont", FontManager.getPlainFont(14));
+            UIManager.put("OptionPane.buttonFont", FontManager.getPlainFont(13));
+
             String fullName = txtName.getText().trim();
             String username = txtUser.getText().trim();
             String password = new String(txtPass.getPassword());
             String question = comboQuestions.getSelectedItem() != null ? comboQuestions.getSelectedItem().toString() : "";
             String answer = txtSecurityAnswer.getText().trim();
 
-            // Intercept empty fields or untreated placeholders
             if (fullName.isEmpty() || fullName.equals(NAME_HINT) ||
                     username.isEmpty() || username.equals(USER_HINT) ||
                     answer.isEmpty() || answer.equals(ANSWER_HINT) ||
-                    password.isEmpty()) {
+                    password.isEmpty() || comboQuestions.getSelectedIndex() == 0) {
 
-                JOptionPane.showMessageDialog(this, "All fields are required!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this,
+                        LanguageManager.getString("register.err.required"),
+                        LanguageManager.getString("register.err.title"),
+                        JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            // Construct new domain user profile
             User user = new User();
             user.setFullName(fullName);
             user.setUsername(username);
@@ -161,29 +169,33 @@ public class RegisterPanel extends JPanel {
             user.setSecurityQuestion(question);
             user.setSecurityAnswer(answer);
 
-            // Forward model entity context directly to database service layer
             boolean success = authService.register(user);
 
             if (success) {
-                JOptionPane.showMessageDialog(this, "Registration Successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                parentFrame.showPage("login"); // Safely re-route back onto application main login panel stage
+                JOptionPane.showMessageDialog(this,
+                        LanguageManager.getString("register.success.msg"),
+                        LanguageManager.getString("msg.success"),
+                        JOptionPane.INFORMATION_MESSAGE);
+                parentFrame.showPage("login");
             } else {
-                JOptionPane.showMessageDialog(this, "Registration Failed! Username might already exist.", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this,
+                        LanguageManager.getString("register.err.failed"),
+                        LanguageManager.getString("msg.error"),
+                        JOptionPane.ERROR_MESSAGE);
             }
         });
 
-        // --- Back to Login Link ---
         JPanel backPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
         backPanel.setOpaque(false);
         backPanel.setMaximumSize(new Dimension(320, 22));
         backPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lblHaveAccount = new JLabel("Already have an account?");
-        lblHaveAccount.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        JLabel lblHaveAccount = new JLabel(LanguageManager.getString("register.have_account"));
+        lblHaveAccount.setFont(FontManager.getPlainFont(13));
         lblHaveAccount.setForeground(new Color(100, 100, 100));
 
-        JLabel lblLogin = new JLabel("Login");
-        lblLogin.setFont(new Font("SansSerif", Font.BOLD, 13));
+        JLabel lblLogin = new JLabel(LanguageManager.getString("register.login_link"));
+        lblLogin.setFont(FontManager.getBoldFont(13));
         lblLogin.setForeground(new Color(101, 53, 15));
         lblLogin.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
@@ -194,18 +206,17 @@ public class RegisterPanel extends JPanel {
             }
             @Override
             public void mouseEntered(MouseEvent e) {
-                lblLogin.setText("<html><u>Login</u></html>");
+                lblLogin.setText("<html><u>" + LanguageManager.getString("register.login_link") + "</u></html>");
             }
             @Override
             public void mouseExited(MouseEvent e) {
-                lblLogin.setText("Login");
+                lblLogin.setText(LanguageManager.getString("register.login_link"));
             }
         });
 
         backPanel.add(lblHaveAccount);
         backPanel.add(lblLogin);
 
-        // --- Language Toggle Panel ---
         JPanel langPanel = new JPanel(new GridLayout(1, 2));
         langPanel.setOpaque(false);
         langPanel.setMaximumSize(new Dimension(160, 30));
@@ -216,16 +227,26 @@ public class RegisterPanel extends JPanel {
         btnEng.setFocusPainted(false);
 
         JButton btnAmh = new JButton("አማርኛ");
-        btnAmh.setFont(new Font("Nyala", Font.PLAIN, 13));
+        btnAmh.setFont(new Font(FontManager.getAmharicFontName(), Font.PLAIN, 13));
         btnAmh.setFocusPainted(false);
+
+        // ✅ Hot Language Selection Redirection Sweepers
+        btnEng.addActionListener(e -> {
+            LanguageManager.setLanguage("en");
+            parentFrame.showPage("register");
+        });
+
+        btnAmh.addActionListener(e -> {
+            LanguageManager.setLanguage("am");
+            parentFrame.showPage("register");
+        });
 
         langPanel.add(btnEng);
         langPanel.add(btnAmh);
 
-        // --- Assembly with tighter structural Struts ---
         formPanel.add(lblTitle);
         formPanel.add(lblSubTitle);
-        formPanel.add(Box.createVerticalStrut(12)); // Tightened spacer gap
+        formPanel.add(Box.createVerticalStrut(12));
         formPanel.add(lblName);
         formPanel.add(Box.createVerticalStrut(2));
         formPanel.add(txtName);

@@ -1,5 +1,6 @@
 package model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ReportDataModels {
@@ -10,7 +11,7 @@ public class ReportDataModels {
         public int transactionCount;
         public double totalPaid;
         public int groupsJoinedCount;
-        public List<TransactionRow> transactions;
+        public List<TransactionRow> transactions = new ArrayList<>();
     }
 
     public static class TransactionRow {
@@ -20,6 +21,9 @@ public class ReportDataModels {
         public String type;
         public String groupName;
         public String description;
+
+        // Clean default constructor hook for system dashboard mapping logs
+        public TransactionRow() {}
 
         public TransactionRow(String transactionId, String date, double amount, String type, String groupName, String description) {
             this.transactionId = transactionId;
@@ -37,7 +41,7 @@ public class ReportDataModels {
         public double totalCollected;
         public String currentCycle;
         public String nextPayoutMember;
-        public List<EqubMemberRow> memberRows;
+        public List<EqubMemberRow> memberRows = new ArrayList<>();
     }
 
     public static class EqubMemberRow {
@@ -61,7 +65,7 @@ public class ReportDataModels {
         public int approvedEmergencies;
         public int pendingEmergencies;
         public double remainingFundBalance;
-        public List<EdirEmergencyRow> emergencyRows;
+        public List<EdirEmergencyRow> emergencyRows = new ArrayList<>();
     }
 
     public static class EdirEmergencyRow {
@@ -87,6 +91,6 @@ public class ReportDataModels {
         public int totalGroups;
         public int totalTransactions;
         public double totalMoneyInSystem;
-        public List<TransactionRow> recentTransactions;
+        public List<TransactionRow> recentTransactions = new ArrayList<>();
     }
 }

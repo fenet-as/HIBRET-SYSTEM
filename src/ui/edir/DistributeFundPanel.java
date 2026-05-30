@@ -5,14 +5,18 @@ import java.awt.*;
 import java.util.List;
 import java.util.Map;
 import service.EdirService;
+import util.LanguageManager;
+import util.FontManager; // ✅ Imported FontManager
 
 public class DistributeFundPanel extends JPanel {
     private final JPanel parentWrapper;
     private final EdirService edirService;
-    private final String groupName;
+
+    private final int groupId;
+    private String groupDisplayName = "Loading Group...";
 
     private JComboBox<ClaimItem> cmbClaims;
-    private JTextArea txtCaseDetailsDisplay; // ✅ New UI component to clearly read details
+    private JTextArea txtCaseDetailsDisplay;
     private JTextField txtDisbursedSum;
     private JTextField txtApprovedBy;
     private JTextArea txtNotes;
@@ -20,7 +24,6 @@ public class DistributeFundPanel extends JPanel {
     private double currentAvailableBalance = 0.0;
     private List<Map<String, String>> pendingClaimsData;
 
-    // Enhanced helper class to pass raw data details cleanly down to our display viewer card
     private static class ClaimItem {
         String id;
         String displayText;
@@ -39,10 +42,10 @@ public class DistributeFundPanel extends JPanel {
         public String toString() { return displayText; }
     }
 
-    public DistributeFundPanel(JPanel parentWrapper, EdirService edirService, String groupName) {
+    public DistributeFundPanel(JPanel parentWrapper, EdirService edirService, int groupId) {
         this.parentWrapper = parentWrapper;
         this.edirService = edirService;
-        this.groupName = groupName;
+        this.groupId = groupId;
 
         setLayout(new BorderLayout(25, 25));
         setBackground(new Color(253, 247, 237));
@@ -52,17 +55,19 @@ public class DistributeFundPanel extends JPanel {
         initHeader();
         initFormLayout();
 
-        // Trigger initial selection setup on load
         updateCaseDetailsDisplay();
     }
 
     private void fetchVaultStatus() {
-        Map<String, String> details = edirService.getGroupDetails(groupName);
-        if (details != null && details.containsKey("fund_balance")) {
-            try {
-                currentAvailableBalance = Double.parseDouble(details.get("fund_balance"));
-            } catch (NumberFormatException e) {
-                currentAvailableBalance = 0.0;
+        Map<String, String> details = edirService.getGroupDetails(this.groupId);
+        if (details != null) {
+            this.groupDisplayName = details.getOrDefault("name", "Edir Group");
+            if (details.containsKey("fund_balance")) {
+                try {
+                    currentAvailableBalance = Double.parseDouble(details.get("fund_balance"));
+                } catch (NumberFormatException e) {
+                    currentAvailableBalance = 0.0;
+                }
             }
         }
     }
@@ -71,12 +76,15 @@ public class DistributeFundPanel extends JPanel {
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
 
-        JLabel lblTitle = new JLabel("Authorize Fund Capital Payout Distribution");
-        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 22));
+        // ✅ Localized Header Title with FontManager Mapping
+        JLabel lblTitle = new JLabel(LanguageManager.getString("edir.distribute.title"));
+        lblTitle.setFont(FontManager.getBoldFont(22));
         lblTitle.setForeground(new Color(101, 31, 16));
 
-        JLabel lblLimit = new JLabel(String.format("Max Available Reserves: %,.2f ETB", currentAvailableBalance));
-        lblLimit.setFont(new Font("SansSerif", Font.ITALIC | Font.BOLD, 14));
+        // ✅ Localized Available Reserves Format Tracker Label with FontManager Mapping
+        String dynamicReserves = String.format("%,.2f", currentAvailableBalance);
+        JLabel lblLimit = new JLabel(LanguageManager.getFormattedString("edir.distribute.max_reserves", dynamicReserves));
+        lblLimit.setFont(FontManager.getBoldFont(14));
         lblLimit.setForeground(new Color(46, 117, 89));
 
         headerPanel.add(lblTitle, BorderLayout.WEST);
@@ -92,18 +100,25 @@ public class DistributeFundPanel extends JPanel {
         gbc.insets = new Insets(10, 12, 10, 12);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // 1. SELECT TARGET EMERGENCY CASE FROM DATABASE
+        // 1. SELECT TARGET EMERGENCY CASE FROM DATABASE - Localized Form Label with dynamic font
         gbc.gridx = 0; gbc.gridy = 0;
-        form.add(new JLabel("Select Emergency Claim Case:"), gbc);
+        form.add(createFormLabel(LanguageManager.getString("edir.distribute.lbl_select_claim")), gbc);
 
         cmbClaims = new JComboBox<>();
+        cmbClaims.setFont(FontManager.getPlainFont(13));
         cmbClaims.setPreferredSize(new Dimension(400, 35));
 
+        // Ensure the internal dropdown overlay list elements render the Amharic texts safely
+        Object renderer = cmbClaims.getRenderer();
+        if (renderer instanceof JComponent) {
+            ((JComponent) renderer).setFont(FontManager.getPlainFont(13));
+        }
+
         try {
-            java.lang.reflect.Method m = edirService.getClass().getMethod("getPendingClaimsByGroup", String.class);
-            pendingClaimsData = (List<Map<String, String>>) m.invoke(edirService, groupName);
+            java.lang.reflect.Method m = edirService.getClass().getMethod("getPendingClaimsByGroup", int.class);
+            pendingClaimsData = (List<Map<String, String>>) m.invoke(edirService, this.groupId);
         } catch (Exception e) {
-            pendingClaimsData = edirService.getPendingClaimsByGroup(groupName);
+            pendingClaimsData = edirService.getPendingClaimsByGroup(this.groupId);
         }
 
         if (pendingClaimsData != null && !pendingClaimsData.isEmpty()) {
@@ -113,23 +128,23 @@ public class DistributeFundPanel extends JPanel {
                 String member = claim.get("member_name");
                 String desc = claim.getOrDefault("description", "No case context recorded.");
 
-                // Dropdown text stays clean and un-cluttered
                 String shortDisplay = "Case #" + id + " : filed by " + member;
                 cmbClaims.addItem(new ClaimItem(id, shortDisplay, member, desc, reqAmt));
             }
         } else {
-            cmbClaims.addItem(new ClaimItem("-1", "⚠️ No unresolved emergency cases found", "N/A", "N/A", 0));
+            // ✅ Localized Fallback Item Entry
+            cmbClaims.addItem(new ClaimItem("-1", LanguageManager.getString("edir.distribute.no_claims"), "N/A", "N/A", 0));
         }
 
         gbc.gridx = 1;
         form.add(cmbClaims, gbc);
 
-        // 1b. ✅ LIVE CASE DETAILS INSPECTOR CARD (Fills the readability requirement)
+        // 1b. LIVE CASE DETAILS INSPECTOR CARD - Localized Form Label
         gbc.gridx = 0; gbc.gridy = 1;
-        form.add(new JLabel("Selected Case Context Audit:"), gbc);
+        form.add(createFormLabel(LanguageManager.getString("edir.distribute.lbl_context")), gbc);
 
         txtCaseDetailsDisplay = new JTextArea(5, 25);
-        txtCaseDetailsDisplay.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        txtCaseDetailsDisplay.setFont(FontManager.getPlainFont(12)); // ✅ Replaced hardcoded Font with fallback configuration
         txtCaseDetailsDisplay.setBackground(new Color(245, 240, 230));
         txtCaseDetailsDisplay.setEditable(false);
         txtCaseDetailsDisplay.setLineWrap(true);
@@ -141,29 +156,31 @@ public class DistributeFundPanel extends JPanel {
         gbc.gridx = 1;
         form.add(caseDetailsScroll, gbc);
 
-        // 2. DISBURSED PAYOUT AMOUNT FIELD
+        // 2. DISBURSED PAYOUT AMOUNT FIELD - Localized Form Label
         gbc.gridx = 0; gbc.gridy = 2;
-        form.add(new JLabel("Amount to Distribute (ETB):"), gbc);
+        form.add(createFormLabel(LanguageManager.getString("edir.distribute.lbl_amount")), gbc);
         txtDisbursedSum = new JTextField();
+        txtDisbursedSum.setFont(FontManager.getPlainFont(14));
         txtDisbursedSum.setPreferredSize(new Dimension(400, 35));
         gbc.gridx = 1;
         form.add(txtDisbursedSum, gbc);
 
-        // COMBINED CHANGE LISTENER HOOK: Update details text view and auto-fill distribution sum box layout
         cmbClaims.addActionListener(e -> updateCaseDetailsDisplay());
 
-        // 3. AUTHORIZING OFFICER INPUT
+        // 3. AUTHORIZING OFFICER INPUT - Localized Form Label
         gbc.gridx = 0; gbc.gridy = 3;
-        form.add(new JLabel("Authorized Approver Name:"), gbc);
+        form.add(createFormLabel(LanguageManager.getString("edir.distribute.lbl_approver")), gbc);
         txtApprovedBy = new JTextField();
+        txtApprovedBy.setFont(FontManager.getPlainFont(14));
         txtApprovedBy.setPreferredSize(new Dimension(400, 35));
         gbc.gridx = 1;
         form.add(txtApprovedBy, gbc);
 
-        // 4. PAYOUT DESCRIPTIONS AND AUDIT LOG NOTES
+        // 4. PAYOUT DESCRIPTIONS AND AUDIT LOG NOTES - Localized Form Label
         gbc.gridx = 0; gbc.gridy = 4;
-        form.add(new JLabel("Distribution Audit Notes:"), gbc);
+        form.add(createFormLabel(LanguageManager.getString("edir.distribute.lbl_notes")), gbc);
         txtNotes = new JTextArea(3, 20);
+        txtNotes.setFont(FontManager.getPlainFont(13));
         txtNotes.setLineWrap(true);
         txtNotes.setWrapStyleWord(true);
         JScrollPane scroll = new JScrollPane(txtNotes);
@@ -171,31 +188,37 @@ public class DistributeFundPanel extends JPanel {
         gbc.gridx = 1;
         form.add(scroll, gbc);
 
-        // 5. ACTION BUTTON EXECUTION LAYOUT ROW
+        // 5. ACTION BUTTON EXECUTION LAYOUT ROW - Localized Form Targets
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
         actions.setOpaque(false);
 
-        JButton btnCancel = new JButton("Cancel");
+        JButton btnCancel = new JButton(LanguageManager.getString("edir.distribute.btn_cancel"));
+        btnCancel.setFont(FontManager.getBoldFont(13));
         btnCancel.setPreferredSize(new Dimension(100, 38));
         btnCancel.addActionListener(e -> returnToDashboardView());
 
-        JButton btnConfirm = new JButton("Approve & Disburse");
+        JButton btnConfirm = new JButton(LanguageManager.getString("edir.distribute.btn_confirm"));
+        btnConfirm.setFont(FontManager.getBoldFont(13));
         btnConfirm.setPreferredSize(new Dimension(180, 38));
         btnConfirm.setBackground(new Color(46, 117, 89));
         btnConfirm.setForeground(Color.WHITE);
 
         btnConfirm.addActionListener(e -> {
+            // Apply dynamic validation popup box configurations explicitly
+            UIManager.put("OptionPane.messageFont", FontManager.getPlainFont(14));
+            UIManager.put("OptionPane.buttonFont", FontManager.getPlainFont(13));
+
             ClaimItem selectedClaim = (ClaimItem) cmbClaims.getSelectedItem();
             String sumStr = txtDisbursedSum.getText().trim();
             String officer = txtApprovedBy.getText().trim();
             String notes = txtNotes.getText().trim();
 
             if (selectedClaim == null || selectedClaim.id.equals("-1")) {
-                JOptionPane.showMessageDialog(this, "Payout requires a valid linked pending emergency case profile.", "Execution Blocked", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.distribute.err.invalid_claim"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
                 return;
             }
             if (sumStr.isEmpty() || officer.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Please verify both the distribution value and authorizing signatory data.", "Execution Alert", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.distribute.err.required"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
@@ -203,19 +226,19 @@ public class DistributeFundPanel extends JPanel {
                 double payoutValue = Double.parseDouble(sumStr);
 
                 if (payoutValue > currentAvailableBalance) {
-                    JOptionPane.showMessageDialog(this, "Transaction Rejected. Insufficient reserve capitals in group vault pool.", "Overdraft Limit Protection", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.distribute.err.overdraft"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
-                boolean success = edirService.authorizePayout(groupName, selectedClaim.id, payoutValue, officer, notes);
+                boolean success = edirService.authorizePayout(this.groupId, selectedClaim.id, payoutValue, officer, notes);
                 if (success) {
-                    JOptionPane.showMessageDialog(this, "Financial payout successfully authorized. Linked emergency case has been closed.");
+                    JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.distribute.success"), LanguageManager.getString("msg.success"), JOptionPane.INFORMATION_MESSAGE);
                     returnToDashboardView();
                 } else {
-                    JOptionPane.showMessageDialog(this, "An unexpected database synchronization issue occurred.", "Database Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.distribute.err.db"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
                 }
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Please enter a valid numeric amount inside the distribution field.", "Format Mismatch", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.distribute.err.number"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -228,7 +251,6 @@ public class DistributeFundPanel extends JPanel {
         add(form, BorderLayout.CENTER);
     }
 
-    // ✅ HELPER: Extracts layout tracking fields dynamically to refresh the details card text viewport buffer layout
     private void updateCaseDetailsDisplay() {
         if (cmbClaims == null || txtCaseDetailsDisplay == null) return;
 
@@ -238,18 +260,26 @@ public class DistributeFundPanel extends JPanel {
 
             StringBuilder sb = new StringBuilder();
             sb.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-            sb.append(" CASE TRACKING ID : ").append(selected.id).append("\n");
-            sb.append(" FILING MEMBER    : ").append(selected.memberName).append("\n");
-            sb.append(" REQUESTED COV.   : ").append(String.format("%,.2f ETB", selected.requestedAmount)).append("\n");
+            sb.append(LanguageManager.getFormattedString("edir.distribute.card.id", selected.id)).append("\n");
+            sb.append(LanguageManager.getFormattedString("edir.distribute.card.member", selected.memberName)).append("\n");
+            String formattedAmt = String.format("%,.2f", selected.requestedAmount);
+            sb.append(LanguageManager.getFormattedString("edir.distribute.card.requested", formattedAmt)).append("\n");
             sb.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-            sb.append(" INCIDENT LOG DETAILS:\n ").append(selected.fullDescription);
+            sb.append(LanguageManager.getString("edir.distribute.card.incident")).append(" ").append(selected.fullDescription);
 
             txtCaseDetailsDisplay.setText(sb.toString());
-            txtCaseDetailsDisplay.setCaretPosition(0); // Scroll view back to top
+            txtCaseDetailsDisplay.setCaretPosition(0);
         } else {
-            txtCaseDetailsDisplay.setText("\n\n   No emergency claims selected.");
+            txtCaseDetailsDisplay.setText(LanguageManager.getString("edir.distribute.no_selection"));
             txtDisbursedSum.setText("");
         }
+    }
+
+    private JLabel createFormLabel(String labelText) {
+        JLabel label = new JLabel(labelText);
+        label.setFont(FontManager.getBoldFont(13));
+        label.setForeground(Color.DARK_GRAY);
+        return label;
     }
 
     private void returnToDashboardView() {

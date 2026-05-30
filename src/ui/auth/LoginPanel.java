@@ -2,7 +2,7 @@ package ui.auth;
 
 import dao.impl.EdirDAOImpl;
 import dao.impl.ReportDAOImpl;
-import dao.impl.EqubDAOImpl; // 1. ADDED IMPORT FOR EQUB DAO IMPLEMENTATION
+import dao.impl.EqubDAOImpl;
 import service.*;
 import service.impl.AuthServiceImpl;
 import service.impl.EdirServiceImpl;
@@ -10,6 +10,7 @@ import service.impl.ReportServiceImpl;
 import service.impl.EqubServiceImpl;
 import model.User;
 import ui.core.MainFrame;
+import util.LanguageManager;
 
 import ui.auth.components.RoundedButton;
 import ui.auth.components.RoundedPasswordField;
@@ -30,15 +31,23 @@ public class LoginPanel extends JPanel {
     // --- State-Driven Business Services ---
     private final AuthService authService = new AuthServiceImpl();
     private final ReportService reportService = new ReportServiceImpl(new ReportDAOImpl());
-
-    // 2. FIXED: Injected the required EqubDAO implementation dependency here
     private final EqubService equbService = new EqubServiceImpl(new EqubDAOImpl());
-
     private final EdirService edirService = new EdirServiceImpl(new EdirDAOImpl());
+
+    // Dynamic Font String Resolver based on Runtime Operating System
+    private String getAmharicFontName() {
+        String os = System.getProperty("os.name").toLowerCase();
+        if (os.contains("win")) return "Nyala";
+        if (os.contains("mac")) return "Kefa";
+        return "Abyssinica SIL";
+    }
 
     public LoginPanel(LoginFrame frame) {
         this.parentFrame = frame;
-        // Load the background image
+
+        // Resolve target font styling globally for text layout bindings
+        String amhFont = getAmharicFontName();
+
         try {
             backgroundImage = ImageIO.read(new File("src/resources/images/LoginBg.png"));
         } catch (IOException e) {
@@ -64,21 +73,24 @@ public class LoginPanel extends JPanel {
         lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel lblSubTitle = new JLabel("SYSTEM");
-        lblSubTitle.setFont(new Font("SansSerif", Font.BOLD, 38));
+        lblSubTitle.setFont(new Font(amhFont, Font.BOLD, 38)); // Supports localized brand headings if changed
         lblSubTitle.setForeground(new Color(34, 112, 43));
         lblSubTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lblTagline = new JLabel("Equb & Edir Community Management");
-        lblTagline.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        // ✅ Updated Font Assignment for i18n Elements
+        JLabel lblTagline = new JLabel(LanguageManager.getString("login.tagline"));
+        lblTagline.setFont(new Font(amhFont, Font.PLAIN, 14));
         lblTagline.setForeground(new Color(80, 80, 80));
         lblTagline.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lblUser = new JLabel("Username");
-        lblUser.setFont(new Font("SansSerif", Font.BOLD, 13));
+        JLabel lblUser = new JLabel(LanguageManager.getString("login.username"));
+        lblUser.setFont(new Font(amhFont, Font.BOLD, 13));
         lblUser.setForeground(new Color(70, 70, 70));
         lblUser.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JTextField txtUsername = new RoundedTextField("  Enter username", 20);
+        String placeholderText = LanguageManager.getString("login.placeholder");
+        JTextField txtUsername = new RoundedTextField(placeholderText, 20);
+        txtUsername.setFont(new Font(amhFont, Font.PLAIN, 14));
         txtUsername.setForeground(Color.GRAY);
         txtUsername.setMaximumSize(new Dimension(320, 42));
         txtUsername.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -86,7 +98,7 @@ public class LoginPanel extends JPanel {
         txtUsername.addFocusListener(new java.awt.event.FocusListener() {
             @Override
             public void focusGained(java.awt.event.FocusEvent e) {
-                if (txtUsername.getText().equals("  Enter username")) {
+                if (txtUsername.getText().equals(LanguageManager.getString("login.placeholder"))) {
                     txtUsername.setText("");
                     txtUsername.setForeground(Color.BLACK);
                 }
@@ -95,18 +107,19 @@ public class LoginPanel extends JPanel {
             @Override
             public void focusLost(java.awt.event.FocusEvent e) {
                 if (txtUsername.getText().trim().isEmpty()) {
-                    txtUsername.setText("  Enter username");
+                    txtUsername.setText(LanguageManager.getString("login.placeholder"));
                     txtUsername.setForeground(Color.GRAY);
                 }
             }
         });
 
-        JLabel lblPass = new JLabel("Password");
-        lblPass.setFont(new Font("SansSerif", Font.BOLD, 13));
+        JLabel lblPass = new JLabel(LanguageManager.getString("login.password"));
+        lblPass.setFont(new Font(amhFont, Font.BOLD, 13));
         lblPass.setForeground(new Color(70, 70, 70));
         lblPass.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JPasswordField txtPassword = new RoundedPasswordField(20);
+        txtPassword.setFont(new Font(amhFont, Font.PLAIN, 14));
         txtPassword.setMaximumSize(new Dimension(320, 42));
         txtPassword.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -115,8 +128,8 @@ public class LoginPanel extends JPanel {
         forgotPanel.setMaximumSize(new Dimension(320, 20));
         forgotPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lblForgot = new JLabel("Forgot Password?");
-        lblForgot.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        JLabel lblForgot = new JLabel(LanguageManager.getString("login.forgot"));
+        lblForgot.setFont(new Font(amhFont, Font.PLAIN, 12));
         lblForgot.setForeground(new Color(101, 53, 15));
         lblForgot.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
@@ -128,20 +141,20 @@ public class LoginPanel extends JPanel {
 
             @Override
             public void mouseEntered(MouseEvent e) {
-                lblForgot.setText("<html><u>Forgot Password?</u></html>");
+                lblForgot.setText("<html><u>" + LanguageManager.getString("login.forgot") + "</u></html>");
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                lblForgot.setText("Forgot Password?");
+                lblForgot.setText(LanguageManager.getString("login.forgot"));
             }
         });
 
         forgotPanel.add(lblForgot);
 
-        JButton btnLogin = new RoundedButton("LOGIN", new Color(34, 112, 43));
+        JButton btnLogin = new RoundedButton(LanguageManager.getString("login.btn_login"), new Color(34, 112, 43));
         btnLogin.setForeground(Color.WHITE);
-        btnLogin.setFont(new Font("SansSerif", Font.BOLD, 14));
+        btnLogin.setFont(new Font(amhFont, Font.BOLD, 14));
         btnLogin.setMaximumSize(new Dimension(320, 45));
         btnLogin.setAlignmentX(Component.LEFT_ALIGNMENT);
         btnLogin.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -150,8 +163,15 @@ public class LoginPanel extends JPanel {
             String username = txtUsername.getText().trim();
             String password = new String(txtPassword.getPassword());
 
-            if (username.isEmpty() || username.equals("  Enter username") || password.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Please enter both username and password.", "Login Error", JOptionPane.ERROR_MESSAGE);
+            if (username.isEmpty() || username.equals(LanguageManager.getString("login.placeholder")) || password.isEmpty()) {
+                // Wrap JOptionPane with dynamic fonts to fix dialog boxes showing up empty
+                UIManager.put("OptionPane.messageFont", new Font(amhFont, Font.PLAIN, 14));
+                UIManager.put("OptionPane.buttonFont", new Font(amhFont, Font.PLAIN, 13));
+
+                JOptionPane.showMessageDialog(this,
+                        LanguageManager.getString("login.err.missing"),
+                        LanguageManager.getString("login.err.title"),
+                        JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
@@ -161,7 +181,13 @@ public class LoginPanel extends JPanel {
                 parentFrame.dispose();
                 new MainFrame(user, reportService, equbService, edirService);
             } else {
-                JOptionPane.showMessageDialog(this, "Invalid credentials! Please try again.", "Authentication Failed", JOptionPane.ERROR_MESSAGE);
+                UIManager.put("OptionPane.messageFont", new Font(amhFont, Font.PLAIN, 14));
+                UIManager.put("OptionPane.buttonFont", new Font(amhFont, Font.PLAIN, 13));
+
+                JOptionPane.showMessageDialog(this,
+                        LanguageManager.getString("login.err.invalid"),
+                        LanguageManager.getString("login.err.auth_failed"),
+                        JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -170,12 +196,12 @@ public class LoginPanel extends JPanel {
         registerPanel.setMaximumSize(new Dimension(320, 25));
         registerPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lblNoAccount = new JLabel("Don't have an account?");
-        lblNoAccount.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        JLabel lblNoAccount = new JLabel(LanguageManager.getString("login.no_account"));
+        lblNoAccount.setFont(new Font(amhFont, Font.PLAIN, 13));
         lblNoAccount.setForeground(new Color(100, 100, 100));
 
-        JLabel lblRegister = new JLabel("Sign Up");
-        lblRegister.setFont(new Font("SansSerif", Font.BOLD, 13));
+        JLabel lblRegister = new JLabel(LanguageManager.getString("login.sign_up"));
+        lblRegister.setFont(new Font(amhFont, Font.BOLD, 13));
         lblRegister.setForeground(new Color(34, 112, 43));
         lblRegister.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
@@ -187,12 +213,12 @@ public class LoginPanel extends JPanel {
 
             @Override
             public void mouseEntered(MouseEvent e) {
-                lblRegister.setText("<html><u>Sign Up</u></html>");
+                lblRegister.setText("<html><u>" + LanguageManager.getString("login.sign_up") + "</u></html>");
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                lblRegister.setText("Sign Up");
+                lblRegister.setText(LanguageManager.getString("login.sign_up"));
             }
         });
 
@@ -209,8 +235,19 @@ public class LoginPanel extends JPanel {
         btnEng.setFocusPainted(false);
 
         JButton btnAmh = new JButton("አማርኛ");
-        btnAmh.setFont(new Font("Nyala", Font.PLAIN, 14));
+        btnAmh.setFont(new Font(getAmharicFontName(), Font.PLAIN, 14));
         btnAmh.setFocusPainted(false);
+
+        // ✅ Runtime Language Shift Handlers
+        btnEng.addActionListener(e -> {
+            LanguageManager.setLanguage("en");
+            parentFrame.showPage("login"); // Forces parent context layout re-rendering
+        });
+
+        btnAmh.addActionListener(e -> {
+            LanguageManager.setLanguage("am");
+            parentFrame.showPage("login"); // Forces parent context layout re-rendering
+        });
 
         langPanel.add(btnEng);
         langPanel.add(btnAmh);

@@ -3,6 +3,8 @@ package ui.equb;
 import service.EqubService;
 import model.Group;
 import model.Member;
+import util.LanguageManager;
+import util.FontManager; // ✅ Imported FontManager
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
@@ -27,13 +29,15 @@ public class EqubPaymentPanel extends JPanel {
         // --- TOP ROW TITLE ---
         JPanel head = new JPanel(new BorderLayout());
         head.setOpaque(false);
-        JLabel lblTitle = new JLabel("🏦 Record Payment Entry");
-        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 22));
+        // ✅ Localized Header Title Label with dynamic font metrics lookup
+        JLabel lblTitle = new JLabel(LanguageManager.getString("equb.payment.title"));
+        lblTitle.setFont(FontManager.getBoldFont(22));
         lblTitle.setForeground(new Color(101, 53, 15));
         head.add(lblTitle, BorderLayout.WEST);
 
-        JButton btnCancel = new JButton("Cancel");
-        btnCancel.setFont(new Font("SansSerif", Font.BOLD, 13));
+        // ✅ Localized Cancel Button
+        JButton btnCancel = new JButton(LanguageManager.getString("equb.payment.btn_cancel"));
+        btnCancel.setFont(FontManager.getBoldFont(13));
         btnCancel.addActionListener(e -> navigateBackToDetails());
         head.add(btnCancel, BorderLayout.EAST);
         add(head, BorderLayout.NORTH);
@@ -47,8 +51,10 @@ public class EqubPaymentPanel extends JPanel {
         formFieldsPanel.setLayout(new BoxLayout(formFieldsPanel, BoxLayout.Y_AXIS));
         formFieldsPanel.add(Box.createVerticalStrut(15));
 
-        formFieldsPanel.add(createFormLabel("Select Group Participant:"));
+        // ✅ Localized Combobox Form Entry Title Label
+        formFieldsPanel.add(createFormLabel(LanguageManager.getString("equb.payment.lbl_select_member")));
         comboMembers = new JComboBox<>();
+        comboMembers.setFont(FontManager.getPlainFont(13)); // ✅ Safe font mapping for embedded item lists
         comboMembers.setPreferredSize(new Dimension(380, 38));
         comboMembers.setMaximumSize(new Dimension(380, 38));
 
@@ -59,21 +65,26 @@ public class EqubPaymentPanel extends JPanel {
         formFieldsPanel.add(comboMembers);
         formFieldsPanel.add(Box.createVerticalStrut(15));
 
-        formFieldsPanel.add(createFormLabel("Contribution Amount (birr):"));
+        // ✅ Localized Cash Rate Dynamic Label Box
+        formFieldsPanel.add(createFormLabel(LanguageManager.getString("equb.payment.lbl_amount")));
         txtAmount = new JTextField(String.valueOf((int) groupCtx.getContributionAmount()));
+        txtAmount.setFont(FontManager.getPlainFont(14));
         txtAmount.setPreferredSize(new Dimension(380, 38));
         txtAmount.setMaximumSize(new Dimension(380, 38));
         formFieldsPanel.add(txtAmount);
         formFieldsPanel.add(Box.createVerticalStrut(15));
 
-        formFieldsPanel.add(createFormLabel("Transaction Reference / Payment Cycle Notes:"));
-        txtNote = new JTextField("Contribution Cycle Payment");
+        // ✅ Localized Reference Note Input Title and Text Area Placeholders
+        formFieldsPanel.add(createFormLabel(LanguageManager.getString("equb.payment.lbl_note")));
+        txtNote = new JTextField(LanguageManager.getString("equb.payment.placeholder_note"));
+        txtNote.setFont(FontManager.getPlainFont(14));
         txtNote.setPreferredSize(new Dimension(380, 38));
         txtNote.setMaximumSize(new Dimension(380, 38));
         formFieldsPanel.add(txtNote);
         formFieldsPanel.add(Box.createVerticalStrut(30));
 
-        JButton btnSave = new JButton("Save Payment Ledger entry") {
+        // ✅ Localized Submission Trigger Button
+        JButton btnSave = new JButton(LanguageManager.getString("equb.payment.btn_save")) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -84,7 +95,7 @@ public class EqubPaymentPanel extends JPanel {
                 super.paintComponent(g);
             }
         };
-        btnSave.setFont(new Font("SansSerif", Font.BOLD, 14));
+        btnSave.setFont(FontManager.getBoldFont(14));
         btnSave.setForeground(Color.WHITE);
         btnSave.setContentAreaFilled(false);
         btnSave.setBorderPainted(false);
@@ -93,26 +104,34 @@ public class EqubPaymentPanel extends JPanel {
         btnSave.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         btnSave.addActionListener(e -> {
+            // Reconfigure active alert schemas to safely map dynamic typography assets
+            UIManager.put("OptionPane.messageFont", FontManager.getPlainFont(14));
+            UIManager.put("OptionPane.buttonFont", FontManager.getPlainFont(13));
+
             Member targetedMember = (Member) comboMembers.getSelectedItem();
             String amountStr = txtAmount.getText().trim();
 
             if (targetedMember == null) {
-                JOptionPane.showMessageDialog(this, "There are no members in this pool to record payments for. Please add members first.", "Missing Members", JOptionPane.ERROR_MESSAGE);
+                // ✅ Localized Error Alerts
+                JOptionPane.showMessageDialog(this, LanguageManager.getString("equb.payment.err.no_members"), LanguageManager.getString("equb.payment.err.no_members_title"), JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
             if (amountStr.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Please insert a valid financial amount index.", "Validation Failed", JOptionPane.WARNING_MESSAGE);
+                // ✅ Localized Blank Validation Popup Prompt
+                JOptionPane.showMessageDialog(this, LanguageManager.getString("equb.payment.err.validation"), LanguageManager.getString("msg.validation_error"), JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
             try {
                 double paymentAmount = Double.parseDouble(amountStr);
                 service.recordPayment(groupCtx.getId(), targetedMember.getId(), paymentAmount, "", txtNote.getText().trim());
-                JOptionPane.showMessageDialog(this, "Payment successfully submitted to the ledger ledger logs.", "Transaction Recorded", JOptionPane.INFORMATION_MESSAGE);
+
+                // ✅ Localized Database Execution Success Alert
+                JOptionPane.showMessageDialog(this, LanguageManager.getString("equb.payment.success"), LanguageManager.getString("equb.payment.success_title"), JOptionPane.INFORMATION_MESSAGE);
                 navigateBackToDetails();
             } catch (NumberFormatException nfe) {
-                JOptionPane.showMessageDialog(this, "Please enter a valid numeric format.", "Number Format Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, LanguageManager.getString("msg.parsing_error"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -123,7 +142,7 @@ public class EqubPaymentPanel extends JPanel {
 
     private JLabel createFormLabel(String content) {
         JLabel l = new JLabel(content);
-        l.setFont(new Font("SansSerif", Font.BOLD, 13));
+        l.setFont(FontManager.getBoldFont(13));
         l.setForeground(new Color(70, 70, 70));
         l.setAlignmentX(Component.LEFT_ALIGNMENT);
         return l;
@@ -132,7 +151,6 @@ public class EqubPaymentPanel extends JPanel {
     private void navigateBackToDetails() {
         containerPanel.remove(this);
 
-        // Force-refresh core object metrics from back-end database parameters before navigation switches
         List<Group> livePools = service.getAllEqubGroups();
         Group refreshedContext = groupCtx;
         for (Group lookup : livePools) {

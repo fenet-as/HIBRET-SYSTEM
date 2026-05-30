@@ -12,13 +12,23 @@ public class ReportServiceImpl implements ReportService {
         this.reportDAO = reportDAO;
     }
 
+    /**
+     * NEW OPERATION ALIGNED WITH REFACTORED WORKSPACE:
+     * Pulls the complete array list of members managed under the logged-in user.
+     */
+    @Override
+    public List<String> getAllManagedMemberNames() {
+        // FIXED: Changed 'reportDAOImpl' to 'reportDAO' to match your class variable
+        return reportDAO.fetchAllManagedMemberNames();
+    }
+
     @Override
     public MemberReport getMemberReportData(String searchKeyword) {
-        // Fallback to avoid empty initial displays
+        // Fallback filter to map active input string instances
         if (searchKeyword == null || searchKeyword.trim().isEmpty() || searchKeyword.equals("🔍 Search Member...")) {
             searchKeyword = "";
         }
-        return reportDAO.fetchMemberReportData(searchKeyword);
+        return reportDAO.fetchMemberReportData(searchKeyword.trim());
     }
 
     @Override
@@ -28,7 +38,8 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public EqubReport getEqubReportData(String equbGroupName) {
-        return reportDAO.fetchEqubReportData(equbGroupName);
+        if (equbGroupName == null || equbGroupName.trim().isEmpty()) return null;
+        return reportDAO.fetchEqubReportData(equbGroupName.trim());
     }
 
     @Override
@@ -38,7 +49,8 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public EdirReport getEdirReportData(String edirGroupName) {
-        return reportDAO.fetchEdirReportData(edirGroupName);
+        if (edirGroupName == null || edirGroupName.trim().isEmpty()) return null;
+        return reportDAO.fetchEdirReportData(edirGroupName.trim());
     }
 
     @Override

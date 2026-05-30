@@ -3,6 +3,8 @@ package ui.auth;
 import service.AuthService;
 import service.impl.AuthServiceImpl;
 import model.User;
+import util.LanguageManager;
+import util.FontManager; // ✅ Imported FontManager
 
 import ui.auth.components.RoundedButton;
 import ui.auth.components.RoundedPasswordField;
@@ -51,14 +53,14 @@ public class ForgotPasswordPanel extends JPanel {
         baseFormPanel.setLayout(new BoxLayout(baseFormPanel, BoxLayout.Y_AXIS));
         baseFormPanel.setOpaque(false);
 
-        // Typography
-        JLabel lblTitle = new JLabel("RESET");
-        lblTitle.setFont(new Font("Serif", Font.BOLD, 46));
+        // ✅ Applied dynamic FontManager configs to primary headings
+        JLabel lblTitle = new JLabel(LanguageManager.getString("forgot.title"));
+        lblTitle.setFont(FontManager.getBoldFont(46));
         lblTitle.setForeground(new Color(101, 53, 15));
         lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lblSubTitle = new JLabel("PASSWORD");
-        lblSubTitle.setFont(new Font("SansSerif", Font.BOLD, 38));
+        JLabel lblSubTitle = new JLabel(LanguageManager.getString("forgot.subtitle"));
+        lblSubTitle.setFont(FontManager.getBoldFont(38));
         lblSubTitle.setForeground(new Color(34, 112, 43));
         lblSubTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -81,12 +83,12 @@ public class ForgotPasswordPanel extends JPanel {
         backPanel.setMaximumSize(new Dimension(320, 25));
         backPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lblRemember = new JLabel("Remembered your password?");
-        lblRemember.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        JLabel lblRemember = new JLabel(LanguageManager.getString("forgot.remember"));
+        lblRemember.setFont(FontManager.getPlainFont(13));
         lblRemember.setForeground(new Color(100, 100, 100));
 
-        JLabel lblLogin = new JLabel("Login");
-        lblLogin.setFont(new Font("SansSerif", Font.BOLD, 13));
+        JLabel lblLogin = new JLabel(LanguageManager.getString("forgot.login_link"));
+        lblLogin.setFont(FontManager.getBoldFont(13));
         lblLogin.setForeground(new Color(101, 53, 15));
         lblLogin.setCursor(new Cursor(Cursor.HAND_CURSOR));
         lblLogin.addMouseListener(new MouseAdapter() {
@@ -99,11 +101,11 @@ public class ForgotPasswordPanel extends JPanel {
             }
             @Override
             public void mouseEntered(MouseEvent e) {
-                lblLogin.setText("<html><u>Login</u></html>");
+                lblLogin.setText("<html><u>" + LanguageManager.getString("forgot.login_link") + "</u></html>");
             }
             @Override
             public void mouseExited(MouseEvent e) {
-                lblLogin.setText("Login");
+                lblLogin.setText(LanguageManager.getString("forgot.login_link"));
             }
         });
         backPanel.add(lblRemember);
@@ -120,8 +122,19 @@ public class ForgotPasswordPanel extends JPanel {
         btnEng.setFocusPainted(false);
 
         JButton btnAmh = new JButton("አማርኛ");
-        btnAmh.setFont(new Font("Nyala", Font.PLAIN, 14));
+        btnAmh.setFont(new Font(FontManager.getAmharicFontName(), Font.PLAIN, 14));
         btnAmh.setFocusPainted(false);
+
+        // ✅ Context Translation Change Listeners
+        btnEng.addActionListener(e -> {
+            LanguageManager.setLanguage("en");
+            parentFrame.showPage("forgot");
+        });
+
+        btnAmh.addActionListener(e -> {
+            LanguageManager.setLanguage("am");
+            parentFrame.showPage("forgot");
+        });
 
         langPanel.add(btnEng);
         langPanel.add(btnAmh);
@@ -151,12 +164,14 @@ public class ForgotPasswordPanel extends JPanel {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setOpaque(false);
 
-        JLabel lblUser = new JLabel("Username");
-        lblUser.setFont(new Font("SansSerif", Font.BOLD, 13));
+        JLabel lblUser = new JLabel(LanguageManager.getString("forgot.username"));
+        lblUser.setFont(FontManager.getBoldFont(13));
         lblUser.setForeground(new Color(70, 70, 70));
         lblUser.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JTextField txtUser = new RoundedTextField("  Enter your username", 20);
+        String usernameHint = LanguageManager.getString("forgot.hint.username");
+        JTextField txtUser = new RoundedTextField(usernameHint, 20);
+        txtUser.setFont(FontManager.getPlainFont(13));
         txtUser.setForeground(Color.GRAY);
         txtUser.setMaximumSize(new Dimension(320, 38));
         txtUser.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -164,7 +179,7 @@ public class ForgotPasswordPanel extends JPanel {
         txtUser.addFocusListener(new java.awt.event.FocusListener() {
             @Override
             public void focusGained(java.awt.event.FocusEvent e) {
-                if (txtUser.getText().equals("  Enter your username")) {
+                if (txtUser.getText().equals(LanguageManager.getString("forgot.hint.username"))) {
                     txtUser.setText("");
                     txtUser.setForeground(Color.BLACK);
                 }
@@ -172,99 +187,106 @@ public class ForgotPasswordPanel extends JPanel {
             @Override
             public void focusLost(java.awt.event.FocusEvent e) {
                 if (txtUser.getText().trim().isEmpty()) {
-                    txtUser.setText("  Enter your username");
+                    txtUser.setText(LanguageManager.getString("forgot.hint.username"));
                     txtUser.setForeground(Color.GRAY);
                 }
             }
         });
 
-        JLabel lblQuestion = new JLabel("Security Question");
-        lblQuestion.setFont(new Font("SansSerif", Font.BOLD, 13));
+        JLabel lblQuestion = new JLabel(LanguageManager.getString("forgot.security_question"));
+        lblQuestion.setFont(FontManager.getBoldFont(13));
         lblQuestion.setForeground(new Color(70, 70, 70));
         lblQuestion.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+        // ✅ Re-uses localized question text array configurations
         String[] questions = {
-                "Select a security question...",
-                "1. What is your mother’s name?",
-                "2. What is your father’s name?",
-                "3. What is your favorite place?",
-                "4. What is your hometown?",
-                "5. What is your first school name?"
+                LanguageManager.getString("register.q0"),
+                LanguageManager.getString("register.q1"),
+                LanguageManager.getString("register.q2"),
+                LanguageManager.getString("register.q3"),
+                LanguageManager.getString("register.q4"),
+                LanguageManager.getString("register.q5")
         };
         JComboBox<String> comboQuestions = new JComboBox<>(questions);
-        comboQuestions.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        comboQuestions.setFont(FontManager.getPlainFont(13));
+
+        // ✅ CRUCIAL FIX: Override dropdown popover panel canvas typography mapping settings
+        Object cellRenderer = comboQuestions.getRenderer();
+        if (cellRenderer instanceof JComponent) {
+            ((JComponent) cellRenderer).setFont(FontManager.getPlainFont(13));
+        }
+
         comboQuestions.setMaximumSize(new Dimension(320, 42));
         comboQuestions.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lblAnswer = new JLabel("Your Answer");
-        lblAnswer.setFont(new Font("SansSerif", Font.BOLD, 13));
+        JLabel lblAnswer = new JLabel(LanguageManager.getString("forgot.answer"));
+        lblAnswer.setFont(FontManager.getBoldFont(13));
         lblAnswer.setForeground(new Color(70, 70, 70));
         lblAnswer.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JTextField txtAnswer = new RoundedTextField("  Type your answer", 20);
-        txtAnswer.setForeground(Color.GRAY); // Set the text color to gray for the placeholder
+        String answerHint = LanguageManager.getString("forgot.hint.answer");
+        JTextField txtAnswer = new RoundedTextField(answerHint, 20);
+        txtAnswer.setFont(FontManager.getPlainFont(13));
+        txtAnswer.setForeground(Color.GRAY);
         txtAnswer.setMaximumSize(new Dimension(320, 42));
         txtAnswer.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-// Add the listener to make the text disappear/reappear automatically
         txtAnswer.addFocusListener(new java.awt.event.FocusListener() {
             @Override
             public void focusGained(java.awt.event.FocusEvent e) {
-                // If the user clicks into the field and it still has the placeholder text, clear it
-                if (txtAnswer.getText().equals("  Type your answer")) {
+                if (txtAnswer.getText().equals(LanguageManager.getString("forgot.hint.answer"))) {
                     txtAnswer.setText("");
-                    txtAnswer.setForeground(Color.BLACK); // Change color to standard black text
+                    txtAnswer.setForeground(Color.BLACK);
                 }
             }
 
             @Override
             public void focusLost(java.awt.event.FocusEvent e) {
-                // If the user clicks away and left the field empty, bring the placeholder back
                 if (txtAnswer.getText().trim().isEmpty()) {
-                    txtAnswer.setText("  Type your answer");
-                    txtAnswer.setForeground(Color.GRAY); // Turn it gray again
+                    txtAnswer.setText(LanguageManager.getString("forgot.hint.answer"));
+                    txtAnswer.setForeground(Color.GRAY);
                 }
             }
         });
 
-        JButton btnVerify = new RoundedButton("VERIFY ANSWER", new Color(34, 112, 43));
+        JButton btnVerify = new RoundedButton(LanguageManager.getString("forgot.btn_verify"), new Color(34, 112, 43));
         btnVerify.setForeground(Color.WHITE);
-        btnVerify.setFont(new Font("SansSerif", Font.BOLD, 14));
+        btnVerify.setFont(FontManager.getBoldFont(14));
         btnVerify.setMaximumSize(new Dimension(320, 45));
         btnVerify.setAlignmentX(Component.LEFT_ALIGNMENT);
         btnVerify.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // Connected Backend Logic Implementation
         btnVerify.addActionListener(e -> {
+            // Apply dynamic typography to JOptionPane popups inside handlers
+            UIManager.put("OptionPane.messageFont", FontManager.getPlainFont(14));
+            UIManager.put("OptionPane.buttonFont", FontManager.getPlainFont(13));
+
             String username = txtUser.getText().trim();
             String selectedQuestion = (String) comboQuestions.getSelectedItem();
             String answer = txtAnswer.getText().trim();
 
-            if (username.isEmpty() || comboQuestions.getSelectedIndex() == 0 || answer.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Please fulfill all security requirements.", "Error", JOptionPane.ERROR_MESSAGE);
+            if (username.isEmpty() || username.equals(usernameHint) || comboQuestions.getSelectedIndex() == 0 || answer.isEmpty() || answer.equals(answerHint)) {
+                JOptionPane.showMessageDialog(this, LanguageManager.getString("forgot.err.missing_step1"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            // FETCH USER FROM DB
             currentUser = authService.findUser(username);
 
             if (currentUser == null) {
-                JOptionPane.showMessageDialog(this, "User not found!", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, LanguageManager.getString("forgot.err.not_found"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            // CHECK QUESTION + ANSWER FROM DB
             if (!currentUser.getSecurityQuestion().equals(selectedQuestion)) {
-                JOptionPane.showMessageDialog(this, "Security question mismatch!", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, LanguageManager.getString("forgot.err.question_mismatch"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
             if (!currentUser.getSecurityAnswer().equalsIgnoreCase(answer)) {
-                JOptionPane.showMessageDialog(this, "Wrong answer!", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, LanguageManager.getString("forgot.err.wrong_answer"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            // SUCCESS → MOVE TO STEP 2
             formCardLayout.show(dynamicFormContainer, "step2");
         });
 
@@ -291,58 +313,60 @@ public class ForgotPasswordPanel extends JPanel {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setOpaque(false);
 
-        JLabel lblNewPass = new JLabel("New Password");
-        lblNewPass.setFont(new Font("SansSerif", Font.BOLD, 13));
+        JLabel lblNewPass = new JLabel(LanguageManager.getString("forgot.new_password"));
+        lblNewPass.setFont(FontManager.getBoldFont(13));
         lblNewPass.setForeground(new Color(70, 70, 70));
         lblNewPass.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JPasswordField txtNewPass = new RoundedPasswordField(20);
+        txtNewPass.setFont(FontManager.getPlainFont(13));
         txtNewPass.setMaximumSize(new Dimension(320, 42));
         txtNewPass.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lblConfirmPass = new JLabel("Confirm New Password");
-        lblConfirmPass.setFont(new Font("SansSerif", Font.BOLD, 13));
+        JLabel lblConfirmPass = new JLabel(LanguageManager.getString("forgot.confirm_password"));
+        lblConfirmPass.setFont(FontManager.getBoldFont(13));
         lblConfirmPass.setForeground(new Color(70, 70, 70));
         lblConfirmPass.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JPasswordField txtConfirmPass = new RoundedPasswordField(20);
+        txtConfirmPass.setFont(FontManager.getPlainFont(13));
         txtConfirmPass.setMaximumSize(new Dimension(320, 42));
         txtConfirmPass.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JButton btnReset = new RoundedButton("UPDATE PASSWORD", new Color(34, 112, 43));
+        JButton btnReset = new RoundedButton(LanguageManager.getString("forgot.btn_reset"), new Color(34, 112, 43));
         btnReset.setForeground(Color.WHITE);
-        btnReset.setFont(new Font("SansSerif", Font.BOLD, 14));
+        btnReset.setFont(FontManager.getBoldFont(14));
         btnReset.setMaximumSize(new Dimension(320, 45));
         btnReset.setAlignmentX(Component.LEFT_ALIGNMENT);
         btnReset.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // Connected Backend Logic Implementation
         btnReset.addActionListener(e -> {
+            UIManager.put("OptionPane.messageFont", FontManager.getPlainFont(14));
+            UIManager.put("OptionPane.buttonFont", FontManager.getPlainFont(13));
+
             String newPassword = new String(txtNewPass.getPassword());
             String confirmPassword = new String(txtConfirmPass.getPassword());
 
             if (newPassword.isEmpty() || confirmPassword.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Fields cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, LanguageManager.getString("forgot.err.empty_fields"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
             if (!newPassword.equals(confirmPassword)) {
-                JOptionPane.showMessageDialog(this, "Passwords do not match!", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, LanguageManager.getString("forgot.err.mismatch_pass"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
             if (currentUser == null) {
-                JOptionPane.showMessageDialog(this, "Session expired. Restart process.", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, LanguageManager.getString("forgot.err.session_expired"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
                 formCardLayout.show(dynamicFormContainer, "step1");
                 return;
             }
 
-            // ACTUAL DB UPDATE EXECUTION
             authService.resetPassword(currentUser.getUsername(), newPassword);
 
-            JOptionPane.showMessageDialog(this, "Password updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, LanguageManager.getString("forgot.success.msg"), LanguageManager.getString("msg.success"), JOptionPane.INFORMATION_MESSAGE);
 
-            // Clean inputs, reset flow state, and route to login panel
             txtNewPass.setText("");
             txtConfirmPass.setText("");
             currentUser = null;

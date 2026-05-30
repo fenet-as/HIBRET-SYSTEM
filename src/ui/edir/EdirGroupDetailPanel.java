@@ -9,22 +9,27 @@ import java.awt.geom.RoundRectangle2D;
 import java.util.List;
 import java.util.Map;
 import service.EdirService;
+import util.LanguageManager;
+import util.FontManager; // ✅ Imported FontManager
 
 public class EdirGroupDetailPanel extends JPanel {
     private final JPanel parentWrapper;
     private final EdirService edirService;
-    private final String groupName;
 
+    private final int groupId;
+    private String groupName = "Loading Group...";
+
+    private JLabel lblTitle;
     private JLabel lblMembersValue;
     private JLabel lblBalanceValue;
     private JLabel lblCasesValue;
     private JTable recentLedgerTable;
     private DefaultTableModel ledgerTableModel;
 
-    public EdirGroupDetailPanel(JPanel parentWrapper, EdirService edirService, String groupName) {
+    public EdirGroupDetailPanel(JPanel parentWrapper, EdirService edirService, int groupId) {
         this.parentWrapper = parentWrapper;
         this.edirService = edirService;
-        this.groupName = groupName;
+        this.groupId = groupId;
 
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBackground(new Color(253, 247, 237));
@@ -46,21 +51,24 @@ public class EdirGroupDetailPanel extends JPanel {
     }
 
     public void refreshDashboardMetricsAndLedger() {
-        Map<String, String> metrics = edirService.getGroupDetails(groupName);
+        Map<String, String> metrics = edirService.getGroupDetails(groupId);
 
         if (metrics != null && !metrics.isEmpty()) {
-            lblMembersValue.setText(metrics.getOrDefault("total_members", "0") + " Active");
+            this.groupName = metrics.getOrDefault("name", "Edir Group");
+            lblTitle.setText(this.groupName);
+
+            lblMembersValue.setText(metrics.getOrDefault("total_members", "0") + " " + LanguageManager.getString("edir.detail.active"));
             double balance = 0.0;
             try {
                 balance = Double.parseDouble(metrics.getOrDefault("fund_balance", "0.0"));
             } catch (NumberFormatException e) {}
             lblBalanceValue.setText(String.format("%,.2f ETB", balance));
-            lblCasesValue.setText(metrics.getOrDefault("active_cases", "0") + " Request(s)");
+            lblCasesValue.setText(metrics.getOrDefault("active_cases", "0") + " " + LanguageManager.getString("edir.detail.requests"));
         }
 
         ledgerTableModel.setRowCount(0);
 
-        List<Map<String, String>> ledgerRows = edirService.getGroupTransactionLedger(groupName);
+        List<Map<String, String>> ledgerRows = edirService.getGroupTransactionLedger(this.groupId);
 
         for (Map<String, String> row : ledgerRows) {
             double amt = 0.0;
@@ -77,23 +85,23 @@ public class EdirGroupDetailPanel extends JPanel {
             switch (type) {
                 case "PAYOUT":
                     formattedAmount = String.format("-%,.2f ETB", amt);
-                    status = "Disbursed";
+                    status = LanguageManager.getString("edir.detail.status.disbursed");
                     break;
                 case "PENDING_CLAIM":
                     formattedAmount = String.format("%,.2f ETB", amt);
-                    status = "🚨 Pending Claim";
+                    status = LanguageManager.getString("edir.detail.status.pending");
                     break;
                 case "APPROVED_CLAIM":
                     formattedAmount = String.format("%,.2f ETB", amt);
-                    status = "Approved Case";
+                    status = LanguageManager.getString("edir.detail.status.approved");
                     break;
                 case "REGISTRATION":
                     formattedAmount = "0.00 ETB";
-                    status = "Enrolled";
+                    status = LanguageManager.getString("edir.detail.status.enrolled");
                     break;
-                default: // CONTRIBUTION
+                default:
                     formattedAmount = String.format("+%,.2f ETB", amt);
-                    status = "Cleared";
+                    status = LanguageManager.getString("edir.detail.status.cleared");
                     break;
             }
 
@@ -114,7 +122,8 @@ public class EdirGroupDetailPanel extends JPanel {
         headerPanel.setOpaque(false);
         headerPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, 45));
 
-        JButton btnBack = new JButton("← Return Overview") {
+        // ✅ FIXED: Configured with layout safety parameters to avoid character clipping drops
+        JButton btnBack = new JButton(LanguageManager.getString("edir.detail.btn_return")) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -125,11 +134,13 @@ public class EdirGroupDetailPanel extends JPanel {
                 super.paintComponent(g);
             }
         };
-        btnBack.setFont(new Font("SansSerif", Font.BOLD, 12));
+        btnBack.setFont(FontManager.getBoldFont(13));
         btnBack.setForeground(new Color(101, 31, 16));
         btnBack.setContentAreaFilled(false);
         btnBack.setBorderPainted(false);
-        btnBack.setPreferredSize(new Dimension(150, 38));
+        btnBack.setFocusPainted(false);
+        // Expanded bounds from 160 to 185 to account for localized Ge'ez text expansions safely
+        btnBack.setPreferredSize(new Dimension(185, 38));
         btnBack.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         btnBack.addActionListener(e -> {
@@ -142,8 +153,8 @@ public class EdirGroupDetailPanel extends JPanel {
             layout.show(parentWrapper, "EdirHome");
         });
 
-        JLabel lblTitle = new JLabel(groupName);
-        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 26));
+        lblTitle = new JLabel(groupName);
+        lblTitle.setFont(FontManager.getBoldFont(26));
         lblTitle.setForeground(new Color(101, 31, 16));
         lblTitle.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
 
@@ -161,17 +172,18 @@ public class EdirGroupDetailPanel extends JPanel {
         cardsPanel.setOpaque(false);
         cardsPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, 110));
 
-        lblMembersValue = new JLabel("0 Active");
-        JPanel card1 = createStatCard("Registered Members", lblMembersValue, new Color(44, 122, 123));
+        // ✅ Applied Dynamic Font Overrides onto Metrics Card Text Fields
+        lblMembersValue = new JLabel("0 " + LanguageManager.getString("edir.detail.active"));
+        JPanel card1 = createStatCard(LanguageManager.getString("edir.detail.card.members"), lblMembersValue, new Color(44, 122, 123));
 
         lblBalanceValue = new JLabel("0.00 ETB");
-        JPanel card2 = createStatCard("Net Vault Balance", lblBalanceValue, new Color(34, 139, 94));
+        JPanel card2 = createStatCard(LanguageManager.getString("edir.detail.card.balance"), lblBalanceValue, new Color(34, 139, 94));
 
-        lblCasesValue = new JLabel("0 Request(s)");
-        JPanel card3 = createStatCard("Active Claims", lblCasesValue, new Color(197, 48, 48));
+        lblCasesValue = new JLabel("0 " + LanguageManager.getString("edir.detail.requests"));
+        JPanel card3 = createStatCard(LanguageManager.getString("edir.detail.card.claims"), lblCasesValue, new Color(197, 48, 48));
 
-        JLabel lblArrearsPlaceholder = new JLabel("0 Arrears");
-        JPanel card4 = createStatCard("Pending Notices", lblArrearsPlaceholder, new Color(183, 100, 30));
+        JLabel lblArrearsPlaceholder = new JLabel(LanguageManager.getString("edir.detail.card.notices_val"));
+        JPanel card4 = createStatCard(LanguageManager.getString("edir.detail.card.notices"), lblArrearsPlaceholder, new Color(183, 100, 30));
 
         cardsPanel.add(card1);
         cardsPanel.add(card2);
@@ -186,19 +198,17 @@ public class EdirGroupDetailPanel extends JPanel {
         actionPanel.setOpaque(false);
         actionPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, 50));
 
-        JButton btnAddMember = createModuleButton("Add Member", "👤");
-        JButton btnRecordContribution = createModuleButton("Contributions", "💰");
-        JButton btnEmergency = createModuleButton("Emergency Case", "🚨");
-        JButton btnDistribute = createModuleButton("Disbursed Payout", "📤");
-        JButton btnViewMembers = createModuleButton("View Members", "👥");
-
-        JButton btnClearLogs = createModuleButton("Clear Logs", "🗑️");
+        // ✅ Localized Action Buttons Layout
+        JButton btnAddMember = createModuleButton(LanguageManager.getString("edir.detail.btn.add_member"), "👤");
+        JButton btnRecordContribution = createModuleButton(LanguageManager.getString("edir.detail.btn.contribs"), "💰");
+        JButton btnEmergency = createModuleButton(LanguageManager.getString("edir.detail.btn.emergency"), "🚨");
+        JButton btnDistribute = createModuleButton(LanguageManager.getString("edir.detail.btn.payout"), "📤");
+        JButton btnViewMembers = createModuleButton(LanguageManager.getString("edir.detail.btn.view_members"), "👥");
+        JButton btnClearLogs = createModuleButton(LanguageManager.getString("edir.detail.btn.clear_logs"), "🗑️");
         btnClearLogs.setForeground(new Color(175, 30, 20));
 
         btnAddMember.addActionListener(e -> {
-            model.EdirGroup genericGroupObj = new model.EdirGroup();
-            genericGroupObj.setName(groupName);
-            AddMemberPanel p = new AddMemberPanel(parentWrapper, genericGroupObj, this);
+            AddMemberPanel p = new AddMemberPanel(parentWrapper, this.groupId, this);
             parentWrapper.add(p, "AddMember");
             ((CardLayout) parentWrapper.getLayout()).show(parentWrapper, "AddMember");
         });
@@ -208,12 +218,19 @@ public class EdirGroupDetailPanel extends JPanel {
             membersPanel.setBackground(new Color(253, 247, 237));
             membersPanel.setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
 
-            JLabel lblHeading = new JLabel("Active Enrollment Records for: " + groupName);
-            lblHeading.setFont(new Font("SansSerif", Font.BOLD, 18));
+            JLabel lblHeading = new JLabel(LanguageManager.getFormattedString("edir.detail.active_records", groupName));
+            lblHeading.setFont(FontManager.getBoldFont(18));
             lblHeading.setForeground(new Color(101, 31, 16));
             membersPanel.add(lblHeading, BorderLayout.NORTH);
 
-            String[] cols = {"Member No.", "Full Legal Name", "Phone Mapping Line", "Profile Status", "Action"};
+            // ✅ Localized Table Column Definition Models
+            String[] cols = {
+                    LanguageManager.getString("edir.detail.col.member_no"),
+                    LanguageManager.getString("edir.detail.col.legal_name"),
+                    LanguageManager.getString("edir.detail.col.phone"),
+                    LanguageManager.getString("edir.detail.col.status"),
+                    LanguageManager.getString("edir.detail.col.action")
+            };
             DefaultTableModel membersModel = new DefaultTableModel(null, cols) {
                 @Override
                 public boolean isCellEditable(int r, int c) {
@@ -224,14 +241,14 @@ public class EdirGroupDetailPanel extends JPanel {
             JTable table = new JTable(membersModel);
             table.setRowHeight(38);
             table.setShowGrid(false);
-            table.setFont(new Font("SansSerif", Font.PLAIN, 13));
+            table.setFont(FontManager.getPlainFont(13));
             table.getTableHeader().setBackground(new Color(249, 237, 222));
-            table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 13));
+            table.getTableHeader().setFont(FontManager.getBoldFont(13));
             table.getTableHeader().setPreferredSize(new Dimension(0, 36));
 
             Runnable loadViewData = () -> {
                 membersModel.setRowCount(0);
-                List<Map<String, String>> membersList = edirService.getMembersByGroup(groupName);
+                List<Map<String, String>> membersList = edirService.getMembersByGroup(this.groupId);
                 int sequenceNo = 1;
                 for (Map<String, String> m : membersList) {
                     membersModel.addRow(new Object[]{
@@ -239,22 +256,22 @@ public class EdirGroupDetailPanel extends JPanel {
                             m.get("full_name"),
                             m.get("phone"),
                             m.getOrDefault("status", "Active"),
-                            m.get("full_name") // Holds name explicitly as contextual fallback
+                            m.get("full_name")
                     });
                 }
             };
             loadViewData.run();
 
             table.getColumnModel().getColumn(4).setCellRenderer(new DeleteButtonRenderer());
-            table.getColumnModel().getColumn(4).setCellEditor(new DeleteButtonEditor(table, edirService, groupName, loadViewData, this));
+            table.getColumnModel().getColumn(4).setCellEditor(new DeleteButtonEditor(table, edirService, this.groupId, this.groupName, loadViewData, this));
 
             JScrollPane scroll = new JScrollPane(table);
             scroll.setBorder(BorderFactory.createLineBorder(new Color(230, 215, 195)));
             membersPanel.add(scroll, BorderLayout.CENTER);
 
-            JButton btnReturn = new JButton("← Back to Group Dashboard");
-            btnReturn.setFont(new Font("SansSerif", Font.BOLD, 13));
-            btnReturn.setPreferredSize(new Dimension(200, 40));
+            JButton btnReturn = new JButton(LanguageManager.getString("edir.detail.btn_back_dash"));
+            btnReturn.setFont(FontManager.getBoldFont(13));
+            btnReturn.setPreferredSize(new Dimension(240, 40));
             btnReturn.addActionListener(ev -> {
                 refreshDashboardMetricsAndLedger();
                 CardLayout cl = (CardLayout) parentWrapper.getLayout();
@@ -271,39 +288,40 @@ public class EdirGroupDetailPanel extends JPanel {
         });
 
         btnRecordContribution.addActionListener(e -> {
-            EdirContributionPanel p = new EdirContributionPanel(parentWrapper, edirService, groupName);
+            EdirContributionPanel p = new EdirContributionPanel(parentWrapper, edirService, this.groupId);
             parentWrapper.add(p, "EdirContribution");
             ((CardLayout) parentWrapper.getLayout()).show(parentWrapper, "EdirContribution");
         });
 
         btnEmergency.addActionListener(e -> {
-            EmergencyCasePanel p = new EmergencyCasePanel(parentWrapper, edirService, groupName);
+            EmergencyCasePanel p = new EmergencyCasePanel(parentWrapper, edirService, this.groupId);
             parentWrapper.add(p, "EmergencyForm");
             ((CardLayout) parentWrapper.getLayout()).show(parentWrapper, "EmergencyForm");
         });
 
         btnDistribute.addActionListener(e -> {
-            DistributeFundPanel p = new DistributeFundPanel(parentWrapper, edirService, groupName);
+            DistributeFundPanel p = new DistributeFundPanel(parentWrapper, edirService, this.groupId);
             parentWrapper.add(p, "DistributeFund");
             ((CardLayout) parentWrapper.getLayout()).show(parentWrapper, "DistributeFund");
         });
 
         btnClearLogs.addActionListener(e -> {
+            UIManager.put("OptionPane.messageFont", FontManager.getPlainFont(14));
+            UIManager.put("OptionPane.buttonFont", FontManager.getPlainFont(13));
+
             int option = JOptionPane.showConfirmDialog(this,
-                    "⚠️ DANGER ZONE: This will wipe out all transaction ledger history logs for '" + groupName + "'.\n" +
-                            "This action resets the net balance calculation back to 0.00 ETB and cannot be undone.\n\n" +
-                            "Are you absolutely certain you want to proceed?",
-                    "Clear Transaction History Logs",
+                    LanguageManager.getFormattedString("edir.detail.clear.warn", groupName),
+                    LanguageManager.getString("edir.detail.clear.title"),
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.WARNING_MESSAGE);
 
             if (option == JOptionPane.YES_OPTION) {
                 try {
-                    edirService.clearGroupTransactions(groupName);
-                    JOptionPane.showMessageDialog(this, "Success! Audit ledger history logs have been cleared cleanly.", "Execution Complete", JOptionPane.INFORMATION_MESSAGE);
+                    edirService.clearGroupTransactions(this.groupId);
+                    JOptionPane.showMessageDialog(this, LanguageManager.getString("edir.detail.clear.success"), LanguageManager.getString("msg.success"), JOptionPane.INFORMATION_MESSAGE);
                     refreshDashboardMetricsAndLedger();
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(this, "Wipe workflow pipeline failed: " + ex.getMessage(), "Execution Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, LanguageManager.getFormattedString("edir.detail.clear.fail", ex.getMessage()), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
@@ -322,22 +340,29 @@ public class EdirGroupDetailPanel extends JPanel {
         JPanel container = new JPanel(new BorderLayout());
         container.setOpaque(false);
 
-        JLabel lblSec = new JLabel("Unified Audit Transaction Ledger Logs");
-        lblSec.setFont(new Font("SansSerif", Font.BOLD, 16));
+        // ✅ Updated Recent Section Heading Label Layout configuration
+        JLabel lblSec = new JLabel(LanguageManager.getString("edir.detail.ledger_title"));
+        lblSec.setFont(FontManager.getBoldFont(16));
         lblSec.setForeground(new Color(101, 31, 16));
         lblSec.setBorder(BorderFactory.createEmptyBorder(0, 0, 12, 0));
         container.add(lblSec, BorderLayout.NORTH);
 
-        String[] cols = {"Entity Party Involved", "Cash Flow Allocation", "Log Audit Description", "System Status"};
+        // ✅ Localized Columns Model Mapping
+        String[] cols = {
+                LanguageManager.getString("edir.detail.col.ledger_party"),
+                LanguageManager.getString("edir.detail.col.ledger_flow"),
+                LanguageManager.getString("edir.detail.col.ledger_desc"),
+                LanguageManager.getString("edir.detail.col.ledger_status")
+        };
         ledgerTableModel = new DefaultTableModel(null, cols);
 
         recentLedgerTable = new JTable(ledgerTableModel);
         recentLedgerTable.setRowHeight(40);
         recentLedgerTable.setShowGrid(false);
         recentLedgerTable.setBackground(Color.WHITE);
-        recentLedgerTable.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        recentLedgerTable.setFont(FontManager.getPlainFont(13));
         recentLedgerTable.getTableHeader().setBackground(new Color(249, 237, 222));
-        recentLedgerTable.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 13));
+        recentLedgerTable.getTableHeader().setFont(FontManager.getBoldFont(13));
         recentLedgerTable.getTableHeader().setPreferredSize(new Dimension(0, 36));
 
         JScrollPane sp = new JScrollPane(recentLedgerTable);
@@ -364,10 +389,10 @@ public class EdirGroupDetailPanel extends JPanel {
         card.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
 
         JLabel lblT = new JLabel(title);
-        lblT.setFont(new Font("SansSerif", Font.BOLD, 13));
+        lblT.setFont(FontManager.getBoldFont(13));
         lblT.setForeground(Color.GRAY);
 
-        lblValue.setFont(new Font("SansSerif", Font.BOLD, 20));
+        lblValue.setFont(FontManager.getBoldFont(20));
         lblValue.setForeground(textCol);
 
         card.add(lblT);
@@ -377,43 +402,41 @@ public class EdirGroupDetailPanel extends JPanel {
     }
 
     private JButton createModuleButton(String text, String unicodeIcon) {
-        JButton btn = new JButton("<html><body style='text-align: center;'>" + unicodeIcon + "<br>" + text + "</body></html>") {
+        // ✅ FIXED: Rely entirely on standard Swing HTML architecture to resolve emoji symbol glyphs smoothly
+        JButton btn = new JButton("<html><center><font size='5'>" + unicodeIcon + "</font><br>" + text + "</center></html>") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                // Draw solid card backing area shape surface
                 g2.setColor(Color.WHITE);
                 g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 14, 14));
+
+                // Draw exterior fine-border profiling outline
                 g2.setColor(new Color(220, 210, 190));
                 g2.draw(new RoundRectangle2D.Float(0, 0, getWidth() - 1, getHeight() - 1, 14, 14));
+
                 g2.dispose();
 
-                FontMetrics fm = g.getFontMetrics();
-                String[] lines = getText().replace("<html><body style='text-align: center;'>", "").replace("</body></html>", "").split("<br>");
-                g.setFont(getFont());
-                g.setColor(getForeground());
-
-                int y = (getHeight() - (lines.length * fm.getHeight())) / 2 + fm.getAscent();
-                for (String line : lines) {
-                    int x = (getWidth() - fm.stringWidth(line)) / 2;
-                    g.drawString(line, x, y);
-                    y += fm.getHeight();
-                }
+                // Let the native framework render the text lines, allowing OS-level emoji fallback routing
+                super.paintComponent(g);
             }
         };
-        btn.setFont(new Font("SansSerif", Font.BOLD, 13));
+        btn.setFont(FontManager.getBoldFont(12));
         btn.setForeground(new Color(101, 31, 16));
         btn.setContentAreaFilled(false);
         btn.setBorderPainted(false);
         btn.setFocusPainted(false);
+        btn.setHorizontalAlignment(SwingConstants.CENTER);
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         return btn;
     }
 
     private static class DeleteButtonRenderer extends JButton implements TableCellRenderer {
         public DeleteButtonRenderer() {
-            setText("Delete 🗑️");
-            setFont(new Font("SansSerif", Font.BOLD, 11));
+            setText(LanguageManager.getString("edir.detail.remove.btn"));
+            setFont(FontManager.getBoldFont(11));
             setForeground(new Color(175, 30, 20));
             setBackground(new Color(255, 235, 235));
             setBorderPainted(false);
@@ -425,64 +448,68 @@ public class EdirGroupDetailPanel extends JPanel {
         }
     }
 
-    // ✅ Decisively Fixed Editor Class Logic
     private static class DeleteButtonEditor extends AbstractCellEditor implements TableCellEditor {
         private final JButton btn;
         private final JTable table;
         private final EdirService service;
-        private final String group;
+
+        private final int groupId;
+        private final String groupDisplayName;
+
         private final Runnable reloadViewCallback;
         private final Component parentCtx;
         private String targetMemberName;
 
-        public DeleteButtonEditor(JTable table, EdirService service, String group, Runnable reloadViewCallback, Component parentCtx) {
+        public DeleteButtonEditor(JTable table, EdirService service, int groupId, String groupDisplayName, Runnable reloadViewCallback, Component parentCtx) {
             this.table = table;
             this.service = service;
-            this.group = group;
+            this.groupId = groupId;
+            this.groupDisplayName = groupDisplayName;
             this.reloadViewCallback = reloadViewCallback;
             this.parentCtx = parentCtx;
 
-            this.btn = new JButton("Delete 🗑️");
-            this.btn.setFont(new Font("SansSerif", Font.BOLD, 11));
+            this.btn = new JButton(LanguageManager.getString("edir.detail.remove.btn"));
+            this.btn.setFont(FontManager.getBoldFont(11));
             this.btn.setForeground(Color.WHITE);
             this.btn.setBackground(new Color(175, 30, 20));
             this.btn.setBorderPainted(false);
 
             this.btn.addActionListener(e -> {
-                // Determine precise row tracking context inside action event dispatching threads
+                UIManager.put("OptionPane.messageFont", FontManager.getPlainFont(14));
+                UIManager.put("OptionPane.buttonFont", FontManager.getPlainFont(13));
+
                 int editingRow = table.getEditingRow();
                 if (editingRow == -1) {
                     editingRow = table.getSelectedRow();
                 }
 
                 if (editingRow != -1) {
-                    // Pull full name text context value right out of Column index 1 ("Full Legal Name")
                     Object nameValue = table.getValueAt(editingRow, 1);
                     if (nameValue != null) {
                         targetMemberName = nameValue.toString().trim();
                     }
                 }
 
-                if (targetMemberName == null || targetMemberName.isEmpty() || targetMemberName.equalsIgnoreCase("Delete 🗑️")) {
-                    JOptionPane.showMessageDialog(parentCtx, "Error: Could not extract member context value cleanly.", "Tracking Failure", JOptionPane.ERROR_MESSAGE);
+                if (targetMemberName == null || targetMemberName.isEmpty() || targetMemberName.equalsIgnoreCase(LanguageManager.getString("edir.detail.remove.btn"))) {
+                    JOptionPane.showMessageDialog(parentCtx, LanguageManager.getString("edir.detail.remove.err_context"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
                     fireEditingStopped();
                     return;
                 }
 
                 int confirm = JOptionPane.showConfirmDialog(parentCtx,
-                        "Are you absolutely sure you want to remove '" + targetMemberName + "' from " + group + "?",
-                        "Remove Group Enrollment Record",
+                        LanguageManager.getFormattedString("edir.detail.remove.confirm", targetMemberName, groupDisplayName),
+                        LanguageManager.getString("edir.detail.remove.title"),
                         JOptionPane.YES_NO_OPTION,
                         JOptionPane.WARNING_MESSAGE);
 
                 if (confirm == JOptionPane.YES_OPTION) {
-                    boolean ok = service.removeMemberFromGroup(group, targetMemberName);
+                    boolean ok = service.removeMemberFromGroup(this.groupId, targetMemberName);
                     if (ok) {
-                        JOptionPane.showMessageDialog(parentCtx, targetMemberName + " removed successfully.");
-                        fireEditingStopped(); // 1. Terminate edit loop thread locks
-                        reloadViewCallback.run(); // 2. Perform table visual component refresh
+                        JOptionPane.showMessageDialog(parentCtx, LanguageManager.getFormattedString("edir.detail.remove.success", targetMemberName), LanguageManager.getString("msg.success"), JOptionPane.INFORMATION_MESSAGE);
+                        fireEditingStopped();
+                        reloadViewCallback.run();
                     } else {
-                        JOptionPane.showMessageDialog(parentCtx, "Database Error: Failed to remove member.\nEnsure there are no underlying schema constraints.", "Execution Failed", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(parentCtx, LanguageManager.getString("edir.detail.remove.fail"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
                         fireEditingStopped();
                     }
                 } else {
@@ -493,7 +520,6 @@ public class EdirGroupDetailPanel extends JPanel {
 
         @Override
         public Component getTableCellEditorComponent(JTable tbl, Object val, boolean isSel, int r, int c) {
-            // Pre-seed backing value tracker inside context selection mapping hook variables
             Object fallbackValue = tbl.getValueAt(r, 1);
             this.targetMemberName = (fallbackValue != null) ? fallbackValue.toString().trim() : "";
             return btn;

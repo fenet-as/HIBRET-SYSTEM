@@ -3,6 +3,8 @@ package ui.equb;
 import service.EqubService;
 import model.Group;
 import model.Member;
+import util.LanguageManager;
+import util.FontManager; // ✅ Imported FontManager
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
@@ -38,13 +40,15 @@ public class EqubRotationPanel extends JPanel {
         JPanel headPanel = new JPanel(new BorderLayout());
         headPanel.setOpaque(false);
 
-        JLabel lblTitle = new JLabel("🔄 Equb Rotation & Lottery Pool");
-        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 22));
+        // ✅ Localized Header Title
+        JLabel lblTitle = new JLabel(LanguageManager.getString("equb.rotation.title"));
+        lblTitle.setFont(FontManager.getBoldFont(22)); // ✅ Integrated FontManager
         lblTitle.setForeground(new Color(101, 53, 15));
         headPanel.add(lblTitle, BorderLayout.WEST);
 
-        JButton btnCancel = new JButton("Cancel");
-        btnCancel.setFont(new Font("SansSerif", Font.BOLD, 13));
+        // ✅ Localized Cancel Button Label
+        JButton btnCancel = new JButton(LanguageManager.getString("equb.rotation.btn_cancel"));
+        btnCancel.setFont(FontManager.getBoldFont(13)); // ✅ Integrated FontManager
         btnCancel.addActionListener(e -> navigateBackToDetails());
         headPanel.add(btnCancel, BorderLayout.EAST);
         add(headPanel, BorderLayout.NORTH);
@@ -70,8 +74,9 @@ public class EqubRotationPanel extends JPanel {
         cardWinnerDisplay.setLayout(new BoxLayout(cardWinnerDisplay, BoxLayout.Y_AXIS));
         cardWinnerDisplay.setBorder(BorderFactory.createEmptyBorder(25, 30, 25, 30));
 
-        lblRoundStatus = new JLabel("Evaluating Active Cycle History...");
-        lblRoundStatus.setFont(new Font("SansSerif", Font.BOLD, 13));
+        // ✅ Localized Evaluating Status Text
+        lblRoundStatus = new JLabel(LanguageManager.getString("equb.rotation.evaluating"));
+        lblRoundStatus.setFont(FontManager.getBoldFont(13)); // ✅ Integrated FontManager
         lblRoundStatus.setForeground(new Color(120, 90, 40));
         lblRoundStatus.setAlignmentX(Component.CENTER_ALIGNMENT);
         cardWinnerDisplay.add(lblRoundStatus);
@@ -89,7 +94,7 @@ public class EqubRotationPanel extends JPanel {
                 g2.setColor(new Color(242, 235, 220));
                 g2.fillOval(0, 0, getWidth(), getHeight());
                 g2.setColor(new Color(101, 53, 15));
-                g2.setFont(new Font("SansSerif", Font.BOLD, 24));
+                g2.setFont(FontManager.getBoldFont(24)); // ✅ Integrated FontManager
                 FontMetrics fm = g2.getFontMetrics();
 
                 String nameStr = lblWinnerName.getText();
@@ -107,8 +112,9 @@ public class EqubRotationPanel extends JPanel {
         avatarBox.setPreferredSize(new Dimension(70, 70));
         profileRow.add(avatarBox);
 
-        lblWinnerName = new JLabel("Click 'Draw Round Winner' to Start");
-        lblWinnerName.setFont(new Font("SansSerif", Font.BOLD, 20));
+        // ✅ Localized Initialization Placeholder Prompt
+        lblWinnerName = new JLabel(LanguageManager.getString("equb.rotation.draw_start"));
+        lblWinnerName.setFont(FontManager.getBoldFont(20)); // ✅ Integrated FontManager
         lblWinnerName.setForeground(Color.DARK_GRAY);
         profileRow.add(lblWinnerName);
 
@@ -132,13 +138,14 @@ public class EqubRotationPanel extends JPanel {
         amountAlertStrip.setLayout(new BoxLayout(amountAlertStrip, BoxLayout.Y_AXIS));
         amountAlertStrip.setBorder(BorderFactory.createEmptyBorder(12, 0, 12, 0));
 
-        JLabel lblAmountTitle = new JLabel("Lump-Sum Round Payout Pot Size");
-        lblAmountTitle.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        // ✅ Localized Stripped Container Subtitle Text
+        JLabel lblAmountTitle = new JLabel(LanguageManager.getString("equb.rotation.pot_size_lbl"));
+        lblAmountTitle.setFont(FontManager.getPlainFont(12)); // ✅ Integrated FontManager
         lblAmountTitle.setForeground(new Color(120, 110, 100));
         lblAmountTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        lblPayoutAmount = new JLabel("0.00 birr");
-        lblPayoutAmount.setFont(new Font("SansSerif", Font.BOLD, 22));
+        lblPayoutAmount = new JLabel("0.00 " + LanguageManager.getString("currency.unit"));
+        lblPayoutAmount.setFont(FontManager.getBoldFont(22)); // ✅ Integrated FontManager
         lblPayoutAmount.setForeground(new Color(101, 53, 15));
         lblPayoutAmount.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -148,7 +155,8 @@ public class EqubRotationPanel extends JPanel {
         cardWinnerDisplay.add(amountAlertStrip);
         cardWinnerDisplay.add(Box.createVerticalStrut(25));
 
-        btnDrawWinner = new JButton("🎲 Draw Round Winner") {
+        // ✅ Localized Button Trigger Label String Context
+        btnDrawWinner = new JButton(LanguageManager.getString("equb.rotation.btn_draw")) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -159,7 +167,7 @@ public class EqubRotationPanel extends JPanel {
                 super.paintComponent(g);
             }
         };
-        btnDrawWinner.setFont(new Font("SansSerif", Font.BOLD, 14));
+        btnDrawWinner.setFont(FontManager.getBoldFont(14)); // ✅ Integrated FontManager
         btnDrawWinner.setForeground(Color.WHITE);
         btnDrawWinner.setContentAreaFilled(false);
         btnDrawWinner.setBorderPainted(false);
@@ -171,7 +179,8 @@ public class EqubRotationPanel extends JPanel {
 
         cardWinnerDisplay.add(Box.createVerticalStrut(10));
 
-        btnConfirmPayout = new JButton("✓ Confirm & Disburse Payout") {
+        // ✅ Localized Button Trigger Label String Context
+        btnConfirmPayout = new JButton(LanguageManager.getString("equb.rotation.btn_confirm")) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -182,7 +191,7 @@ public class EqubRotationPanel extends JPanel {
                 super.paintComponent(g);
             }
         };
-        btnConfirmPayout.setFont(new Font("SansSerif", Font.BOLD, 14));
+        btnConfirmPayout.setFont(FontManager.getBoldFont(14)); // ✅ Integrated FontManager
         btnConfirmPayout.setForeground(Color.WHITE);
         btnConfirmPayout.setContentAreaFilled(false);
         btnConfirmPayout.setBorderPainted(false);
@@ -193,8 +202,9 @@ public class EqubRotationPanel extends JPanel {
         btnConfirmPayout.addActionListener(e -> commitPayoutToDatabase());
         cardWinnerDisplay.add(btnConfirmPayout);
 
-        lblNoEligibleStatus = new JLabel("⚠️ All members have won. This Equb cycle is complete!");
-        lblNoEligibleStatus.setFont(new Font("SansSerif", Font.BOLD | Font.ITALIC, 13));
+        // ✅ Localized Completion Message Content Label Text
+        lblNoEligibleStatus = new JLabel(LanguageManager.getString("equb.rotation.complete_cycle"));
+        lblNoEligibleStatus.setFont(FontManager.getBoldFont(13)); // ✅ Integrated FontManager (Using Bold safely to avoid unmapped italic types causing block errors)
         lblNoEligibleStatus.setForeground(new Color(195, 40, 30));
         lblNoEligibleStatus.setAlignmentX(Component.CENTER_ALIGNMENT);
         lblNoEligibleStatus.setVisible(false);
@@ -222,24 +232,29 @@ public class EqubRotationPanel extends JPanel {
             int overallCycleIteration = (totalMembers > 0) ? (completedRounds / totalMembers) + 1 : 1;
 
             if (overallCycleIteration > 1) {
-                lblRoundStatus.setText("CYCLE " + overallCycleIteration + " | ROUND " + currentRoundNumber + " OF " + totalMembers);
+                // ✅ Localized Multi-Cycle Iteration Tracker Metrics
+                lblRoundStatus.setText(LanguageManager.getFormattedString("equb.rotation.cycle_round_text",
+                        String.valueOf(overallCycleIteration), String.valueOf(currentRoundNumber), String.valueOf(totalMembers)));
             } else {
-                lblRoundStatus.setText("ACTIVE EQUB CYCLE: ROUND " + currentRoundNumber + " OF " + totalMembers);
+                // ✅ Localized Active Ground Initial Round Context Meta text
+                lblRoundStatus.setText(LanguageManager.getFormattedString("equb.rotation.active_round_text",
+                        String.valueOf(currentRoundNumber), String.valueOf(totalMembers)));
             }
 
             this.calculatedPayoutPool = service.getActualAvailableRoundPool(groupCtx.getId());
-            lblPayoutAmount.setText(String.format("%,.2f birr", this.calculatedPayoutPool));
+            lblPayoutAmount.setText(String.format("%,.2f " + LanguageManager.getString("currency.unit"), this.calculatedPayoutPool));
 
             if (this.calculatedPayoutPool <= 0) {
                 btnDrawWinner.setEnabled(false);
-                lblWinnerName.setText("Awaiting Contributions...");
+                // ✅ Localized Insufficient Contributions Warning Fallbacks
+                lblWinnerName.setText(LanguageManager.getString("equb.rotation.awaiting_contributions"));
                 lblWinnerName.setForeground(new Color(195, 40, 30));
-                lblNoEligibleStatus.setText("⚠️ Cannot draw: Collected round balance is 0.00 birr.");
+                lblNoEligibleStatus.setText(LanguageManager.getString("equb.rotation.err_zero_balance"));
                 lblNoEligibleStatus.setVisible(true);
                 return;
             } else {
                 btnDrawWinner.setEnabled(true);
-                lblWinnerName.setText("Click 'Draw Round Winner' to Start");
+                lblWinnerName.setText(LanguageManager.getString("equb.rotation.draw_start"));
                 lblWinnerName.setForeground(Color.DARK_GRAY);
                 lblNoEligibleStatus.setVisible(false);
             }
@@ -247,25 +262,30 @@ public class EqubRotationPanel extends JPanel {
             boolean poolHasCandidates = service.hasEligibleUnpaidMembers(groupCtx.getId());
             if (!poolHasCandidates) {
                 btnDrawWinner.setEnabled(false);
-                lblWinnerName.setText("No Members Available");
-                lblNoEligibleStatus.setText("⚠️ Please add members to this Equb group to start.");
+                // ✅ Localized Empty Directory Constraints Handling labels
+                lblWinnerName.setText(LanguageManager.getString("equb.rotation.no_members"));
+                lblNoEligibleStatus.setText(LanguageManager.getString("equb.rotation.err_add_members"));
                 lblNoEligibleStatus.setVisible(true);
             }
         } catch (Exception ex) {
-            lblRoundStatus.setText("Cycle Tracker: Active Round " + currentRoundNumber);
+            // ✅ Localized Error Fallback Status Title Tracking Text
+            lblRoundStatus.setText(LanguageManager.getFormattedString("equb.rotation.fallback_tracker", String.valueOf(currentRoundNumber)));
         }
         avatarBox.repaint();
     }
 
     private void executeLotterySelectionDraw() {
         try {
+            // ✅ Inject global UI configurations for JOptionPane text alerts
+            UIManager.put("OptionPane.messageFont", FontManager.getPlainFont(14));
+            UIManager.put("OptionPane.buttonFont", FontManager.getPlainFont(13));
+
             boolean completelyPaid = service.haveAllMembersPaidCurrentRound(groupCtx.getId());
             if (!completelyPaid) {
+                // ✅ Localized Outstanding Overdue Payment Block Warning Alerts Popups
                 JOptionPane.showMessageDialog(this,
-                        "⚠️ Cannot execute random draw rotation!\n\n" +
-                                "Reason: Outstanding payment matches detected.\n" +
-                                "All registered members must finish contributing before initiating a payout.",
-                        "Round Contributions Incomplete",
+                        LanguageManager.getString("equb.rotation.incomplete_contrib_msg"),
+                        LanguageManager.getString("equb.rotation.incomplete_contrib_title"),
                         JOptionPane.WARNING_MESSAGE);
                 return;
             }
@@ -278,36 +298,44 @@ public class EqubRotationPanel extends JPanel {
                 btnConfirmPayout.setEnabled(true);
                 btnDrawWinner.setEnabled(false);
             } else {
-                lblWinnerName.setText("N/A");
+                // ✅ Localized Missing Criteria Exception Layout labels
+                lblWinnerName.setText(LanguageManager.getString("equb.rotation.no_candidates"));
                 btnConfirmPayout.setEnabled(false);
-                lblNoEligibleStatus.setText("⚠️ No valid candidates found for this drawing rotation.");
+                lblNoEligibleStatus.setText(LanguageManager.getString("equb.rotation.err_no_candidates"));
                 lblNoEligibleStatus.setVisible(true);
             }
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error processing lottery draw: " + ex.getMessage(), "Execution Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, LanguageManager.getString("msg.parsing_error") + ": " + ex.getLocalizedMessage(), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
         }
         avatarBox.repaint();
     }
 
     private void commitPayoutToDatabase() {
+        // ✅ Inject global UI configurations for JOptionPane text alerts
+        UIManager.put("OptionPane.messageFont", FontManager.getPlainFont(14));
+        UIManager.put("OptionPane.buttonFont", FontManager.getPlainFont(13));
+
         if (selectedWinner == null || calculatedPayoutPool <= 0) {
-            JOptionPane.showMessageDialog(this, "Cannot record payout. Target data context is empty.", "Error", JOptionPane.ERROR_MESSAGE);
+            // ✅ Localized Parameter Extraction Guard Notification Text
+            JOptionPane.showMessageDialog(this, LanguageManager.getString("equb.rotation.err_empty_ctx"), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        String descriptionText = String.format("Equb Round %d Multi-lateral Disbursal Pot awarded to %s", currentRoundNumber, selectedWinner.getFullName());
+        // ✅ Localized Dynamic Entry Ledger Notes Template Context String
+        String descriptionText = LanguageManager.getFormattedString("equb.rotation.disbursal_desc", String.valueOf(currentRoundNumber), selectedWinner.getFullName());
 
         try {
             service.recordPayout(groupCtx.getId(), selectedWinner.getId(), calculatedPayoutPool, "COMPLETED", descriptionText);
 
-            JOptionPane.showMessageDialog(this,
-                    String.format("Success! Round %d payout logged successfully.\nDistributed %,.2f birr to %s",
-                            currentRoundNumber, calculatedPayoutPool, selectedWinner.getFullName()),
-                    "Disbursal Complete", JOptionPane.INFORMATION_MESSAGE);
+            // ✅ Localized Dynamic Alert Prompts context configuration text formats
+            String formattedCash = String.format("%,.2f " + LanguageManager.getString("currency.unit"), calculatedPayoutPool);
+            String successMsg = LanguageManager.getFormattedString("equb.rotation.success_msg", String.valueOf(currentRoundNumber), formattedCash, selectedWinner.getFullName());
+
+            JOptionPane.showMessageDialog(this, successMsg, LanguageManager.getString("equb.rotation.success_title"), JOptionPane.INFORMATION_MESSAGE);
 
             navigateBackToDetails();
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Database storage execution pipeline failed: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, LanguageManager.getString("msg.database_error") + ": " + ex.getLocalizedMessage(), LanguageManager.getString("msg.error"), JOptionPane.ERROR_MESSAGE);
         }
     }
 

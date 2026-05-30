@@ -2,6 +2,8 @@ package ui.core;
 
 import javax.swing.*;
 import java.awt.*;
+import util.LanguageManager;
+import util.FontManager; // ✅ Imported FontManager
 
 public class SidebarPanel extends JPanel {
     private final MainFrame parentFrame;
@@ -16,29 +18,52 @@ public class SidebarPanel extends JPanel {
         setPreferredSize(new Dimension(240, 655));
         setBorder(BorderFactory.createEmptyBorder(25, 0, 40, 0));
 
-        // Note: The second parameter is the precise routing ID name used in CardLayout
-        addNavigationButton("Dashboard", "Dashboard");
-        addNavigationButton("Equb Management", "Equb");
-        addNavigationButton("Edir Management", "Edir");
-        addNavigationButton("Reports", "Reports");
-        addNavigationButton("Settings", "Settings");
+        // Build the localized UI layout structure
+        rebuildMenu();
+    }
+
+    /**
+     * ✅ Clears old buttons and rebuilds them with the active language and target font mapping
+     */
+    public void rebuildMenu() {
+        this.removeAll();
+
+        // 1. Re-add navigation items bound to the dynamic Amharic font
+        addNavigationButton(LanguageManager.getString("sidebar.dashboard"), "Dashboard");
+        addNavigationButton(LanguageManager.getString("sidebar.equb"), "Equb");
+        addNavigationButton(LanguageManager.getString("sidebar.edir"), "Edir");
+        addNavigationButton(LanguageManager.getString("sidebar.reports"), "Reports");
+        addNavigationButton(LanguageManager.getString("sidebar.settings"), "Settings");
 
         add(Box.createVerticalGlue());
 
-        JButton btnLogout = createMenuButton("Logout", "Logout");
+        // 2. Localized Logout Control
+        JButton btnLogout = createMenuButton(LanguageManager.getString("sidebar.logout"), "Logout");
         btnLogout.addActionListener(e -> {
-            int option = JOptionPane.showConfirmDialog(parentFrame, "Are you sure you want to logout?", "Logout Confirmation", JOptionPane.YES_NO_OPTION);
+            // Apply dynamic fonts directly to the runtime confirmation dialog text
+            UIManager.put("OptionPane.messageFont", FontManager.getPlainFont(14));
+            UIManager.put("OptionPane.buttonFont", FontManager.getPlainFont(13));
+
+            int option = JOptionPane.showConfirmDialog(
+                    parentFrame,
+                    LanguageManager.getString("sidebar.logout.confirm"),
+                    LanguageManager.getString("sidebar.logout.title"),
+                    JOptionPane.YES_NO_OPTION
+            );
             if (option == JOptionPane.YES_OPTION) {
                 parentFrame.dispose();
             }
         });
         add(btnLogout);
+
+        this.revalidate();
+        this.repaint();
     }
 
-    private void addNavigationButton(String label, String routeTarget) {
-        JButton btn = createMenuButton(label, routeTarget);
+    private void addNavigationButton(String localizedLabel, String routeTarget) {
+        JButton btn = createMenuButton(localizedLabel, routeTarget);
         btn.addActionListener(e -> {
-            // Simply invoke the centralized layout framework router
+            // Invoke the centralized dashboard layout router framework
             parentFrame.switchDashboardView(routeTarget);
         });
         add(btn);
@@ -53,9 +78,9 @@ public class SidebarPanel extends JPanel {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
-                // CROSS REFERENCE: Check if this button's target matches the global active layout route
+                // Check if this button's internal target matches the global active workspace layout route
                 if (routeTarget.equals(parentFrame.getActiveRoute())) {
-                    g2.setColor(new Color(34, 112, 43, 220)); // Clean, solid brand green highlight
+                    g2.setColor(new Color(34, 112, 43, 220)); // Brand green highlight block
                     g2.fillRect(0, 0, getWidth(), getHeight());
                 }
 
@@ -64,7 +89,8 @@ public class SidebarPanel extends JPanel {
             }
         };
 
-        button.setFont(new Font("SansSerif", Font.BOLD, 13));
+        // ✅ Replaced hardcoded "SansSerif" with dynamic FontManager mapping
+        button.setFont(FontManager.getBoldFont(13));
         button.setForeground(Color.WHITE);
         button.setContentAreaFilled(false);
         button.setBorderPainted(false);

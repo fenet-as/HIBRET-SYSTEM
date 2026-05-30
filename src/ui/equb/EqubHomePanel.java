@@ -2,6 +2,8 @@ package ui.equb;
 
 import service.EqubService;
 import model.Group;
+import util.LanguageManager;
+import util.FontManager; // ✅ Imported FontManager
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
@@ -28,12 +30,14 @@ public class EqubHomePanel extends JPanel {
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
 
-        JLabel lblTitle = new JLabel("Equb Groups");
-        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 28));
+        // ✅ Dynamic Language Localization with safe dynamic typography metrics
+        JLabel lblTitle = new JLabel(LanguageManager.getString("equb.home.title"));
+        lblTitle.setFont(FontManager.getBoldFont(28));
         lblTitle.setForeground(new Color(101, 53, 15));
         headerPanel.add(lblTitle, BorderLayout.WEST);
 
-        JButton btnCreate = new JButton("+ Create New Group") {
+        // ✅ Dynamic Language Localization
+        JButton btnCreate = new JButton(LanguageManager.getString("equb.home.btn_create")) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -48,7 +52,7 @@ public class EqubHomePanel extends JPanel {
                 super.paintComponent(g);
             }
         };
-        btnCreate.setFont(new Font("SansSerif", Font.BOLD, 14));
+        btnCreate.setFont(FontManager.getBoldFont(14));
         btnCreate.setForeground(Color.WHITE);
         btnCreate.setContentAreaFilled(false);
         btnCreate.setBorderPainted(false);
@@ -63,15 +67,23 @@ public class EqubHomePanel extends JPanel {
         headerPanel.add(btnCreate, BorderLayout.EAST);
         add(headerPanel, BorderLayout.NORTH);
 
-        // RE-ALIGNED COLUMN METRICS MATRIX
-        String[] columns = {"#", "Group Name", "Contribution", "Members Count", "Vault Capital Available", "Action"};
+        // RE-ALIGNED COLUMN METRICS MATRIX - ✅ Dynamic Language Localization
+        String[] columns = {
+                LanguageManager.getString("equb.home.col.num"),
+                LanguageManager.getString("equb.home.col.name"),
+                LanguageManager.getString("equb.home.col.contribution"),
+                LanguageManager.getString("equb.home.col.members"),
+                LanguageManager.getString("equb.home.col.vault"),
+                LanguageManager.getString("equb.home.col.action")
+        };
         tableModel = new DefaultTableModel(null, columns) {
             @Override public boolean isCellEditable(int r, int c) { return c == 5; }
         };
 
         JTable table = new JTable(tableModel);
         table.setRowHeight(42);
-        table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 14));
+        table.setFont(FontManager.getPlainFont(13)); // ✅ Standardized safe table row layout font
+        table.getTableHeader().setFont(FontManager.getBoldFont(14));
         table.getTableHeader().setBackground(new Color(242, 238, 228));
 
         table.getColumnModel().getColumn(5).setCellRenderer(new ActionButtonsRenderer());
@@ -91,12 +103,13 @@ public class EqubHomePanel extends JPanel {
         for (Group g : dynamicGroups) {
             double realVaultCashBalance = equbService.getActualAvailableRoundPool(g.getId());
 
+            // ✅ Dynamic Language Localization for formatting rules
             tableModel.addRow(new Object[]{
                     count++,
                     g.getName(),
-                    String.format("%,.0f birr", g.getContributionAmount()),
-                    g.getActiveMemberCount() + " active",
-                    String.format("%,.2f birr", realVaultCashBalance),
+                    String.format("%,.0f " + LanguageManager.getString("currency.unit"), g.getContributionAmount()),
+                    LanguageManager.getFormattedString("equb.home.txt.active", String.valueOf(g.getActiveMemberCount())),
+                    String.format("%,.2f " + LanguageManager.getString("currency.unit"), realVaultCashBalance),
                     g
             });
         }
@@ -107,8 +120,12 @@ public class EqubHomePanel extends JPanel {
             setOpaque(true);
             setLayout(new FlowLayout(FlowLayout.CENTER, 8, 6));
             setBackground(Color.WHITE);
-            JButton bO = new JButton("Open");
-            JButton bD = new JButton("Delete");
+            // ✅ Dynamic Language Localization mapped to dynamic typography pipeline layout bindings
+            JButton bO = new JButton(LanguageManager.getString("equb.home.btn.open"));
+            JButton bD = new JButton(LanguageManager.getString("equb.home.btn.delete"));
+
+            bO.setFont(FontManager.getBoldFont(12));
+            bD.setFont(FontManager.getBoldFont(12));
             add(bO); add(bD);
         }
         @Override public Component getTableCellRendererComponent(JTable t, Object v, boolean isS, boolean hasF, int r, int c) {
@@ -128,17 +145,27 @@ public class EqubHomePanel extends JPanel {
             this.service = service;
             panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 6));
 
-            JButton btnOpen = new JButton("Open");
+            // ✅ Dynamic Language Localization
+            JButton btnOpen = new JButton(LanguageManager.getString("equb.home.btn.open"));
+            btnOpen.setFont(FontManager.getBoldFont(12));
             btnOpen.addActionListener(e -> {
                 fireEditingStopped();
                 container.add(new EqubGroupDetailPanel(container, service, currentGroup), "GroupDetail");
                 ((CardLayout) container.getLayout()).show(container, "GroupDetail");
             });
 
-            JButton btnDelete = new JButton("Delete");
+            // ✅ Dynamic Language Localization
+            JButton btnDelete = new JButton(LanguageManager.getString("equb.home.btn.delete"));
+            btnDelete.setFont(FontManager.getBoldFont(12));
             btnDelete.addActionListener(e -> {
                 fireEditingStopped();
-                int option = JOptionPane.showConfirmDialog(panel, "Delete pool " + currentGroup.getName() + "?");
+
+                // Map prompt options before rendering JOptionPane validation popup container
+                UIManager.put("OptionPane.messageFont", FontManager.getPlainFont(14));
+                UIManager.put("OptionPane.buttonFont", FontManager.getPlainFont(13));
+
+                // ✅ Dynamic Language Localization
+                int option = JOptionPane.showConfirmDialog(panel, LanguageManager.getFormattedString("equb.home.delete.confirm", currentGroup.getName()));
                 if (option == JOptionPane.YES_OPTION) {
                     service.deleteEqubGroup(currentGroup.getId());
                     for (Component c : container.getComponents()) {
