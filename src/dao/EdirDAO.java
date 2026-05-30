@@ -5,7 +5,9 @@ import java.util.Map;
 
 public interface EdirDAO {
     List<Map<String, String>> getAllGroups();
-    boolean createGroup(String groupName, double monthlyFee, double initialPool, String rules);
+
+    boolean createGroup(String groupName, double monthlyFee, double initialPool, String rules, int creatorUserId);
+
     boolean deleteGroup(String groupName);
     Map<String, String> getGroupDetails(String groupName);
     List<Map<String, String>> getMembersByGroup(String groupName);
@@ -17,5 +19,6 @@ public interface EdirDAO {
     List<Map<String, String>> getPendingClaimsByGroup(String groupName);
 
     List<Map<String, String>> getGroupTransactionLedger(String groupName);
+    List<Map<String, String>> getEdirGroupsForUser(int userId);
 
 }

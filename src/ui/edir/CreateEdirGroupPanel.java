@@ -8,15 +8,18 @@ import service.EdirService;
 public class CreateEdirGroupPanel extends JPanel {
     private final JPanel parentWrapper;
     private final EdirService edirService;
+    private final int loggedInUserId; // ✅ TRACK CURRENT USER CONTEXT
 
     private JTextField txtGroupName;
     private JTextField txtMonthlyFee;
     private JTextField txtInitialDeposit;
     private JTextArea txtRules;
 
-    public CreateEdirGroupPanel(JPanel parentWrapper, EdirService edirService) {
+    // ✅ UPDATED CONSTRUCTOR TO RECEIVE THE LOGGED-IN USER ID
+    public CreateEdirGroupPanel(JPanel parentWrapper, EdirService edirService, int loggedInUserId) {
         this.parentWrapper = parentWrapper;
         this.edirService = edirService;
+        this.loggedInUserId = loggedInUserId; // ✅ ASSIGN IT
 
         setLayout(new BorderLayout(20, 20));
         setBackground(new Color(253, 247, 237)); // Standard Hibret cream canvas background
@@ -125,12 +128,11 @@ public class CreateEdirGroupPanel extends JPanel {
         btnSubmit.setFocusPainted(false);
         btnSubmit.setPreferredSize(new Dimension(0, 45));
 
-
-
         btnSubmit.addActionListener(e -> {
             String groupName = txtGroupName.getText().trim();
-            String feeStr = txtMonthlyFee.getText().trim();
-            String initialPoolStr = txtInitialDeposit.getText().trim();
+            // Sanitize inputs by removing comma separators before parsing numeric inputs (e.g. "5,000" -> "5000")
+            String feeStr = txtMonthlyFee.getText().trim().replace(",", "");
+            String initialPoolStr = txtInitialDeposit.getText().trim().replace(",", "");
             String rules = txtRules.getText().trim();
 
             if(groupName.isEmpty() || feeStr.isEmpty() || initialPoolStr.isEmpty()) {
@@ -142,16 +144,16 @@ public class CreateEdirGroupPanel extends JPanel {
                 double fee = Double.parseDouble(feeStr);
                 double initialPool = Double.parseDouble(initialPoolStr);
 
-                // Runs transaction sequence inside Postgres groups & edir_groups tables simultaneously
-                boolean success = edirService.createGroup(groupName, fee, initialPool, rules);
+                // ✅ FIXED: Provided all 5 parameters down the service interface architecture
+                boolean success = edirService.createGroup(groupName, fee, initialPool, rules, this.loggedInUserId);
                 if (success) {
                     JOptionPane.showMessageDialog(this, "EDIR Group '" + groupName + "' has been successfully registered!");
 
                     // Clear inputs
                     txtGroupName.setText("");
-                    txtMonthlyFee.setText("");
-                    txtInitialDeposit.setText("");
-                    txtRules.setText("");
+                    txtMonthlyFee.setText("200");
+                    txtInitialDeposit.setText("5,000");
+                    txtRules.setText("Standard community support rules apply. Payout allocations require a minimum committee confirmation audit.");
 
                     // Instantaneously trigger landing view table records updates
                     for (Component viewComponent : parentWrapper.getComponents()) {

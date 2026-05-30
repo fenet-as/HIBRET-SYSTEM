@@ -20,8 +20,9 @@ public class EdirServiceImpl implements EdirService {
     }
 
     @Override
-    public boolean createGroup(String groupName, double monthlyFee, double initialPool, String rules) {
-        return edirDAO.createGroup(groupName, monthlyFee, initialPool, rules);
+    public boolean createGroup(String groupName, double monthlyFee, double initialPool, String rules, int creatorUserId) {
+        // ✅ Now cleanly passes the tracking ID to the DAO
+        return edirDAO.createGroup(groupName, monthlyFee, initialPool, rules, creatorUserId);
     }
 
     @Override
@@ -78,5 +79,11 @@ public class EdirServiceImpl implements EdirService {
     public List<Map<String, String>> getGroupTransactionLedger(String groupName) {
         // If your EdirDAO interface has this method, call it directly:
         return edirDAO.getGroupTransactionLedger(groupName);
+    }
+
+    @Override
+    public List<Map<String, String>> getEdirGroupsForUser(int userId) {
+        // This delegates the database call straight to your updated DAO implementation
+        return edirDAO.getEdirGroupsForUser(userId);
     }
 }

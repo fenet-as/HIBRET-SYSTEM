@@ -1,68 +1,110 @@
 package service.impl;
 
-import service.EqubService;
 import dao.EqubDAO;
-import dao.impl.EqubDAOImpl;
 import model.Group;
 import model.Member;
 import model.Transaction;
-import util.DBConnection;
-import java.sql.*;
-import java.util.ArrayList;
+import service.EqubService;
 import java.util.List;
 
 public class EqubServiceImpl implements EqubService {
-    private final EqubDAO equbDAO = new EqubDAOImpl();
 
-    @Override public void createEqubGroup(String name, double amt) { equbDAO.createEqubGroup(name, amt); }
-    @Override public List<Group> getAllEqubGroups() { return equbDAO.getAllEqubGroups(); }
-    @Override public void deleteGroup(int id) { equbDAO.deleteEqubGroup(id); }
-    @Override public List<Member> getMembersInGroup(int id) { return equbDAO.getMembersInGroup(id); }
-    @Override public void addMemberToGroup(int gId, int mId) { equbDAO.addMemberToGroup(gId, mId); }
-    @Override public void recordPayment(int gId, int mId, double a, String d, String n) { equbDAO.recordPayment(gId, mId, a, d, n); }
-    @Override public void recordPayout(int gId, int mId, double a, String d, String ds) { equbDAO.recordPayout(gId, mId, a, d, ds); }
-    @Override public List<Transaction> getRecentPaymentsForGroup(int id) { return equbDAO.getRecentPaymentsForGroup(id); }
-    @Override public Member triggerRandomRotationalDraw(int id) { return equbDAO.triggerRandomRotationalDraw(id); }
+    private final EqubDAO equbDAO;
+
+    // Direct Constructor Injection for the Equb DAO Layer
+    public EqubServiceImpl(EqubDAO equbDAO) {
+        this.equbDAO = equbDAO;
+    }
+
+    @Override
+    public void createEqubGroup(String name, double contributionAmount, int creatorUserId) {
+        equbDAO.createEqubGroup(name, contributionAmount, creatorUserId);
+    }
+
+    @Override
+    public List<Group> getAllEqubGroups() {
+        return equbDAO.getAllEqubGroups();
+    }
+
+    @Override
+    public List<Group> getEqubGroupsForUser(int userId) {
+        return equbDAO.getEqubGroupsForUser(userId);
+    }
+
+    @Override
+    public void deleteEqubGroup(int groupId) {
+        equbDAO.deleteEqubGroup(groupId);
+    }
+
+    @Override
+    public List<Member> getMembersInGroup(int groupId) {
+        return equbDAO.getMembersInGroup(groupId);
+    }
+
+    @Override
+    public void addMemberToGroup(int groupId, int memberId) {
+        equbDAO.addMemberToGroup(groupId, memberId);
+    }
 
     @Override
     public List<Member> getAllSystemMembers() {
-        List<Member> list = new ArrayList<>();
-        String sql = "SELECT id, full_name, phone FROM members ORDER BY full_name ASC";
-        try (Connection conn = DBConnection.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                Member m = new Member();
-                m.setId(rs.getInt("id"));
-                m.setFullName(rs.getString("full_name"));
-                m.setPhone(rs.getString("phone"));
-                list.add(m);
-            }
-        } catch (SQLException e) { e.printStackTrace(); }
-        return list;
+        return equbDAO.getAllSystemMembers();
     }
 
-
-    // Example SQL Implementation to put inside your Member/Equb DAO:
+    @Override
     public int createNewSystemMember(Member member) {
-        // ❌ REMOVED: "email" column and its corresponding '?' placeholder
-        String sql = "INSERT INTO members (full_name, phone) VALUES (?, ?) RETURNING id";
+        return equbDAO.createNewSystemMember(member);
+    }
 
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+    @Override
+    public void recordPayment(int groupId, int memberId, double amount, String date, String note) {
+        equbDAO.recordPayment(groupId, memberId, amount, date, note);
+    }
 
-            // Match the two remaining placeholders perfectly
-            stmt.setString(1, member.getFullName());
-            stmt.setString(2, member.getPhone());
+    @Override
+    public void recordPayout(int groupId, int memberId, double amount, String date, String description) {
+        equbDAO.recordPayout(groupId, memberId, amount, date, description);
+    }
 
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1); // Safely returns the newly created ID
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return -1;
+    @Override
+    public List<Transaction> getRecentPaymentsForGroup(int groupId) {
+        return equbDAO.getRecentPaymentsForGroup(groupId);
+    }
+
+    @Override
+    public boolean reverseTransaction(int transactionId) {
+        return equbDAO.reverseTransaction(transactionId);
+    }
+
+    @Override
+    public Member triggerRandomRotationalDraw(int groupId) {
+        return equbDAO.triggerRandomRotationalDraw(groupId);
+    }
+
+    @Override
+    public int getCompletedRoundsCount(int groupId) {
+        return equbDAO.getCompletedRoundsCount(groupId);
+    }
+
+    @Override
+    public boolean hasEligibleUnpaidMembers(int groupId) {
+        return equbDAO.hasEligibleUnpaidMembers(groupId);
+    }
+
+    @Override
+    public double getActualAvailableRoundPool(int groupId) {
+        return equbDAO.getActualAvailableRoundPool(groupId);
+    }
+
+    // ✅ NEW INTERCEPT VALIDATOR: Routes down directly to your database tracker logic
+    @Override
+    public boolean haveAllMembersPaidCurrentRound(int groupId) {
+        return equbDAO.haveAllMembersPaidCurrentRound(groupId);
+    }
+
+    // ✅ NEW PURGE ENGINES: Connects UI Reset Action payload to your raw DB state
+    @Override
+    public boolean clearAllTransactionsForGroup(int groupId) {
+        return equbDAO.clearAllTransactionsForGroup(groupId);
     }
 }

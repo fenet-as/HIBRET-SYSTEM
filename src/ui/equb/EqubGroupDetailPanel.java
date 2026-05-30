@@ -6,15 +6,16 @@ import model.Member;
 import model.Transaction;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.util.List;
 
 public class EqubGroupDetailPanel extends JPanel {
     private final JPanel containerPanel;
     private final EqubService service;
-    private final Group groupCtx;
+    private Group groupCtx;
 
-    // UI Data Components
+    // UI View References
     private final JLabel lblMemberCount;
     private final JLabel lblTotalFunds;
     private final JLabel lblPayoutReceiver;
@@ -32,9 +33,9 @@ public class EqubGroupDetailPanel extends JPanel {
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(20, 25, 20, 25));
 
-        // ==========================================
-        // 1. HEADER BAR COMPONENT
-        // ==========================================
+        // ==========================================================
+        // 1. TOP HEADER NAVIGATION LAYOUT
+        // ==========================================================
         JPanel headPanel = new JPanel(new BorderLayout());
         headPanel.setOpaque(false);
 
@@ -57,73 +58,95 @@ public class EqubGroupDetailPanel extends JPanel {
         headPanel.add(btnBack, BorderLayout.EAST);
         add(headPanel, BorderLayout.NORTH);
 
-        // ==========================================
-        // 2. LIVE METRICS DASHBOARD CARDS STACK
-        // ==========================================
+        // ==========================================================
+        // 2. LIVE DASHBOARD METRIC MATRIX DISPLAY
+        // ==========================================================
         JPanel summaryRibbon = new JPanel(new GridLayout(1, 3, 20, 0));
         summaryRibbon.setOpaque(false);
         summaryRibbon.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
 
-        lblMemberCount = createCardMetricLabel(String.valueOf(groupCtx.getActiveMemberCount()));
+        lblMemberCount = createCardMetricLabel("0");
         summaryRibbon.add(createMetricCard("Registered Members", lblMemberCount, new Color(54, 122, 204)));
 
-        lblTotalFunds = createCardMetricLabel(String.format("%,.0f ETB", groupCtx.getTotalCollectedCalculated()));
+        lblTotalFunds = createCardMetricLabel("0.00 ETB");
         summaryRibbon.add(createMetricCard("Aggregated Capital Box", lblTotalFunds, new Color(34, 112, 43)));
 
-        String receiver = (groupCtx.getNextPayoutMemberName() == null) ? "No Draw Active" : groupCtx.getNextPayoutMemberName();
-        lblPayoutReceiver = createCardMetricLabel(receiver);
-        lblPayoutReceiver.setFont(new Font("SansSerif", Font.BOLD, 16)); // Prevent overflow for long names
+        lblPayoutReceiver = createCardMetricLabel("No Draw Active");
+        lblPayoutReceiver.setFont(new Font("SansSerif", Font.BOLD, 16));
         summaryRibbon.add(createMetricCard("Latest Cycle Payout Winner", lblPayoutReceiver, new Color(176, 90, 32)));
 
-        // ==========================================
-        // 3. ACTION ENGINE BUTTON CONTROLS (CRITICAL FIXED WORKFLOW LAYER)
-        // ==========================================
+        // ==========================================================
+        // 3. TRANSACTION CONSOLE WORKFLOW HOOKS
+        // ==========================================================
         JPanel controlConsole = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 10));
         controlConsole.setOpaque(false);
 
-        // UI BUTTON 1: ADD MEMBER ACTION HOOK
         JButton btnAddMember = createStyledActionButton("👤 Add Member to Group", new Color(33, 115, 70));
         btnAddMember.addActionListener(e -> {
-            // Instantiate and navigate directly to your membership allocation interface
-            EqubMembersPanel allocationScreen = new EqubMembersPanel(containerPanel, service, groupCtx);
+            EqubMembersPanel allocationScreen = new EqubMembersPanel(containerPanel, service, this.groupCtx);
             containerPanel.add(allocationScreen, "GroupMembersAllocation");
             ((CardLayout) containerPanel.getLayout()).show(containerPanel, "GroupMembersAllocation");
         });
 
-        // UI BUTTON 2: RECORD PAYMENT ACTION HOOK
         JButton btnRecordPayment = createStyledActionButton("💰 Record Member Payment", new Color(40, 96, 144));
         btnRecordPayment.addActionListener(e -> {
-            EqubPaymentPanel paymentScreen = new EqubPaymentPanel(containerPanel, service, groupCtx);
+            EqubPaymentPanel paymentScreen = new EqubPaymentPanel(containerPanel, service, this.groupCtx);
             containerPanel.add(paymentScreen, "GroupPaymentAllocation");
             ((CardLayout) containerPanel.getLayout()).show(containerPanel, "GroupPaymentAllocation");
         });
 
-        // UI BUTTON 3: RUN WHEEL ROTATION ACTION HOOK
         JButton btnTriggerRotation = createStyledActionButton("🔄 Payout Rotation Wheel", new Color(139, 69, 19));
         btnTriggerRotation.addActionListener(e -> {
-            EqubRotationPanel rotationScreen = new EqubRotationPanel(containerPanel, service, groupCtx);
+            EqubRotationPanel rotationScreen = new EqubRotationPanel(containerPanel, service, this.groupCtx);
             containerPanel.add(rotationScreen, "RotationWheelContext");
             ((CardLayout) containerPanel.getLayout()).show(containerPanel, "RotationWheelContext");
+        });
+
+        // ✅ ADDED: Guarded Master Reset/Wipe button functionality
+        JButton btnResetLedger = createStyledActionButton("🗑️ Clear & Reset Ledger", new Color(192, 41, 43));
+        btnResetLedger.addActionListener(e -> {
+            int firstCheck = JOptionPane.showConfirmDialog(this,
+                    "Are you absolutely sure you want to drop ALL transactions for this pool?\nThis resets your Aggregated Capital Box to 0.00 ETB.",
+                    "⚠️ CRITICAL SYSTEM RESET WARNING",
+                    JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE);
+
+            if (firstCheck == JOptionPane.YES_OPTION) {
+                String passwordCheck = JOptionPane.showInputDialog(this,
+                        "Type the administrator password 'admin' to execute ledger database clear:",
+                        "Master Authentication Required",
+                        JOptionPane.WARNING_MESSAGE);
+
+                if (passwordCheck != null && passwordCheck.equals("admin")) {
+                    if (service.clearAllTransactionsForGroup(groupCtx.getId())) {
+                        JOptionPane.showMessageDialog(this, "Ledger records cleared successfully. Pool balance restored to 0.00.", "Purge Complete", JOptionPane.INFORMATION_MESSAGE);
+                        refreshViewGridData();
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Database execution error occurred while processing requests.", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                } else if (passwordCheck != null) {
+                    JOptionPane.showMessageDialog(this, "Incorrect password. Data operation aborted.", "Access Denied", JOptionPane.ERROR_MESSAGE);
+                }
+            }
         });
 
         controlConsole.add(btnAddMember);
         controlConsole.add(btnRecordPayment);
         controlConsole.add(btnTriggerRotation);
+        controlConsole.add(btnResetLedger); // Appended button layout index array matrix
 
-        // Top Wrapper Container for Ribbon and Action Buttons
         JPanel topWrapper = new JPanel(new BorderLayout());
         topWrapper.setOpaque(false);
         topWrapper.add(summaryRibbon, BorderLayout.NORTH);
         topWrapper.add(controlConsole, BorderLayout.SOUTH);
 
-        // ==========================================
-        // 4. DATA TABLES SUB-SYSTEM LAYER (MEMBERS & TRANS)
-        // ==========================================
+        // ==========================================================
+        // 4. DATA TABLES SUB-SYSTEM WORKSPACE
+        // ==========================================================
         JPanel dataWorkspaceSplit = new JPanel(new GridLayout(1, 2, 25, 0));
         dataWorkspaceSplit.setOpaque(false);
         dataWorkspaceSplit.setBorder(BorderFactory.createEmptyBorder(15, 0, 5, 0));
 
-        // LEFT TABLE: Active Members List View
+        // LEFT SIDE PANEL: Active Members List
         JPanel leftMembersContainer = new JPanel(new BorderLayout(0, 8));
         leftMembersContainer.setOpaque(false);
         JLabel lblLeftHeading = new JLabel("👥 Active Group Participants");
@@ -138,7 +161,7 @@ public class EqubGroupDetailPanel extends JPanel {
         configureTableAesthetics(tableMembers);
         leftMembersContainer.add(new JScrollPane(tableMembers), BorderLayout.CENTER);
 
-        // RIGHT TABLE: Ledgers History Log View
+        // RIGHT SIDE PANEL: Recent Financial Log Ledger
         JPanel rightTxContainer = new JPanel(new BorderLayout(0, 8));
         rightTxContainer.setOpaque(false);
         JLabel lblRightHeading = new JLabel("📜 Recent Group Transactions Ledger");
@@ -146,37 +169,86 @@ public class EqubGroupDetailPanel extends JPanel {
         lblRightHeading.setForeground(new Color(101, 53, 15));
         rightTxContainer.add(lblRightHeading, BorderLayout.NORTH);
 
-        modelTransactions = new DefaultTableModel(new String[]{"Record Date", "Member Name", "Amount", "Classification"}, 0) {
-            @Override public boolean isCellEditable(int r, int c) { return false; }
+        modelTransactions = new DefaultTableModel(new String[]{"TX ID", "Record Date", "Member Name", "Amount", "Action"}, 0) {
+            @Override public boolean isCellEditable(int r, int c) { return c == 4; }
         };
         tableTransactions = new JTable(modelTransactions);
         configureTableAesthetics(tableTransactions);
-        rightTxContainer.add(new JScrollPane(tableTransactions), BorderLayout.CENTER);
 
+        tableTransactions.getColumnModel().getColumn(0).setMinWidth(0);
+        tableTransactions.getColumnModel().getColumn(0).setMaxWidth(0);
+        tableTransactions.getColumnModel().getColumn(0).setPreferredWidth(0);
+
+        // IMMEDIATE INLINE TRANSACTION ROLLBACK RENDERING ENGINE
+        tableTransactions.getColumnModel().getColumn(4).setCellRenderer(new TableCellRenderer() {
+            private final JButton btnUndo = new JButton("↩ Undo");
+            {
+                btnUndo.setFont(new Font("SansSerif", Font.BOLD, 11));
+                btnUndo.setMargin(new Insets(2, 4, 2, 4));
+            }
+            @Override
+            public Component getTableCellRendererComponent(JTable t, Object v, boolean isS, boolean hasF, int r, int c) {
+                return btnUndo;
+            }
+        });
+
+        tableTransactions.getColumnModel().getColumn(4).setCellEditor(new DefaultCellEditor(new JCheckBox()) {
+            private int targetTxId;
+            private final JButton btnUndo = new JButton("↩ Undo");
+            {
+                btnUndo.setFont(new Font("SansSerif", Font.BOLD, 11));
+                btnUndo.addActionListener(e -> {
+                    fireEditingStopped();
+                    int choice = JOptionPane.showConfirmDialog(null,
+                            "Do you want to reverse transaction #" + targetTxId + "?\nThis rolls back the capital box balance instantly.",
+                            "Confirm Undo Reversal", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                    if (choice == JOptionPane.YES_OPTION) {
+                        if (service.reverseTransaction(targetTxId)) {
+                            JOptionPane.showMessageDialog(null, "Transaction successfully reversed.", "Reversal Complete", JOptionPane.INFORMATION_MESSAGE);
+                            refreshViewGridData();
+                        } else {
+                            JOptionPane.showMessageDialog(null, "Error executing database deletion payload.", "Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
+                });
+            }
+            @Override
+            public Component getTableCellEditorComponent(JTable t, Object v, boolean isS, int r, int c) {
+                targetTxId = (int) t.getValueAt(r, 0);
+                return btnUndo;
+            }
+        });
+
+        rightTxContainer.add(new JScrollPane(tableTransactions), BorderLayout.CENTER);
         dataWorkspaceSplit.add(leftMembersContainer);
         dataWorkspaceSplit.add(rightTxContainer);
 
-        // Add Main Layout Pieces
         JPanel coreCentralStack = new JPanel(new BorderLayout());
         coreCentralStack.setOpaque(false);
         coreCentralStack.add(topWrapper, BorderLayout.NORTH);
         coreCentralStack.add(dataWorkspaceSplit, BorderLayout.CENTER);
-
         add(coreCentralStack, BorderLayout.CENTER);
 
-        // Load database fields into memory maps immediately upon interface creation
         refreshViewGridData();
     }
 
-    // ==========================================
-    // 5. BACKEND ENGINE TRANSACTION DATA SYNC METHOD
-    // ==========================================
+    // ==========================================================
+    // 5. SYNCHRONIZED INTERACTIVE VIEW DATA ENGINE LOOP
+    // ==========================================================
     public void refreshViewGridData() {
-        // Clear existing rows
         modelMembers.setRowCount(0);
         modelTransactions.setRowCount(0);
 
-        // Fetch up-to-date entities from the SQL Server Instance
+        List<Group> allGroups = service.getAllEqubGroups();
+        if (allGroups != null) {
+            for (Group lookup : allGroups) {
+                if (lookup.getId() == this.groupCtx.getId()) {
+                    this.groupCtx = lookup;
+                    break;
+                }
+            }
+        }
+
         List<Member> attachedMembersList = service.getMembersInGroup(groupCtx.getId());
         for (Member m : attachedMembersList) {
             modelMembers.addRow(new Object[]{m.getId(), m.getFullName(), m.getPhone()});
@@ -185,30 +257,41 @@ public class EqubGroupDetailPanel extends JPanel {
         List<Transaction> attachedLedgerLog = service.getRecentPaymentsForGroup(groupCtx.getId());
         for (Transaction tx : attachedLedgerLog) {
             modelTransactions.addRow(new Object[]{
+                    tx.getId(),
                     tx.getDateString(),
                     tx.getMemberName(),
                     String.format("%,.2f Birr", tx.getAmount()),
-                    tx.getStatus()
+                    "Undo"
             });
         }
 
-        // Keep local display dashboard boxes completely synced up
         lblMemberCount.setText(String.valueOf(attachedMembersList.size()));
+
+        double freshVaultFunds = service.getActualAvailableRoundPool(groupCtx.getId());
+        lblTotalFunds.setText(String.format("%,.2f ETB", freshVaultFunds));
+
+        String receiver = (groupCtx.getNextPayoutMemberName() == null) ? "No Draw Active" : groupCtx.getNextPayoutMemberName();
+        lblPayoutReceiver.setText(receiver);
+
+        this.revalidate();
+        this.repaint();
+    }
+
+    @Override
+    public void addNotify() {
+        super.addNotify();
+        refreshViewGridData();
     }
 
     private void navigateBackToHome() {
         ((CardLayout) containerPanel.getLayout()).show(containerPanel, "EqubHome");
-        // Trigger auto-reload routine on your main grid panel
         for (Component c : containerPanel.getComponents()) {
-            if (c instanceof EqubHomePanel) {
-                ((EqubHomePanel) c).loadEqubGroupsData();
+            if (c instanceof ui.equb.EqubHomePanel) {
+                ((ui.equb.EqubHomePanel) c).loadEqubGroupsData();
             }
         }
     }
 
-    // ==========================================
-    // UI REUSABLE GRAPHICS COMPONENT METHODS
-    // ==========================================
     private JPanel createMetricCard(String caption, JLabel lblMetricValue, Color themeAccentColor) {
         JPanel card = new JPanel() {
             @Override
@@ -218,7 +301,7 @@ public class EqubGroupDetailPanel extends JPanel {
                 g2.setColor(Color.WHITE);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
                 g2.setColor(themeAccentColor);
-                g2.fillRect(0, 0, 8, getHeight()); // Solid vertical accent bar highlight strip
+                g2.fillRect(0, 0, 8, getHeight());
                 g2.setColor(new Color(230, 225, 215));
                 g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
                 g2.dispose();
@@ -257,7 +340,6 @@ public class EqubGroupDetailPanel extends JPanel {
                 BorderFactory.createEmptyBorder(8, 14, 8, 14)
         ));
 
-        // Add smooth cursor hover effect highlights
         btn.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent e) {
@@ -274,7 +356,7 @@ public class EqubGroupDetailPanel extends JPanel {
     }
 
     private void configureTableAesthetics(JTable table) {
-        table.setRowHeight(28);
+        table.setRowHeight(32);
         table.setShowGrid(false);
         table.setIntercellSpacing(new Dimension(0, 0));
         table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 12));

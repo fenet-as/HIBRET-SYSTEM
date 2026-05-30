@@ -19,10 +19,12 @@ public class EdirHomePanel extends JPanel {
     // Core references for routing & database
     private JPanel parentWrapper;
     private EdirService edirService;
+    private int loggedInUserId; // ✅ TRACK CONTEXT IDENTIFIER
 
-    public EdirHomePanel(JPanel parentWrapper, EdirService edirService) {
+    public EdirHomePanel(JPanel parentWrapper, EdirService edirService, int loggedInUserId) {
         this.parentWrapper = parentWrapper;
         this.edirService = edirService;
+        this.loggedInUserId = loggedInUserId; // ✅ STORE CURRENT SESSION ID
 
         setLayout(new BorderLayout(20, 20));
         setBackground(new Color(253, 247, 237));
@@ -37,7 +39,8 @@ public class EdirHomePanel extends JPanel {
     public void loadGroups() {
         tableModel.setRowCount(0);
 
-        List<Map<String, String>> rawGroups = edirService.getAllGroups();
+        // ✅ FIXED: Scoped explicitly to display only groups the logged-in user belongs to
+        List<Map<String, String>> rawGroups = edirService.getEdirGroupsForUser(this.loggedInUserId);
         int counter = 1;
 
         for (Map<String, String> rowMap : rawGroups) {
@@ -62,18 +65,15 @@ public class EdirHomePanel extends JPanel {
         lblTitle.setFont(new Font("SansSerif", Font.BOLD, 26));
         lblTitle.setForeground(new Color(101, 31, 16));
 
-        // ✅ FIXED BUTTON: Custom graphics are drawn safely without overriding operational hitboxes
         btnCreateGroup = new JButton("+ Create New Group") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(28, 85, 163)); // Blue accent background
+                g2.setColor(new Color(28, 85, 163));
                 g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
                 g2.dispose();
 
-                // Do NOT call super.paintComponent(g) at the end!
-                // Instead, paint text manually to keep mouse actions functional
                 FontMetrics fm = g.getFontMetrics();
                 int x = (getWidth() - fm.stringWidth(getText())) / 2;
                 int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
@@ -89,7 +89,10 @@ public class EdirHomePanel extends JPanel {
         btnCreateGroup.setFocusPainted(false);
         btnCreateGroup.setPreferredSize(new Dimension(180, 40));
 
-        // ✅ DEFENSIVE NAVIGATION FIX: Verifies that CreateEdirGroupPanel is dynamically registered in CardLayout deck
+
+
+
+        // Open ui/edir/EdirHomePanel.java and find this section inside initHeader():
         btnCreateGroup.addActionListener(e -> {
             boolean found = false;
             for (Component c : parentWrapper.getComponents()) {
@@ -98,9 +101,12 @@ public class EdirHomePanel extends JPanel {
                     break;
                 }
             }
-            // Add the layout component dynamically if it wasn't pre-mounted in your core layout script
+
             if (!found) {
-                parentWrapper.add(new CreateEdirGroupPanel(parentWrapper, edirService), "CreateEdirGroup");
+                // ❌ BEFORE: parentWrapper.add(new CreateEdirGroupPanel(parentWrapper, edirService), "CreateEdirGroup");
+
+                //  FIX THIS LINE: Pass 'this.loggedInUserId' as the 3rd argument context 👇
+                parentWrapper.add(new CreateEdirGroupPanel(parentWrapper, edirService, this.loggedInUserId), "CreateEdirGroup");
             }
 
             CardLayout innerLayout = (CardLayout) parentWrapper.getLayout();

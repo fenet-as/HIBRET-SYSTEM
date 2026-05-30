@@ -13,10 +13,12 @@ public class EqubHomePanel extends JPanel {
     private final JPanel containerPanel;
     private final EqubService equbService;
     private final DefaultTableModel tableModel;
+    private final int loggedInUserId;
 
-    public EqubHomePanel(JPanel parentContainer, EqubService equbService) {
+    public EqubHomePanel(JPanel parentContainer, EqubService equbService, int loggedInUserId) {
         this.containerPanel = parentContainer;
         this.equbService = equbService;
+        this.loggedInUserId = loggedInUserId;
         this.cardLayout = (CardLayout) parentContainer.getLayout();
 
         setOpaque(false);
@@ -36,9 +38,13 @@ public class EqubHomePanel extends JPanel {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                // Draw custom rounded background
                 g2.setColor(new Color(34, 100, 51));
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
-                g2.dispose();
+                g2.dispose(); // Safely dispose clone context AFTER background painting
+
+                // ✅ FIXED: Call super with the original, intact graphics object to paint text
                 super.paintComponent(g);
             }
         };
@@ -47,14 +53,18 @@ public class EqubHomePanel extends JPanel {
         btnCreate.setContentAreaFilled(false);
         btnCreate.setBorderPainted(false);
         btnCreate.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        // Give the button a fixed padding dimension so the text fits comfortably inside the custom shape
+        btnCreate.setPreferredSize(new Dimension(180, 40));
+
         btnCreate.addActionListener(e -> {
-            containerPanel.add(new CreateEqubGroupPanel(containerPanel, equbService), "CreateGroup");
+            containerPanel.add(new CreateEqubGroupPanel(containerPanel, equbService, this.loggedInUserId), "CreateGroup");
             cardLayout.show(containerPanel, "CreateGroup");
         });
         headerPanel.add(btnCreate, BorderLayout.EAST);
         add(headerPanel, BorderLayout.NORTH);
 
-        String[] columns = {"#", "Group Name", "Contribution", "Members", "Next Payout", "Action"};
+        // RE-ALIGNED COLUMN METRICS MATRIX
+        String[] columns = {"#", "Group Name", "Contribution", "Members Count", "Vault Capital Available", "Action"};
         tableModel = new DefaultTableModel(null, columns) {
             @Override public boolean isCellEditable(int r, int c) { return c == 5; }
         };
@@ -65,7 +75,7 @@ public class EqubHomePanel extends JPanel {
         table.getTableHeader().setBackground(new Color(242, 238, 228));
 
         table.getColumnModel().getColumn(5).setCellRenderer(new ActionButtonsRenderer());
-        table.getColumnModel().getColumn(5).setCellEditor(new ActionButtonsEditor(containerPanel, equbService, tableModel));
+        table.getColumnModel().getColumn(5).setCellEditor(new ActionButtonsEditor(containerPanel, equbService));
 
         JScrollPane scrollPane = new JScrollPane(table);
         add(scrollPane, BorderLayout.CENTER);
@@ -75,15 +85,18 @@ public class EqubHomePanel extends JPanel {
 
     public void loadEqubGroupsData() {
         tableModel.setRowCount(0);
-        List<Group> dynamicGroups = equbService.getAllEqubGroups();
+
+        List<Group> dynamicGroups = equbService.getEqubGroupsForUser(this.loggedInUserId);
         int count = 1;
         for (Group g : dynamicGroups) {
+            double realVaultCashBalance = equbService.getActualAvailableRoundPool(g.getId());
+
             tableModel.addRow(new Object[]{
                     count++,
                     g.getName(),
                     String.format("%,.0f birr", g.getContributionAmount()),
-                    g.getActiveMemberCount(),
-                    g.getNextPayoutMemberName() != null ? g.getNextPayoutMemberName() : "Undrawn",
+                    g.getActiveMemberCount() + " active",
+                    String.format("%,.2f birr", realVaultCashBalance),
                     g
             });
         }
@@ -109,7 +122,7 @@ public class EqubHomePanel extends JPanel {
         private final JPanel panel;
         private Group currentGroup;
 
-        public ActionButtonsEditor(JPanel container, EqubService service, DefaultTableModel model) {
+        public ActionButtonsEditor(JPanel container, EqubService service) {
             super(new JCheckBox());
             this.container = container;
             this.service = service;
@@ -127,7 +140,7 @@ public class EqubHomePanel extends JPanel {
                 fireEditingStopped();
                 int option = JOptionPane.showConfirmDialog(panel, "Delete pool " + currentGroup.getName() + "?");
                 if (option == JOptionPane.YES_OPTION) {
-                    service.deleteGroup(currentGroup.getId());
+                    service.deleteEqubGroup(currentGroup.getId());
                     for (Component c : container.getComponents()) {
                         if (c instanceof EqubHomePanel) ((EqubHomePanel) c).loadEqubGroupsData();
                     }

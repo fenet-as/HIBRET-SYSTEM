@@ -55,7 +55,7 @@ public class MainFrame extends JFrame {
         centerViewportContainer = new JPanel(secondaryCardRouter);
         centerViewportContainer.setOpaque(false);
 
-        ContentPanel dashboardContent = new ContentPanel(this);
+        ContentPanel dashboardContent = new ContentPanel(this, user.getId());
         JScrollPane contentScroll = new JScrollPane(dashboardContent);
         contentScroll.setOpaque(false);
         contentScroll.getViewport().setOpaque(false);
@@ -68,7 +68,9 @@ public class MainFrame extends JFrame {
         // --- EQUB MODULE CARD ROUTING WRAPPER ---
         JPanel equbModuleCardWrapper = new JPanel(new CardLayout());
         equbModuleCardWrapper.setOpaque(false);
-        EqubHomePanel equbGridLandingScreen = new EqubHomePanel(equbModuleCardWrapper, equbService);
+
+        // ✅ FIXED: Extracted user.getId() context and passed it as the 3rd argument
+        EqubHomePanel equbGridLandingScreen = new EqubHomePanel(equbModuleCardWrapper, equbService, user.getId());
         equbModuleCardWrapper.add(equbGridLandingScreen, "EqubHome");
         centerViewportContainer.add(equbModuleCardWrapper, "Equb");
 
@@ -76,8 +78,8 @@ public class MainFrame extends JFrame {
         JPanel edirModuleCardWrapper = new JPanel(new CardLayout());
         edirModuleCardWrapper.setOpaque(false);
 
-        // Build the landing screen panel passing the sub-routing wrapper container
-        EdirHomePanel edirGridLandingScreen = new EdirHomePanel(edirModuleCardWrapper, edirService);
+        // ✅ FIXED: Extracted user.getId() context and passed it as the 3rd argument here as well
+        EdirHomePanel edirGridLandingScreen = new EdirHomePanel(edirModuleCardWrapper, edirService, user.getId());
         edirModuleCardWrapper.add(edirGridLandingScreen, "EdirHome");
 
         // Register the dynamic Edir wrapper directly onto the root viewport switcher (Replacing placeholder)
@@ -86,12 +88,8 @@ public class MainFrame extends JFrame {
         // Remaining placeholders/modules wired up
         centerViewportContainer.add(new ui.reports.ReportHomePanel(this, reportService), "Reports");
 
-        // --- ✅ CONNECTED LIVE SETTINGS PANEL (REPLACED PLACEHOLDER) ---
-//        SettingsPanel liveSettingsView = new SettingsPanel(centerViewportContainer);
-//        centerViewportContainer.add(liveSettingsView, "Settings");
-
         // --- ✅ CONNECTED LIVE SETTINGS PANEL (WITH USER CONTEXT PASSED) ---
-        SettingsPanel liveSettingsView = new SettingsPanel(centerViewportContainer, user); // 👈 Change this line
+        SettingsPanel liveSettingsView = new SettingsPanel(centerViewportContainer, user);
         centerViewportContainer.add(liveSettingsView, "Settings");
 
         masterBackgroundCanvas.add(topBar, BorderLayout.NORTH);

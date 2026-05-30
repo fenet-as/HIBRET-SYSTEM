@@ -14,10 +14,13 @@ public class EqubRotationPanel extends JPanel {
 
     private Member selectedWinner = null;
     private double calculatedPayoutPool = 0.0;
+    private int currentRoundNumber = 1;
 
     private final JPanel cardWinnerDisplay;
     private final JLabel lblWinnerName;
     private final JLabel lblPayoutAmount;
+    private final JLabel lblRoundStatus;
+    private final JButton btnDrawWinner;
     private final JButton btnConfirmPayout;
     private final JLabel lblNoEligibleStatus;
     private final JPanel avatarBox;
@@ -27,7 +30,6 @@ public class EqubRotationPanel extends JPanel {
         this.service = service;
         this.groupCtx = groupCtx;
 
-        // Ensure background renders correctly matching your layout constraints
         setOpaque(false);
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(25, 35, 30, 35));
@@ -36,36 +38,21 @@ public class EqubRotationPanel extends JPanel {
         JPanel headPanel = new JPanel(new BorderLayout());
         headPanel.setOpaque(false);
 
-        JLabel lblTitle = new JLabel("🔄 Payout Rotation Wheel");
+        JLabel lblTitle = new JLabel("🔄 Equb Rotation & Lottery Pool");
         lblTitle.setFont(new Font("SansSerif", Font.BOLD, 22));
         lblTitle.setForeground(new Color(101, 53, 15));
         headPanel.add(lblTitle, BorderLayout.WEST);
 
-        // Header controls tracking buttons
-        JPanel actionsHeader = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        actionsHeader.setOpaque(false);
-
-        // 🛠️ DEV TOOL ACTION: Allows testing layout states even if database records are empty
-        JButton btnDevSimulate = new JButton("🔧 Sim Draw (Debug Mode)");
-        btnDevSimulate.setFont(new Font("SansSerif", Font.BOLD, 12));
-        btnDevSimulate.setBackground(new Color(120, 90, 40));
-        btnDevSimulate.setForeground(Color.WHITE);
-        btnDevSimulate.addActionListener(e -> runMockSimulationDraw());
-        actionsHeader.add(btnDevSimulate);
-
         JButton btnCancel = new JButton("Cancel");
         btnCancel.setFont(new Font("SansSerif", Font.BOLD, 13));
         btnCancel.addActionListener(e -> navigateBackToDetails());
-        actionsHeader.add(btnCancel);
-
-        headPanel.add(actionsHeader, BorderLayout.EAST);
+        headPanel.add(btnCancel, BorderLayout.EAST);
         add(headPanel, BorderLayout.NORTH);
 
         // --- CENTRAL DISPLAY SYSTEM ---
         JPanel centralWrapper = new JPanel(new GridBagLayout());
         centralWrapper.setOpaque(false);
 
-        // Main structural rounded rectangle dashboard display asset
         cardWinnerDisplay = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -79,18 +66,17 @@ public class EqubRotationPanel extends JPanel {
             }
         };
         cardWinnerDisplay.setOpaque(false);
-        cardWinnerDisplay.setPreferredSize(new Dimension(460, 340));
+        cardWinnerDisplay.setPreferredSize(new Dimension(480, 420));
         cardWinnerDisplay.setLayout(new BoxLayout(cardWinnerDisplay, BoxLayout.Y_AXIS));
         cardWinnerDisplay.setBorder(BorderFactory.createEmptyBorder(25, 30, 25, 30));
 
-        JLabel lblCaption = new JLabel("NEXT SELECTED BENEFICIARY");
-        lblCaption.setFont(new Font("SansSerif", Font.BOLD, 12));
-        lblCaption.setForeground(new Color(140, 130, 115));
-        lblCaption.setAlignmentX(Component.CENTER_ALIGNMENT);
-        cardWinnerDisplay.add(lblCaption);
-        cardWinnerDisplay.add(Box.createVerticalStrut(20));
+        lblRoundStatus = new JLabel("Evaluating Active Cycle History...");
+        lblRoundStatus.setFont(new Font("SansSerif", Font.BOLD, 13));
+        lblRoundStatus.setForeground(new Color(120, 90, 40));
+        lblRoundStatus.setAlignmentX(Component.CENTER_ALIGNMENT);
+        cardWinnerDisplay.add(lblRoundStatus);
+        cardWinnerDisplay.add(Box.createVerticalStrut(15));
 
-        // Profile row tracking avatars structures layouts
         JPanel profileRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
         profileRow.setOpaque(false);
         profileRow.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -107,7 +93,7 @@ public class EqubRotationPanel extends JPanel {
                 FontMetrics fm = g2.getFontMetrics();
 
                 String nameStr = lblWinnerName.getText();
-                String initial = (nameStr != null && !nameStr.isEmpty() && !nameStr.equals("Selecting...") && !nameStr.equals("N/A"))
+                String initial = (nameStr != null && !nameStr.isEmpty() && !nameStr.startsWith("Click") && !nameStr.startsWith("Awaiting") && !nameStr.equals("N/A"))
                         ? nameStr.substring(0, 1).toUpperCase()
                         : "?";
 
@@ -117,18 +103,18 @@ public class EqubRotationPanel extends JPanel {
                 g2.dispose();
             }
         };
+
         avatarBox.setPreferredSize(new Dimension(70, 70));
         profileRow.add(avatarBox);
 
-        lblWinnerName = new JLabel("Selecting...");
-        lblWinnerName.setFont(new Font("SansSerif", Font.BOLD, 26));
-        lblWinnerName.setForeground(new Color(34, 112, 43));
+        lblWinnerName = new JLabel("Click 'Draw Round Winner' to Start");
+        lblWinnerName.setFont(new Font("SansSerif", Font.BOLD, 20));
+        lblWinnerName.setForeground(Color.DARK_GRAY);
         profileRow.add(lblWinnerName);
 
         cardWinnerDisplay.add(profileRow);
         cardWinnerDisplay.add(Box.createVerticalStrut(25));
 
-        // Sub-panel box displaying total payouts allocations vector fields
         JPanel amountAlertStrip = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -146,7 +132,7 @@ public class EqubRotationPanel extends JPanel {
         amountAlertStrip.setLayout(new BoxLayout(amountAlertStrip, BoxLayout.Y_AXIS));
         amountAlertStrip.setBorder(BorderFactory.createEmptyBorder(12, 0, 12, 0));
 
-        JLabel lblAmountTitle = new JLabel("Total Rotational Grand Prize Payout Pool");
+        JLabel lblAmountTitle = new JLabel("Lump-Sum Round Payout Pot Size");
         lblAmountTitle.setFont(new Font("SansSerif", Font.PLAIN, 12));
         lblAmountTitle.setForeground(new Color(120, 110, 100));
         lblAmountTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -160,10 +146,32 @@ public class EqubRotationPanel extends JPanel {
         amountAlertStrip.add(Box.createVerticalStrut(4));
         amountAlertStrip.add(lblPayoutAmount);
         cardWinnerDisplay.add(amountAlertStrip);
-        cardWinnerDisplay.add(Box.createVerticalStrut(20));
+        cardWinnerDisplay.add(Box.createVerticalStrut(25));
 
-        // Core submission interaction action buttons execution layouts
-        btnConfirmPayout = new JButton("Confirm Payout") {
+        btnDrawWinner = new JButton("🎲 Draw Round Winner") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(isEnabled() ? new Color(120, 90, 40) : Color.LIGHT_GRAY);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 6, 6);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        btnDrawWinner.setFont(new Font("SansSerif", Font.BOLD, 14));
+        btnDrawWinner.setForeground(Color.WHITE);
+        btnDrawWinner.setContentAreaFilled(false);
+        btnDrawWinner.setBorderPainted(false);
+        btnDrawWinner.setMaximumSize(new Dimension(400, 42));
+        btnDrawWinner.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btnDrawWinner.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnDrawWinner.addActionListener(e -> executeLotterySelectionDraw());
+        cardWinnerDisplay.add(btnDrawWinner);
+
+        cardWinnerDisplay.add(Box.createVerticalStrut(10));
+
+        btnConfirmPayout = new JButton("✓ Confirm & Disburse Payout") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -181,11 +189,11 @@ public class EqubRotationPanel extends JPanel {
         btnConfirmPayout.setMaximumSize(new Dimension(400, 42));
         btnConfirmPayout.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnConfirmPayout.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnConfirmPayout.setEnabled(false);
         btnConfirmPayout.addActionListener(e -> commitPayoutToDatabase());
         cardWinnerDisplay.add(btnConfirmPayout);
 
-        // Fallback UI status messages component layout
-        lblNoEligibleStatus = new JLabel("⚠️ No eligible cycle participants found to draw from.");
+        lblNoEligibleStatus = new JLabel("⚠️ All members have won. This Equb cycle is complete!");
         lblNoEligibleStatus.setFont(new Font("SansSerif", Font.BOLD | Font.ITALIC, 13));
         lblNoEligibleStatus.setForeground(new Color(195, 40, 30));
         lblNoEligibleStatus.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -195,87 +203,107 @@ public class EqubRotationPanel extends JPanel {
         centralWrapper.add(cardWinnerDisplay);
         add(centralWrapper, BorderLayout.CENTER);
 
-        // ⭐ UI FIX: Shift calculation loop execution out of constructor synchronization lifecycle.
-        // This forces Swing to draw the elements completely before evaluating conditional rendering visibility rules.
-        SwingUtilities.invokeLater(this::runWheelRotationProcess);
+        SwingUtilities.invokeLater(this::evaluateCycleStatusContext);
     }
 
-    private void runWheelRotationProcess() {
+    private void evaluateCycleStatusContext() {
         try {
-            // Attempt query draw from Database mapping state indices records
+            int completedRounds = service.getCompletedRoundsCount(groupCtx.getId());
+            int totalMembers = groupCtx.getActiveMemberCount();
+
+            // Calculate current round bound within cyclical circle rotation bounds (1 to N)
+            if (totalMembers > 0) {
+                this.currentRoundNumber = (completedRounds % totalMembers) + 1;
+            } else {
+                this.currentRoundNumber = 1;
+            }
+
+            // Determine the current overall cycle iteration index
+            int overallCycleIteration = (totalMembers > 0) ? (completedRounds / totalMembers) + 1 : 1;
+
+            if (overallCycleIteration > 1) {
+                lblRoundStatus.setText("CYCLE " + overallCycleIteration + " | ROUND " + currentRoundNumber + " OF " + totalMembers);
+            } else {
+                lblRoundStatus.setText("ACTIVE EQUB CYCLE: ROUND " + currentRoundNumber + " OF " + totalMembers);
+            }
+
+            this.calculatedPayoutPool = service.getActualAvailableRoundPool(groupCtx.getId());
+            lblPayoutAmount.setText(String.format("%,.2f birr", this.calculatedPayoutPool));
+
+            if (this.calculatedPayoutPool <= 0) {
+                btnDrawWinner.setEnabled(false);
+                lblWinnerName.setText("Awaiting Contributions...");
+                lblWinnerName.setForeground(new Color(195, 40, 30));
+                lblNoEligibleStatus.setText("⚠️ Cannot draw: Collected round balance is 0.00 birr.");
+                lblNoEligibleStatus.setVisible(true);
+                return;
+            } else {
+                btnDrawWinner.setEnabled(true);
+                lblWinnerName.setText("Click 'Draw Round Winner' to Start");
+                lblWinnerName.setForeground(Color.DARK_GRAY);
+                lblNoEligibleStatus.setVisible(false);
+            }
+
+            boolean poolHasCandidates = service.hasEligibleUnpaidMembers(groupCtx.getId());
+            if (!poolHasCandidates) {
+                btnDrawWinner.setEnabled(false);
+                lblWinnerName.setText("No Members Available");
+                lblNoEligibleStatus.setText("⚠️ Please add members to this Equb group to start.");
+                lblNoEligibleStatus.setVisible(true);
+            }
+        } catch (Exception ex) {
+            lblRoundStatus.setText("Cycle Tracker: Active Round " + currentRoundNumber);
+        }
+        avatarBox.repaint();
+    }
+
+    private void executeLotterySelectionDraw() {
+        try {
+            boolean completelyPaid = service.haveAllMembersPaidCurrentRound(groupCtx.getId());
+            if (!completelyPaid) {
+                JOptionPane.showMessageDialog(this,
+                        "⚠️ Cannot execute random draw rotation!\n\n" +
+                                "Reason: Outstanding payment matches detected.\n" +
+                                "All registered members must finish contributing before initiating a payout.",
+                        "Round Contributions Incomplete",
+                        JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
             selectedWinner = service.triggerRandomRotationalDraw(groupCtx.getId());
 
             if (selectedWinner != null) {
-                // Compute flat arithmetic pools metrics matching your layout formula rules
-                double rate = groupCtx.getContributionAmount() > 0 ? groupCtx.getContributionAmount() : 1000.0;
-                int count = groupCtx.getActiveMemberCount() > 0 ? groupCtx.getActiveMemberCount() : 5;
-                calculatedPayoutPool = count * rate;
-
                 lblWinnerName.setText(selectedWinner.getFullName());
-                lblPayoutAmount.setText(String.format("%,.0f birr", calculatedPayoutPool));
+                lblWinnerName.setForeground(new Color(34, 112, 43));
                 btnConfirmPayout.setEnabled(true);
-                btnConfirmPayout.setVisible(true);
-                lblNoEligibleStatus.setVisible(false);
+                btnDrawWinner.setEnabled(false);
             } else {
-                showFallbackFailureState();
+                lblWinnerName.setText("N/A");
+                btnConfirmPayout.setEnabled(false);
+                lblNoEligibleStatus.setText("⚠️ No valid candidates found for this drawing rotation.");
+                lblNoEligibleStatus.setVisible(true);
             }
         } catch (Exception ex) {
-            showFallbackFailureState();
+            JOptionPane.showMessageDialog(this, "Error processing lottery draw: " + ex.getMessage(), "Execution Error", JOptionPane.ERROR_MESSAGE);
         }
-
-        // Force complete graphics hierarchy recalculation
-        refreshGraphicsCanvasContext();
-    }
-
-    private void runMockSimulationDraw() {
-        // Fallback testing wrapper bypass logic in case matching database ledger accounts records don't exist yet
-        selectedWinner = new Member();
-        selectedWinner.setId(999);
-        selectedWinner.setFullName("Chala Kebede (Simulated)");
-
-        double rate = groupCtx.getContributionAmount() > 0 ? groupCtx.getContributionAmount() : 2500.0;
-        int count = groupCtx.getActiveMemberCount() > 0 ? groupCtx.getActiveMemberCount() : 12;
-        calculatedPayoutPool = count * rate;
-
-        lblWinnerName.setText(selectedWinner.getFullName());
-        lblPayoutAmount.setText(String.format("%,.0f birr", calculatedPayoutPool));
-        btnConfirmPayout.setEnabled(true);
-        btnConfirmPayout.setVisible(true);
-        lblNoEligibleStatus.setVisible(false);
-
-        refreshGraphicsCanvasContext();
-    }
-
-    private void showFallbackFailureState() {
-        lblWinnerName.setText("N/A");
-        lblPayoutAmount.setText("0 birr");
-        btnConfirmPayout.setEnabled(false);
-        btnConfirmPayout.setVisible(false);
-        lblNoEligibleStatus.setVisible(true);
-    }
-
-    private void refreshGraphicsCanvasContext() {
         avatarBox.repaint();
-        cardWinnerDisplay.revalidate();
-        cardWinnerDisplay.repaint();
-        this.revalidate();
-        this.repaint();
     }
 
     private void commitPayoutToDatabase() {
         if (selectedWinner == null || calculatedPayoutPool <= 0) {
-            JOptionPane.showMessageDialog(this, "Cannot record payout. Winner target context data is empty.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Cannot record payout. Target data context is empty.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        String descriptionText = "Cycle Round Prize Box Payout awarded to " + selectedWinner.getFullName();
+        String descriptionText = String.format("Equb Round %d Multi-lateral Disbursal Pot awarded to %s", currentRoundNumber, selectedWinner.getFullName());
 
         try {
-            // Write transaction down through active service layer instances boundaries
             service.recordPayout(groupCtx.getId(), selectedWinner.getId(), calculatedPayoutPool, "COMPLETED", descriptionText);
 
-            JOptionPane.showMessageDialog(this, "Success! Payout transaction logged successfully.\nDistributed: "
-                    + lblPayoutAmount.getText() + " to " + selectedWinner.getFullName(), "Cycle Complete", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this,
+                    String.format("Success! Round %d payout logged successfully.\nDistributed %,.2f birr to %s",
+                            currentRoundNumber, calculatedPayoutPool, selectedWinner.getFullName()),
+                    "Disbursal Complete", JOptionPane.INFORMATION_MESSAGE);
 
             navigateBackToDetails();
         } catch (Exception ex) {
@@ -286,7 +314,6 @@ public class EqubRotationPanel extends JPanel {
     private void navigateBackToDetails() {
         containerPanel.remove(this);
 
-        // Re-query update properties states from live systems storage tables
         List<Group> activeGroupsList = service.getAllEqubGroups();
         Group refreshedGroupCtx = groupCtx;
         if (activeGroupsList != null) {
@@ -299,11 +326,11 @@ public class EqubRotationPanel extends JPanel {
         }
 
         EqubGroupDetailPanel detailsScreenView = new EqubGroupDetailPanel(containerPanel, service, refreshedGroupCtx);
-        containerPanel.add(detailsScreenView, "GroupDetail");
+        detailsScreenView.refreshViewGridData();
 
+        containerPanel.add(detailsScreenView, "GroupDetail");
         containerPanel.revalidate();
         containerPanel.repaint();
-
         ((CardLayout) containerPanel.getLayout()).show(containerPanel, "GroupDetail");
     }
 }

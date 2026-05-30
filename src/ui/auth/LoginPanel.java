@@ -1,15 +1,13 @@
 package ui.auth;
 
-//import dao.EdirDAOImpl;
 import dao.impl.EdirDAOImpl;
 import dao.impl.ReportDAOImpl;
+import dao.impl.EqubDAOImpl; // 1. ADDED IMPORT FOR EQUB DAO IMPLEMENTATION
 import service.*;
-//import service.EdirServiceImpl;
 import service.impl.AuthServiceImpl;
 import service.impl.EdirServiceImpl;
 import service.impl.ReportServiceImpl;
 import service.impl.EqubServiceImpl;
-//import service.impl.EdirServiceImpl;          // ⭐ 2. ADDED IMPORT FOR EDIR IMPLEMENTATION
 import model.User;
 import ui.core.MainFrame;
 
@@ -32,9 +30,11 @@ public class LoginPanel extends JPanel {
     // --- State-Driven Business Services ---
     private final AuthService authService = new AuthServiceImpl();
     private final ReportService reportService = new ReportServiceImpl(new ReportDAOImpl());
-    private final EqubService equbService = new EqubServiceImpl();
-    private final EdirService edirService =
-            new EdirServiceImpl(new EdirDAOImpl()); // ⭐ 3. INSTANTIATED EDIR SERVICE PIPELINE
+
+    // 2. FIXED: Injected the required EqubDAO implementation dependency here
+    private final EqubService equbService = new EqubServiceImpl(new EqubDAOImpl());
+
+    private final EdirService edirService = new EdirServiceImpl(new EdirDAOImpl());
 
     public LoginPanel(LoginFrame frame) {
         this.parentFrame = frame;
@@ -146,7 +146,6 @@ public class LoginPanel extends JPanel {
         btnLogin.setAlignmentX(Component.LEFT_ALIGNMENT);
         btnLogin.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // --- Connected Live Database Authentication Event ---
         btnLogin.addActionListener(e -> {
             String username = txtUsername.getText().trim();
             String password = new String(txtPassword.getPassword());
@@ -160,9 +159,7 @@ public class LoginPanel extends JPanel {
 
             if (user != null) {
                 parentFrame.dispose();
-                // ⭐ 4. PASSED ALL FOUR REQUIRED ARGUMENTS TO MAINFRAME SAFELY HERE
                 new MainFrame(user, reportService, equbService, edirService);
-
             } else {
                 JOptionPane.showMessageDialog(this, "Invalid credentials! Please try again.", "Authentication Failed", JOptionPane.ERROR_MESSAGE);
             }

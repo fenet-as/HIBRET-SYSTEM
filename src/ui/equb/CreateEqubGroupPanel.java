@@ -9,10 +9,13 @@ public class CreateEqubGroupPanel extends JPanel {
     private final EqubService service;
     private final JTextField txtName;
     private final JTextField txtAmount;
+    private final int loggedInUserId; // ✅ TRACK CURRENT USER CONTEXT
 
-    public CreateEqubGroupPanel(JPanel containerPanel, EqubService service) {
+    // ✅ UPDATED CONSTRUCTOR TO RECEIVE THE LOGGED IN USER ID
+    public CreateEqubGroupPanel(JPanel containerPanel, EqubService service, int loggedInUserId) {
         this.containerPanel = containerPanel;
         this.service = service;
+        this.loggedInUserId = loggedInUserId; // ✅ ASSIGN IT
 
         setOpaque(false);
         setLayout(new BorderLayout());
@@ -83,7 +86,10 @@ public class CreateEqubGroupPanel extends JPanel {
 
             try {
                 double parsedAmount = Double.parseDouble(amountStr);
-                service.createEqubGroup(poolName, parsedAmount);
+
+                // ✅ FIXED: Now cleanly provides 3 arguments to the service execution contract
+                service.createEqubGroup(poolName, parsedAmount, this.loggedInUserId);
+
                 JOptionPane.showMessageDialog(this, "Equb Group successfully initialized.", "Success", JOptionPane.INFORMATION_MESSAGE);
                 navigateBack();
             } catch (NumberFormatException nfe) {

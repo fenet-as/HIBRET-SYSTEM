@@ -6,7 +6,7 @@ import model.Transaction;
 import java.util.List;
 
 public interface EqubDAO {
-    void createEqubGroup(String name, double contributionAmount);
+    void createEqubGroup(String name, double contributionAmount, int creatorUserId);
     List<Group> getAllEqubGroups();
     void deleteEqubGroup(int groupId);
     List<Member> getMembersInGroup(int groupId);
@@ -16,4 +16,14 @@ public interface EqubDAO {
     List<Transaction> getRecentPaymentsForGroup(int groupId);
     Member triggerRandomRotationalDraw(int groupId);
     int createNewSystemMember(Member member);
+    List<Group> getEqubGroupsForUser(int userId);
+    List<Member> getAllSystemMembers(); // Ensured parity with Service tier signature requirements
+
+    int getCompletedRoundsCount(int groupId);
+    boolean hasEligibleUnpaidMembers(int groupId);
+    double getActualAvailableRoundPool(int groupId);
+    boolean reverseTransaction(int transactionId);
+
+    boolean haveAllMembersPaidCurrentRound(int groupId);
+    boolean clearAllTransactionsForGroup(int groupId);
 }
