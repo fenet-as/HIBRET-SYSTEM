@@ -6,44 +6,30 @@
   <component name="ChangeListManager">
     <list default="true" id="5b7356a4-aa8c-4987-80a5-fc90f559eb29" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/auth/ForgotPasswordPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/auth/ForgotPasswordPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/auth/LoginFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/auth/LoginFrame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/auth/LoginPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/auth/LoginPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/auth/RegisterPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/auth/RegisterPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/core/ContentPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/core/ContentPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/core/MainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/core/MainFrame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/core/SidebarPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/core/SidebarPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/core/TopBarPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/core/TopBarPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/edir/AddMemberPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/AddMemberPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/edir/CreateEdirGroupPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/CreateEdirGroupPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/edir/DistributeFundPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/DistributeFundPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/edir/EdirContributionPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/EdirContributionPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/edir/EdirGroupDetailPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/EdirGroupDetailPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/edir/EdirGroupReportPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/EdirGroupReportPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/edir/EdirHomePanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/EdirHomePanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/edir/EdirMembersPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/EdirMembersPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/edir/EmergencyApprovalPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/EmergencyApprovalPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/edir/EmergencyCasePanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/edir/EmergencyCasePanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/equb/CreateEqubGroupPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/CreateEqubGroupPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/equb/EqubGroupDetailPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/EqubGroupDetailPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/equb/EqubGroupReportPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/EqubGroupReportPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/equb/EqubHomePanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/EqubHomePanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/equb/EqubMembersPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/EqubMembersPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/equb/EqubPaymentPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/EqubPaymentPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/equb/EqubPayoutPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/EqubPayoutPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/equb/EqubRotationPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/equb/EqubRotationPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/reports/EdirReportPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/reports/EdirReportPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/reports/EqubReportPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/reports/EqubReportPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/reports/MemberReportPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/reports/MemberReportPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/reports/ReportHomePanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/reports/ReportHomePanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/reports/SystemReportPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/reports/SystemReportPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/settings/SettingsPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/settings/SettingsPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Main.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Main.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/dao/impl/GroupDAOImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/dao/impl/GroupDAOImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/dao/impl/GroupMemberDAOImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/dao/impl/GroupMemberDAOImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/dao/impl/MemberDAOImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/dao/impl/MemberDAOImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/dao/impl/TransactionDAOImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/dao/impl/TransactionDAOImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/dao/impl/UserDAOImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/dao/impl/UserDAOImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/model/Group.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/model/Group.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/model/GroupMember.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/model/GroupMember.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/model/Member.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/model/Member.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/model/Transaction.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/model/Transaction.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/model/User.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/model/User.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/service/ReportService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/ReportService.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/AuthServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/impl/AuthServiceImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/DashboardServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/impl/DashboardServiceImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/EqubServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/impl/EqubServiceImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/ReportServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/impl/ReportServiceImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/session/Session.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/session/Session.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/ui/auth/ForgotPasswordPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/auth/ForgotPasswordPanel.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/ui/auth/LoginPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/auth/LoginPanel.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/ui/core/ContentPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/core/ContentPanel.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/ui/core/MainFrame.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/core/MainFrame.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/ui/core/SidebarPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/core/SidebarPanel.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/ui/core/TopBarPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/core/TopBarPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/ui/dashboard/DashboardPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/dashboard/DashboardPanel.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/CreateEdirGroupPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/CreateEdirGroupPanel.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/DistributeFundPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/DistributeFundPanel.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EdirContributionPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/EdirContributionPanel.class" afterDir="false" />
@@ -67,6 +53,11 @@
       <change beforePath="$PROJECT_DIR$/target/classes/ui/reports/ReportHomePanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/reports/ReportHomePanel.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/ui/reports/SystemReportPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/reports/SystemReportPanel.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/ui/settings/SettingsPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/settings/SettingsPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/util/AppConstants.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/util/AppConstants.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/util/DBConnection.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/util/DBConnection.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/util/LanguageManager.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/util/LanguageManager.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/util/PasswordHasher.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/util/PasswordHasher.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/util/Validator.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/util/Validator.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -93,24 +84,24 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Application.LoginTest.executor": "Run",
-    "Application.Main.executor": "Run",
-    "Application.TestDB.executor": "Run",
-    "Application.TestLogin.executor": "Run",
-    "Application.Tests.executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "e11ef060",
-    "ignore.virus.scanning.warn.message": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/Student4/OneDrive/Documents/java/OOP project/HIBRET-SYSTEM/src/resources/images",
-    "settings.editor.selected.configurable": "File.Encoding"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.LoginTest.executor&quot;: &quot;Run&quot;,
+    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
+    &quot;Application.TestDB.executor&quot;: &quot;Run&quot;,
+    &quot;Application.TestLogin.executor&quot;: &quot;Run&quot;,
+    &quot;Application.Tests.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;0598c128&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Student4/OneDrive/Documents/java/OOP project/HIBRET-SYSTEM/src/resources/images&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;File.Encoding&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\Student4\OneDrive\Documents\java\OOP project\HIBRET-SYSTEM\src\resources\images" />
