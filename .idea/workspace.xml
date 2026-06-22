@@ -5,44 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5b7356a4-aa8c-4987-80a5-fc90f559eb29" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/target/classes/Main.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Main.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/model/Group.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/model/Group.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/model/Member.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/model/Member.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/model/Transaction.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/model/Transaction.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/service/ReportService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/ReportService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/DashboardServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/impl/DashboardServiceImpl.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/EqubServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/impl/EqubServiceImpl.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/service/impl/ReportServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/service/impl/ReportServiceImpl.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/auth/ForgotPasswordPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/auth/ForgotPasswordPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/auth/LoginPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/auth/LoginPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/core/ContentPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/core/ContentPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/core/MainFrame.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/core/MainFrame.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/core/SidebarPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/core/SidebarPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/core/TopBarPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/core/TopBarPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/CreateEdirGroupPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/CreateEdirGroupPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/DistributeFundPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/DistributeFundPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EdirContributionPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/EdirContributionPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EdirGroupDetailPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/EdirGroupDetailPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EdirGroupReportPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/EdirGroupReportPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EdirHomePanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/EdirHomePanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EdirMembersPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/EdirMembersPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EmergencyApprovalPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/EmergencyApprovalPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/edir/EmergencyCasePanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/edir/EmergencyCasePanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/equb/CreateEqubGroupPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/equb/CreateEqubGroupPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/equb/EqubGroupDetailPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/equb/EqubGroupDetailPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/equb/EqubGroupReportPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/equb/EqubGroupReportPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/equb/EqubHomePanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/equb/EqubHomePanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/equb/EqubMembersPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/equb/EqubMembersPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/equb/EqubPaymentPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/equb/EqubPaymentPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/equb/EqubPayoutPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/equb/EqubPayoutPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/equb/EqubRotationPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/equb/EqubRotationPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/reports/EdirReportPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/reports/EdirReportPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/reports/EqubReportPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/reports/EqubReportPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/reports/MemberReportPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/reports/MemberReportPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/reports/ReportHomePanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/reports/ReportHomePanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/reports/SystemReportPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/reports/SystemReportPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ui/settings/SettingsPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ui/settings/SettingsPanel.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/util/LanguageManager.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/util/LanguageManager.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -84,6 +48,9 @@
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/Student4/OneDrive/Documents/java/OOP project/HIBRET-SYSTEM/src/resources/images",
+    "project.structure.last.edited": "Artifacts",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
     "settings.editor.selected.configurable": "File.Encoding"
   }
 }]]></component>
