@@ -20,11 +20,12 @@ public class SystemReportPanel extends JPanel {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBorder(BorderFactory.createEmptyBorder(25, 35, 40, 35));
 
+        // 1. TOP HEADER ROW
         JPanel headerRow = new JPanel(new BorderLayout());
         headerRow.setOpaque(false);
         headerRow.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lblTitle = new JLabel("System Audit & Management Report");
+        JLabel lblTitle = new JLabel("System Overview Report");
         lblTitle.setFont(new Font("SansSerif", Font.BOLD, 30));
         lblTitle.setForeground(new Color(101, 53, 15));
         headerRow.add(lblTitle, BorderLayout.WEST);
@@ -40,7 +41,7 @@ public class SystemReportPanel extends JPanel {
         add(headerRow);
         add(Box.createVerticalStrut(25));
 
-        // FIXED: Changed layout rows/columns matrix from 1x5 down to 1x4 to fit the exact 4 custom cards remaining
+        // 2. METRICS CARDS GRID
         metricsGrid = new JPanel(new GridLayout(1, 4, 14, 0)) {
             @Override
             public Dimension getMaximumSize() {
@@ -52,19 +53,20 @@ public class SystemReportPanel extends JPanel {
         add(metricsGrid);
         add(Box.createVerticalStrut(30));
 
-        JLabel lblTableTitle = new JLabel("Global Real-Time Transaction Audit Trail");
+        // 3. HISTORY TABLE TITLE
+        JLabel lblTableTitle = new JLabel("Recent System Transactions");
         lblTableTitle.setFont(new Font("SansSerif", Font.BOLD, 18));
         lblTableTitle.setForeground(new Color(101, 53, 15));
         lblTableTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
         add(lblTableTitle);
         add(Box.createVerticalStrut(10));
 
+        // Simplified table headers (removed details, updated flow name)
         String[] headers = {
-                "Timestamp / Date",
-                "Transaction Volume",
-                "Associated Group",
-                "Audit Flow Category",
-                "Activity Details & Descriptions"
+                "Date",
+                "Amount",
+                "Group Name",
+                "Description"
         };
         tableModel = new DefaultTableModel(null, headers) {
             @Override
@@ -90,14 +92,20 @@ public class SystemReportPanel extends JPanel {
         if (report != null) {
             String unit = " ETB";
 
-            metricsGrid.add(createMiniStatCard("Total System Members", String.valueOf(report.totalMembers), new Color(101, 53, 15)));
-            metricsGrid.add(createMiniStatCard("Total Managed Groups", String.valueOf(report.totalGroups), new Color(46, 117, 59)));
-            metricsGrid.add(createMiniStatCard("Total Processed Logs", String.valueOf(report.totalTransactions), new Color(101, 53, 15)));
+            metricsGrid.add(createMiniStatCard("Total Members", String.valueOf(report.totalMembers), new Color(101, 53, 15)));
+            metricsGrid.add(createMiniStatCard("Total Groups", String.valueOf(report.totalGroups), new Color(46, 117, 59)));
+            metricsGrid.add(createMiniStatCard("Total Transactions", String.valueOf(report.totalTransactions), new Color(101, 53, 15)));
             metricsGrid.add(createMiniStatCard("Total System Capital", String.format("%,.0f" + unit, report.totalMoneyInSystem), new Color(46, 117, 59)));
 
             if (report.recentTransactions != null) {
                 for (TransactionRow tx : report.recentTransactions) {
-                    tableModel.addRow(new Object[]{tx.date, String.format("%,.2f" + unit, tx.amount), tx.groupName, tx.type, tx.description});
+                    // Only populating the 4 remaining columns; using tx.type as the unified Description column
+                    tableModel.addRow(new Object[]{
+                            tx.date,
+                            String.format("%,.2f" + unit, tx.amount),
+                            tx.groupName,
+                            tx.type
+                    });
                 }
             }
         }
@@ -139,8 +147,7 @@ public class SystemReportPanel extends JPanel {
     }
 
     /**
-     * LIFECYCLE HOOK CONNECTOR:
-     * Guarantees database information syncs correctly every time a user views this panel layout dashboard.
+     * Refreshes dashboard data automatically when the layout view is activated.
      */
     public void refreshViewOnLifecycleSignal() {
         loadData();

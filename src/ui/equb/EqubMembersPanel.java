@@ -51,17 +51,17 @@ public class EqubMembersPanel extends JPanel {
         splitBodyPanel.setOpaque(false);
 
         // ------------------------------------------
-        // COLUMN A: CURRENT POOL MEMBERS DIRECTORY LISTING
+        // COLUMN A: CURRENT MEMBERS LIST
         // ------------------------------------------
         JPanel leftCard = createStyledFormCard();
         leftCard.setLayout(new BorderLayout(0, 15));
 
-        JLabel lblLeftTitle = new JLabel("Current Registered Participants");
+        JLabel lblLeftTitle = new JLabel("Current Members");
         lblLeftTitle.setFont(new Font("SansSerif", Font.BOLD, 16));
         lblLeftTitle.setForeground(new Color(101, 53, 15));
         leftCard.add(lblLeftTitle, BorderLayout.NORTH);
 
-        String[] columns = { "Position", "Full Name", "Contact Phone" };
+        String[] columns = { "#", "Full Name", "Phone Number" };
         tableModel = new DefaultTableModel(null, columns) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
@@ -79,30 +79,30 @@ public class EqubMembersPanel extends JPanel {
         splitBodyPanel.add(leftCard);
 
         // ------------------------------------------
-        // COLUMN B: REGISTRATION OF EXCLUSIVE NEW MEMBERS
+        // COLUMN B: ADD NEW MEMBERS
         // ------------------------------------------
         JPanel rightCard = createStyledFormCard();
         rightCard.setLayout(new BoxLayout(rightCard, BoxLayout.Y_AXIS));
 
-        JLabel lblRightTitle = new JLabel("Add New Participant Profile");
+        JLabel lblRightTitle = new JLabel("Add New Member");
         lblRightTitle.setFont(new Font("SansSerif", Font.BOLD, 16));
         lblRightTitle.setForeground(new Color(34, 100, 51));
         rightCard.add(lblRightTitle);
         rightCard.add(Box.createVerticalStrut(25));
 
-        rightCard.add(createFormLabel("Full Legal Name"));
-        String placeholderName = "Enter legal first and last name";
+        rightCard.add(createFormLabel("Full Name"));
+        String placeholderName = "Enter full name";
         txtNewFullName = createStyledTextField(placeholderName);
         rightCard.add(txtNewFullName);
         rightCard.add(Box.createVerticalStrut(20));
 
-        rightCard.add(createFormLabel("Mobile Phone Number"));
-        String placeholderPhone = "Enter active mobile number";
+        rightCard.add(createFormLabel("Phone Number"));
+        String placeholderPhone = "Enter phone number";
         txtNewPhone = createStyledTextField(placeholderPhone);
         rightCard.add(txtNewPhone);
         rightCard.add(Box.createVerticalStrut(40));
 
-        JButton btnRegisterNew = createStyledButton("Register & Add to Group", new Color(34, 100, 51));
+        JButton btnRegisterNew = createStyledButton("Save & Add to Group", new Color(34, 100, 51));
         btnRegisterNew.addActionListener(e -> {
             UIManager.put("OptionPane.messageFont", new Font("SansSerif", Font.PLAIN, 14));
             UIManager.put("OptionPane.buttonFont", new Font("SansSerif", Font.PLAIN, 13));
@@ -112,7 +112,7 @@ public class EqubMembersPanel extends JPanel {
 
             if (fullName.isEmpty() || fullName.equals(placeholderName) ||
                     phone.isEmpty() || phone.equals(placeholderPhone)) {
-                JOptionPane.showMessageDialog(this, "Please completely fill out all text input fields.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Please fill out all the boxes.", "Error", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
@@ -126,8 +126,8 @@ public class EqubMembersPanel extends JPanel {
             if (generatedMemberId > 0) {
                 service.addMemberToGroup(groupCtx.getId(), generatedMemberId);
 
-                String successMessage = String.format("Successfully registered %s and allocated them to %s.", fullName, groupCtx.getName());
-                JOptionPane.showMessageDialog(this, successMessage, "Registration Successful", JOptionPane.INFORMATION_MESSAGE);
+                String successMessage = String.format("Successfully added %s to %s.", fullName, groupCtx.getName());
+                JOptionPane.showMessageDialog(this, successMessage, "Success", JOptionPane.INFORMATION_MESSAGE);
 
                 txtNewFullName.setText(placeholderName);
                 txtNewFullName.setForeground(Color.LIGHT_GRAY);
@@ -136,7 +136,7 @@ public class EqubMembersPanel extends JPanel {
 
                 loadGroupMembersData();
             } else {
-                JOptionPane.showMessageDialog(this, "Failed to write parameter modifications back to system database files.", "Database Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Could not save to database.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
         rightCard.add(btnRegisterNew);
@@ -161,7 +161,7 @@ public class EqubMembersPanel extends JPanel {
                 });
             }
         } catch (Exception e) {
-            System.err.println("Failed to synchronize table contents with group_members cluster arrays.");
+            System.err.println("Could not load the group list.");
             e.printStackTrace();
         }
     }

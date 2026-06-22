@@ -22,7 +22,7 @@ public class ReportHomePanel extends JPanel {
         cardsRouterContainer.setOpaque(false);
         setLayout(new BorderLayout());
 
-        // --- SUB-VIEW ROUTE DEFINITIONS ---
+        // Setup the different report screens
         JPanel selectionDashboard = createSelectionDashboard();
         cardsRouterContainer.add(selectionDashboard, "HomeSelection");
 
@@ -40,8 +40,7 @@ public class ReportHomePanel extends JPanel {
     }
 
     /**
-     * UPDATED LIFECYCLE HOOKS:
-     * Forwards notifications cleanly down to any active subview dashboards.
+     * Refreshes all child report panels to keep data updated.
      */
     public void refreshSubReportsContext() {
         if (cardsRouterContainer != null) {
@@ -65,7 +64,7 @@ public class ReportHomePanel extends JPanel {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBorder(BorderFactory.createEmptyBorder(25, 35, 40, 35));
 
-        JLabel lblTitle = new JLabel("System Reports Dashboard Overview");
+        JLabel lblTitle = new JLabel("Reports");
         lblTitle.setFont(new Font("SansSerif", Font.BOLD, 32));
         lblTitle.setForeground(new Color(101, 53, 15));
         lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -81,10 +80,11 @@ public class ReportHomePanel extends JPanel {
         grid.setOpaque(false);
         grid.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        grid.add(createSelectionTile("👤", "Member Statements", "MemberReport", new Color(46, 117, 59)));
-        grid.add(createSelectionTile("👥", "Equb Groups", "EqubReport", new Color(184, 91, 23)));
-        grid.add(createSelectionTile("❤️", "Edir Associations", "EdirReport", new Color(214, 60, 43)));
-        grid.add(createSelectionTile("📊", "System Audits", "SystemReport", new Color(33, 91, 166)));
+        // Simple tile options matching individual panels
+        grid.add(createSelectionTile("👤", "Members", "MemberReport", new Color(46, 117, 59)));
+        grid.add(createSelectionTile("👥", "Equb", "EqubReport", new Color(184, 91, 23)));
+        grid.add(createSelectionTile("❤️", "Edir", "EdirReport", new Color(214, 60, 43)));
+        grid.add(createSelectionTile("📊", "System Overview", "SystemReport", new Color(33, 91, 166)));
 
         panel.add(grid);
         return panel;

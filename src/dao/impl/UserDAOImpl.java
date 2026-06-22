@@ -34,26 +34,32 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public User findByUsername(String username) {
-
         String sql = "SELECT * FROM users WHERE username = ?";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setString(1, username);
+            // 🔍 DIAGNOSTIC PRINT: This will tell you EXACTLY which database is responding
+            System.out.println("DEBUG: findByUsername checking DB URL -> " + conn.getMetaData().getURL());
 
+            ps.setString(1, username);
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
+                System.out.println("DEBUG: Found matching user record inside this DB!");
                 return mapUser(rs);
+            } else {
+                System.out.println("DEBUG: No matching user found in this DB.");
             }
 
         } catch (Exception e) {
+            System.out.println("DEBUG: Database threw an error:");
             e.printStackTrace();
         }
 
         return null;
     }
+
 
     @Override
     public void updatePassword(String username, String newPassword) {

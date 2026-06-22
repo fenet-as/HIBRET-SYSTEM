@@ -26,4 +26,7 @@ public interface EqubDAO {
 
     boolean haveAllMembersPaidCurrentRound(int groupId);
     boolean clearAllTransactionsForGroup(int groupId);
+    boolean removeMemberFromGroup(int groupId, int memberId);
+
+
 }

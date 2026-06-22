@@ -18,7 +18,7 @@ public class EdirReportPanel extends JPanel {
     private final JLabel lblApproved;
     private final JLabel lblPending;
     private final JLabel lblBalance;
-    private boolean isListeningToDropdown = true; // Prevents triggering queries mid-rebuild
+    private boolean isListeningToDropdown = true; // Prevents triggering updates while the list is reloading
 
     public EdirReportPanel(ReportHomePanel subCoordinator, ReportService reportService) {
         this.reportService = reportService;
@@ -27,11 +27,12 @@ public class EdirReportPanel extends JPanel {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBorder(BorderFactory.createEmptyBorder(25, 35, 40, 35));
 
+        // 1. TOP HEADER ROW
         JPanel headerRow = new JPanel(new BorderLayout());
         headerRow.setOpaque(false);
         headerRow.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lblTitle = new JLabel("Edir Association Financial Report");
+        JLabel lblTitle = new JLabel("Edir Financial Summary");
         lblTitle.setFont(new Font("SansSerif", Font.BOLD, 30));
         lblTitle.setForeground(new Color(101, 53, 15));
         headerRow.add(lblTitle, BorderLayout.WEST);
@@ -47,11 +48,12 @@ public class EdirReportPanel extends JPanel {
         add(headerRow);
         add(Box.createVerticalStrut(15));
 
+        // 2. FILTER DROPDOWN ROW
         JPanel selectorRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         selectorRow.setOpaque(false);
         selectorRow.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lblFilterLabel = new JLabel("Select Association Group:");
+        JLabel lblFilterLabel = new JLabel("Select Group:");
         lblFilterLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
         lblFilterLabel.setForeground(new Color(101, 53, 15));
 
@@ -63,6 +65,7 @@ public class EdirReportPanel extends JPanel {
         add(selectorRow);
         add(Box.createVerticalStrut(20));
 
+        // 3. METRICS CARDS GRID
         JPanel metricsGrid = new JPanel(new GridLayout(1, 5, 12, 0)) {
             @Override
             public Dimension getMaximumSize() {
@@ -73,26 +76,28 @@ public class EdirReportPanel extends JPanel {
         metricsGrid.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         metricsGrid.add(createMiniStatCard("Total Contributions", lblContributions = new JLabel("- ETB"), new Color(46, 117, 59)));
-        metricsGrid.add(createMiniStatCard("Total Emergency Cases", lblCases = new JLabel("-"), new Color(101, 53, 15)));
+        metricsGrid.add(createMiniStatCard("Emergency Cases", lblCases = new JLabel("-"), new Color(101, 53, 15)));
         metricsGrid.add(createMiniStatCard("Approved Claims", lblApproved = new JLabel("-"), new Color(101, 53, 15)));
-        metricsGrid.add(createMiniStatCard("Pending Reviews", lblPending = new JLabel("-"), new Color(184, 91, 23)));
-        metricsGrid.add(createMiniStatCard("Remaining Vault Fund", lblBalance = new JLabel("- ETB"), new Color(46, 117, 59)));
+        metricsGrid.add(createMiniStatCard("Pending Review", lblPending = new JLabel("-"), new Color(184, 91, 23)));
+        metricsGrid.add(createMiniStatCard("Available Balance", lblBalance = new JLabel("- ETB"), new Color(46, 117, 59)));
         add(metricsGrid);
         add(Box.createVerticalStrut(25));
 
-        JLabel lblTableTitle = new JLabel("Recent Emergency Claim History Ledger");
+        // 4. HISTORY TABLE TITLE
+        JLabel lblTableTitle = new JLabel("Recent Emergency Claims");
         lblTableTitle.setFont(new Font("SansSerif", Font.BOLD, 18));
         lblTableTitle.setForeground(new Color(101, 53, 15));
         lblTableTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
         add(lblTableTitle);
         add(Box.createVerticalStrut(10));
 
+        // Clean, descriptive table headers
         String[] headers = {
                 "Filing Date",
-                "Beneficiary Member",
-                "Emergency Classification",
+                "Member Name",
+                "Emergency Type",
                 "Claim Status",
-                "Disbursed Amount"
+                "Paid Amount"
         };
         tableModel = new DefaultTableModel(null, headers) {
             @Override
@@ -111,6 +116,7 @@ public class EdirReportPanel extends JPanel {
         scrollPane.setAlignmentX(Component.LEFT_ALIGNMENT);
         add(scrollPane);
 
+        // Listen for group selection changes
         dropdownFilterOptions.addActionListener(e -> {
             if (isListeningToDropdown) {
                 loadData((String) dropdownFilterOptions.getSelectedItem());
@@ -148,7 +154,7 @@ public class EdirReportPanel extends JPanel {
                     });
                 }
             } else {
-                tableModel.addRow(new Object[]{"-", "-", "No historical emergency records exist for this group selection.", "-", "-"});
+                tableModel.addRow(new Object[]{"-", "-", "No emergency cases recorded for this group.", "-", "-"});
             }
         } else {
             clearDashboardDisplay();
@@ -197,8 +203,11 @@ public class EdirReportPanel extends JPanel {
         return card;
     }
 
+    /**
+     * Refreshes the group dropdown menu items directly from the database.
+     */
     public void refreshViewOnLifecycleSignal() {
-        isListeningToDropdown = false;
+        isListeningToDropdown = false; // Turn off listener updates while changing items
         dropdownFilterOptions.removeAllItems();
 
         List<String> groups = reportService.getAllEdirGroups();

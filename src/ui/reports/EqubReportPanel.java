@@ -17,7 +17,7 @@ public class EqubReportPanel extends JPanel {
     private final JLabel lblTotalMoneyVal;
     private final JLabel lblCurrentCycleVal;
     private final JLabel lblNextPayoutVal;
-    private boolean isListeningToDropdown = true; // Flag to prevent multi-trigger glitches during list rebuilds
+    private boolean isListeningToDropdown = true; // Prevents errors when updating the list items
 
     public EqubReportPanel(ReportHomePanel subCoordinator, ReportService reportService) {
         this.reportService = reportService;
@@ -26,17 +26,17 @@ public class EqubReportPanel extends JPanel {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBorder(BorderFactory.createEmptyBorder(25, 35, 40, 35));
 
-        // 1. HEADER CONTAINER
+        // 1. HEADER ROW
         JPanel headerRow = new JPanel(new BorderLayout());
         headerRow.setOpaque(false);
         headerRow.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lblTitle = new JLabel("Equb Group Financial Report");
+        JLabel lblTitle = new JLabel("Equb Reports");
         lblTitle.setFont(new Font("SansSerif", Font.BOLD, 30));
         lblTitle.setForeground(new Color(101, 53, 15));
         headerRow.add(lblTitle, BorderLayout.WEST);
 
-        JButton btnBack = new JButton("Back to Overview");
+        JButton btnBack = new JButton("Go Back");
         btnBack.setFont(new Font("SansSerif", Font.BOLD, 13));
         btnBack.setForeground(new Color(130, 90, 40));
         btnBack.setContentAreaFilled(false);
@@ -47,12 +47,12 @@ public class EqubReportPanel extends JPanel {
         add(headerRow);
         add(Box.createVerticalStrut(15));
 
-        // 2. LIVE SELECTOR GROUP DROPDOWN
+        // 2. GROUP SELECTOR DROPDOWN
         JPanel selectorRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         selectorRow.setOpaque(false);
         selectorRow.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lblFilterLabel = new JLabel("Select Equb Group:");
+        JLabel lblFilterLabel = new JLabel("Select Group:");
         lblFilterLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
         lblFilterLabel.setForeground(new Color(101, 53, 15));
 
@@ -64,7 +64,7 @@ public class EqubReportPanel extends JPanel {
         add(selectorRow);
         add(Box.createVerticalStrut(20));
 
-        // 3. STATS CARD GRID
+        // 3. STATS CARDS
         JPanel metricsGrid = new JPanel(new GridLayout(1, 4, 15, 0)) {
             @Override
             public Dimension getMaximumSize() {
@@ -75,21 +75,22 @@ public class EqubReportPanel extends JPanel {
         metricsGrid.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         metricsGrid.add(createMiniStatCard("Total Members", lblTotalMembersVal = new JLabel("-"), new Color(101, 53, 15)));
-        metricsGrid.add(createMiniStatCard("Total Collected Pool", lblTotalMoneyVal = new JLabel("- ETB"), new Color(46, 117, 59)));
-        metricsGrid.add(createMiniStatCard("Current Active Cycle", lblCurrentCycleVal = new JLabel("-"), new Color(101, 53, 15)));
-        metricsGrid.add(createMiniStatCard("Next Eligible Drawer", lblNextPayoutVal = new JLabel("-"), new Color(46, 117, 59)));
+        metricsGrid.add(createMiniStatCard("Total Collected", lblTotalMoneyVal = new JLabel("- ETB"), new Color(46, 117, 59)));
+        metricsGrid.add(createMiniStatCard("Current Round", lblCurrentCycleVal = new JLabel("-"), new Color(101, 53, 15)));
+        metricsGrid.add(createMiniStatCard("Next Winner", lblNextPayoutVal = new JLabel("-"), new Color(46, 117, 59)));
         add(metricsGrid);
         add(Box.createVerticalStrut(25));
 
-        // 4. DATA TABLE LEDGER
-        JLabel lblTableTitle = new JLabel("Participant Ledger Matrix & Status Track");
+        // 4. HISTORY TABLE TITLE
+        JLabel lblTableTitle = new JLabel("Payment History");
         lblTableTitle.setFont(new Font("SansSerif", Font.BOLD, 18));
         lblTableTitle.setForeground(new Color(101, 53, 15));
         lblTableTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
         add(lblTableTitle);
         add(Box.createVerticalStrut(10));
 
-        String[] headers = { "Participant Name", "Cycle Period Paid", "Contribution Value", "Payment Status" };
+        // Simplified table headers
+        String[] headers = { "Member", "Round", "Amount", "Status" };
         tableModel = new DefaultTableModel(null, headers) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
@@ -107,14 +108,14 @@ public class EqubReportPanel extends JPanel {
         scrollPane.setAlignmentX(Component.LEFT_ALIGNMENT);
         add(scrollPane);
 
-        // Bind data change listener
+        // Bind dropdown listener
         dropdownFilterOptions.addActionListener(e -> {
             if (isListeningToDropdown) {
                 loadData((String) dropdownFilterOptions.getSelectedItem());
             }
         });
 
-        // Load initialization datasets
+        // Load initial data
         refreshViewOnLifecycleSignal();
     }
 
@@ -132,8 +133,8 @@ public class EqubReportPanel extends JPanel {
             lblTotalMembersVal.setText(String.valueOf(report.totalMembers));
             lblTotalMoneyVal.setText(String.format("%,.2f" + unit, report.totalCollected));
 
-            lblCurrentCycleVal.setText(report.currentCycle != null ? report.currentCycle : "Active Sequence");
-            lblNextPayoutVal.setText(report.nextPayoutMember != null ? report.nextPayoutMember : "Drawing Pool Empty");
+            lblCurrentCycleVal.setText(report.currentCycle != null ? report.currentCycle : "Active");
+            lblNextPayoutVal.setText(report.nextPayoutMember != null ? report.nextPayoutMember : "None");
 
             if (report.memberRows != null && !report.memberRows.isEmpty()) {
                 for (EqubMemberRow row : report.memberRows) {
@@ -145,7 +146,7 @@ public class EqubReportPanel extends JPanel {
                     });
                 }
             } else {
-                tableModel.addRow(new Object[]{"-", "-", "No financial transaction logs exist for this group selection.", "-"});
+                tableModel.addRow(new Object[]{"-", "-", "No history found for this group.", "-"});
             }
         } else {
             clearDashboardDisplay();
@@ -195,12 +196,10 @@ public class EqubReportPanel extends JPanel {
     }
 
     /**
-     * DYNAMIC LIFECYCLE HOOK ENTRY POINT:
-     * Rebuilds the combobox dropdown options straight from the DB every time the user
-     * opens the Reports menu, ensuring zero context misalignment.
+     * Refreshes the dropdown list directly from the database when called.
      */
     public void refreshViewOnLifecycleSignal() {
-        isListeningToDropdown = false; // Suppress triggers while modifying indices
+        isListeningToDropdown = false; // Turn off updates while changing items
         dropdownFilterOptions.removeAllItems();
 
         List<String> groups = reportService.getAllEqubGroups();

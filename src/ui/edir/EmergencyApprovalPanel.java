@@ -5,25 +5,21 @@ import javax.swing.event.ListSelectionEvent;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 import util.DBConnection;
 
 public class EmergencyApprovalPanel extends JPanel {
     private final JPanel containerPanel;
 
-    // UI Components using standard JList structure
     private JList<ClaimItem> claimList;
     private DefaultListModel<ClaimItem> listModel;
 
-    // Detail View Components
     private JLabel lblDetailId;
     private JLabel lblDetailName;
     private JLabel lblDetailType;
     private JLabel lblDetailFund;
     private JTextArea txtDetailDesc;
 
-    // Helper data tracking container class
+    // Helper class to store details
     private static class ClaimItem {
         final int id;
         final String fullName;
@@ -41,7 +37,6 @@ public class EmergencyApprovalPanel extends JPanel {
 
         @Override
         public String toString() {
-            // Displays case details as standard English plain strings
             return "ID: " + id + " | " + fullName + " (" + emergencyType + ")";
         }
     }
@@ -52,19 +47,19 @@ public class EmergencyApprovalPanel extends JPanel {
         setLayout(new BorderLayout(20, 20));
         setBorder(BorderFactory.createEmptyBorder(25, 35, 30, 35));
 
-        // Header Title Layout Setup (Hardcoded English)
-        JLabel title = new JLabel("Emergency Cases Approval Management");
+        // Simplest header title
+        JLabel title = new JLabel("Review Claims");
         title.setFont(new Font("SansSerif", Font.BOLD, 22));
         title.setForeground(new Color(101, 53, 15));
         add(title, BorderLayout.NORTH);
 
-        // Main Workspace Split Pane
+        // Workspace Layout Split
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         splitPane.setOpaque(false);
         splitPane.setDividerLocation(320);
         splitPane.setBorder(null);
 
-        // LEFT COLUMN: JList Menu Block
+        // LEFT COLUMN: List of claims waiting
         listModel = new DefaultListModel<>();
         claimList = new JList<>(listModel);
         claimList.setFont(new Font("SansSerif", Font.PLAIN, 14));
@@ -86,11 +81,11 @@ public class EmergencyApprovalPanel extends JPanel {
         JScrollPane listScrollPane = new JScrollPane(claimList);
         listScrollPane.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(210, 200, 185)),
-                " Pending Request List "
+                " Waiting List "
         ));
         splitPane.setLeftComponent(listScrollPane);
 
-        // RIGHT COLUMN: Information Display Card Panel
+        // RIGHT COLUMN: Claim Details View Card
         JPanel detailCard = new JPanel(new GridBagLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
@@ -104,45 +99,57 @@ public class EmergencyApprovalPanel extends JPanel {
             }
         };
         detailCard.setOpaque(false);
-        detailCard.setBorder(BorderFactory.createEmptyBorder(20, 25, 20, 25));
+        detailCard.setBorder(BorderFactory.createEmptyBorder(25, 30, 25, 30));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 8, 8, 8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.WEST;
 
-        // Static English Labels Form Block Placement
+        // Simplest descriptive labels possible
         gbc.gridx = 0; gbc.gridy = 0;
-        detailCard.add(createStaticLabel("Case Reference ID:"), gbc);
+        detailCard.add(createStaticLabel("ID:"), gbc);
         lblDetailId = createDynamicValueLabel("-");
         gbc.gridx = 1; detailCard.add(lblDetailId, gbc);
 
         gbc.gridx = 0; gbc.gridy = 1;
-        detailCard.add(createStaticLabel("Beneficiary Name:"), gbc);
+        detailCard.add(createStaticLabel("Name:"), gbc);
         lblDetailName = createDynamicValueLabel("-");
         gbc.gridx = 1; detailCard.add(lblDetailName, gbc);
 
         gbc.gridx = 0; gbc.gridy = 2;
-        detailCard.add(createStaticLabel("Emergency Type:"), gbc);
+        detailCard.add(createStaticLabel("Type:"), gbc);
         lblDetailType = createDynamicValueLabel("-");
         gbc.gridx = 1; detailCard.add(lblDetailType, gbc);
 
         gbc.gridx = 0; gbc.gridy = 3;
-        detailCard.add(createStaticLabel("Requested Amount:"), gbc);
+        detailCard.add(createStaticLabel("Amount:"), gbc);
         lblDetailFund = createDynamicValueLabel("-");
         gbc.gridx = 1; detailCard.add(lblDetailFund, gbc);
 
         gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2;
-        detailCard.add(createStaticLabel("Case Descriptions / Narrative Log:"), gbc);
+        gbc.insets = new Insets(15, 8, 2, 8);
+        detailCard.add(createStaticLabel("Details:"), gbc);
 
-        txtDetailDesc = new JTextArea(4, 25);
-        txtDetailDesc.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        // Description box space settings
+        txtDetailDesc = new JTextArea(5, 25);
+        txtDetailDesc.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        txtDetailDesc.setForeground(new Color(50, 50, 50));
         txtDetailDesc.setLineWrap(true);
         txtDetailDesc.setWrapStyleWord(true);
         txtDetailDesc.setEditable(false);
         txtDetailDesc.setBackground(new Color(250, 248, 243));
+
         JScrollPane descScroll = new JScrollPane(txtDetailDesc);
-        gbc.gridy = 5; gbc.fill = GridBagConstraints.BOTH; gbc.weighty = 1.0;
+        descScroll.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(220, 215, 205), 1, true),
+                BorderFactory.createEmptyBorder(8, 12, 8, 12)
+        ));
+
+        gbc.gridy = 5;
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weighty = 1.0;
+        gbc.insets = new Insets(4, 8, 8, 8);
         detailCard.add(descScroll, gbc);
 
         splitPane.setRightComponent(detailCard);
@@ -163,7 +170,7 @@ public class EmergencyApprovalPanel extends JPanel {
             } else {
                 lblDetailId.setText(String.valueOf(selected.id));
                 lblDetailName.setText(selected.fullName);
-                lblDetailType.setText(selected.emergencyType); // Directly sets the English database value
+                lblDetailType.setText(selected.emergencyType);
                 lblDetailFund.setText(String.format("%,.2f ETB", selected.amount));
                 txtDetailDesc.setText(selected.description);
             }

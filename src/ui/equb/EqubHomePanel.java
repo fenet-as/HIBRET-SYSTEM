@@ -5,6 +5,7 @@ import model.Group;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.util.List;
 
@@ -15,6 +16,12 @@ public class EqubHomePanel extends JPanel {
     private final DefaultTableModel tableModel;
     private final int loggedInUserId;
 
+    private static final Color TEXT_DARK_BROWN = new Color(101, 53, 15);
+    private static final Color BUTTON_GREEN = new Color(46, 117, 59);
+    private static final Color BUTTON_RED = new Color(160, 40, 20);
+    private static final Color TABLE_HEADER_BG = new Color(245, 242, 235);
+    private static final Color TABLE_BORDER_COLOR = new Color(230, 225, 210);
+
     public EqubHomePanel(JPanel parentContainer, EqubService equbService, int loggedInUserId) {
         this.containerPanel = parentContainer;
         this.equbService = equbService;
@@ -22,15 +29,15 @@ public class EqubHomePanel extends JPanel {
         this.cardLayout = (CardLayout) parentContainer.getLayout();
 
         setOpaque(false);
-        setLayout(new BorderLayout(0, 20));
-        setBorder(BorderFactory.createEmptyBorder(25, 35, 30, 35));
+        setLayout(new BorderLayout(0, 22));
+        setBorder(BorderFactory.createEmptyBorder(25, 35, 40, 35));
 
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
 
-        JLabel lblTitle = new JLabel("Equb Group Dashboard");
-        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 28));
-        lblTitle.setForeground(new Color(101, 53, 15));
+        JLabel lblTitle = new JLabel("Equb Dashboard");
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 32));
+        lblTitle.setForeground(TEXT_DARK_BROWN);
         headerPanel.add(lblTitle, BorderLayout.WEST);
 
         JButton btnCreate = new JButton("Create New Equb") {
@@ -38,8 +45,8 @@ public class EqubHomePanel extends JPanel {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(34, 100, 51));
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                g2.setColor(BUTTON_GREEN);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
                 g2.dispose();
                 super.paintComponent(g);
             }
@@ -50,7 +57,7 @@ public class EqubHomePanel extends JPanel {
         btnCreate.setBorderPainted(false);
         btnCreate.setFocusPainted(false);
         btnCreate.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnCreate.setPreferredSize(new Dimension(180, 40));
+        btnCreate.setPreferredSize(new Dimension(180, 42));
 
         btnCreate.addActionListener(e -> {
             containerPanel.add(new CreateEqubGroupPanel(containerPanel, equbService, this.loggedInUserId), "CreateGroup");
@@ -61,48 +68,57 @@ public class EqubHomePanel extends JPanel {
 
         String[] columns = {
                 "No.",
-                "Group Pool Name",
-                "Cycle Rate",
-                "Active Subscriptions",
-                "Vault Balance",
-                "Actions Management"
+                "Group Name",
+                "Amount",
+                "Members",
+                "Available Money",
+                "Actions"
         };
         tableModel = new DefaultTableModel(null, columns) {
             @Override public boolean isCellEditable(int r, int c) { return c == 5; }
         };
 
         JTable table = new JTable(tableModel);
-        table.setRowHeight(42);
-        table.setFont(new Font("SansSerif", Font.PLAIN, 13));
-        table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 14));
-        table.getTableHeader().setBackground(new Color(242, 238, 228));
+        table.setRowHeight(46);
+        table.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        table.setForeground(new Color(40, 40, 40));
+        table.setGridColor(TABLE_BORDER_COLOR);
+        table.setSelectionBackground(new Color(242, 238, 228));
+        table.setSelectionForeground(TEXT_DARK_BROWN);
+        table.setFillsViewportHeight(true);
 
-        // Setup the Action Button custom renderer and editors
+        JTableHeader header = table.getTableHeader();
+        header.setFont(new Font("SansSerif", Font.BOLD, 14));
+        header.setBackground(TABLE_HEADER_BG);
+        header.setForeground(TEXT_DARK_BROWN);
+        header.setPreferredSize(new Dimension(header.getWidth(), 40));
+        header.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, TABLE_BORDER_COLOR));
+
+        table.getColumnModel().getColumn(0).setPreferredWidth(50);
+        table.getColumnModel().getColumn(1).setPreferredWidth(200);
+        table.getColumnModel().getColumn(2).setPreferredWidth(120);
+        table.getColumnModel().getColumn(3).setPreferredWidth(150);
+        table.getColumnModel().getColumn(4).setPreferredWidth(140);
+        table.getColumnModel().getColumn(5).setPreferredWidth(220);
+
         table.getColumnModel().getColumn(5).setCellRenderer(new ActionButtonsRenderer());
         table.getColumnModel().getColumn(5).setCellEditor(new ActionButtonsEditor(containerPanel, equbService));
 
-        // ✅ FIXED: Enforce explicit column widths so the buttons fit perfectly side-by-side
-        table.getColumnModel().getColumn(0).setPreferredWidth(50);   // No.
-        table.getColumnModel().getColumn(1).setPreferredWidth(180);  // Group Pool Name
-        table.getColumnModel().getColumn(2).setPreferredWidth(110);  // Cycle Rate
-        table.getColumnModel().getColumn(3).setPreferredWidth(140);  // Active Subscriptions
-        table.getColumnModel().getColumn(4).setPreferredWidth(130);  // Vault Balance
-        table.getColumnModel().getColumn(5).setPreferredWidth(230);  // Actions Management (Wide enough for buttons side-by-side)
-
         JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setBorder(BorderFactory.createLineBorder(TABLE_BORDER_COLOR, 1));
+        scrollPane.getViewport().setBackground(Color.WHITE);
         add(scrollPane, BorderLayout.CENTER);
 
+        // FIXED: Added here so it fills the table immediately when opened
         loadEqubGroupsData();
-    }
+    } // Constructor ends here
 
     public void loadEqubGroupsData() {
         tableModel.setRowCount(0);
-
         List<Group> dynamicGroups = equbService.getEqubGroupsForUser(this.loggedInUserId);
         int count = 1;
         for (Group g : dynamicGroups) {
             double realVaultCashBalance = equbService.getActualAvailableRoundPool(g.getId());
-
             tableModel.addRow(new Object[]{
                     count++,
                     g.getName(),
@@ -114,34 +130,42 @@ public class EqubHomePanel extends JPanel {
         }
     }
 
+    private static JButton createStyledActionButton(String text, Color background) {
+        JButton button = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(background);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        button.setFont(new Font("SansSerif", Font.BOLD, 12));
+        button.setForeground(Color.WHITE);
+        button.setContentAreaFilled(false);
+        button.setBorderPainted(false);
+        button.setFocusPainted(false);
+        button.setPreferredSize(new Dimension(90, 30));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        return button;
+    }
+
     private static class ActionButtonsRenderer extends JPanel implements TableCellRenderer {
-        private final JButton bO;
-        private final JButton bD;
+        private final JButton btnView;
+        private final JButton btnDelete;
 
         public ActionButtonsRenderer() {
             setOpaque(true);
-            // ✅ FIXED: Using FlowLayout with minimal vertical gap keeps them perfectly adjacent on 1 row
-            setLayout(new FlowLayout(FlowLayout.CENTER, 8, 4));
-
-            bO = new JButton("View Ledger");
-            bD = new JButton("Purge Pool");
-
-            bO.setFont(new Font("SansSerif", Font.BOLD, 12));
-            bD.setFont(new Font("SansSerif", Font.BOLD, 12));
-
-            bO.setFocusPainted(false);
-            bD.setFocusPainted(false);
-
-            add(bO);
-            add(bD);
+            setLayout(new FlowLayout(FlowLayout.CENTER, 8, 8));
+            btnView = createStyledActionButton("View", BUTTON_GREEN);
+            btnDelete = createStyledActionButton("Delete", BUTTON_RED);
+            add(btnView);
+            add(btnDelete);
         }
-
         @Override public Component getTableCellRendererComponent(JTable t, Object v, boolean isS, boolean hasF, int r, int c) {
-            if (isS) {
-                setBackground(t.getSelectionBackground());
-            } else {
-                setBackground(t.getBackground());
-            }
+            setBackground(isS ? t.getSelectionBackground() : Color.WHITE);
             return this;
         }
     }
@@ -157,13 +181,10 @@ public class EqubHomePanel extends JPanel {
             this.container = container;
             this.service = service;
 
-            // ✅ FIXED: Match the flow layout gap configurations used in the renderer
-            panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 4));
+            panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 8));
             panel.setOpaque(true);
 
-            JButton btnOpen = new JButton("View Ledger");
-            btnOpen.setFont(new Font("SansSerif", Font.BOLD, 12));
-            btnOpen.setFocusPainted(false);
+            JButton btnOpen = createStyledActionButton("View", BUTTON_GREEN);
             btnOpen.addActionListener(e -> {
                 Group g = currentGroup;
                 fireEditingStopped();
@@ -173,26 +194,22 @@ public class EqubHomePanel extends JPanel {
                 }
             });
 
-            JButton btnDelete = new JButton("Purge Pool");
-            btnDelete.setFont(new Font("SansSerif", Font.BOLD, 12));
-            btnDelete.setFocusPainted(false);
+            JButton btnDelete = createStyledActionButton("Delete", BUTTON_RED);
             btnDelete.addActionListener(e -> {
                 Group g = currentGroup;
                 fireEditingStopped();
-
                 if (g == null) return;
 
                 UIManager.put("OptionPane.messageFont", new Font("SansSerif", Font.PLAIN, 14));
                 UIManager.put("OptionPane.buttonFont", new Font("SansSerif", Font.PLAIN, 13));
 
                 int option = JOptionPane.showConfirmDialog(panel,
-                        "Are you certain you want to permanently delete '" + g.getName() + "' and clear all associated records?",
-                        "Confirm Deletion",
+                        "Are you sure you want to delete '" + g.getName() + "'? This will delete all its history.",
+                        "Delete Group",
                         JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
                 if (option == JOptionPane.YES_OPTION) {
                     service.deleteEqubGroup(g.getId());
-
                     for (Component comp : container.getComponents()) {
                         if (comp instanceof EqubHomePanel) {
                             ((EqubHomePanel) comp).loadEqubGroupsData();
@@ -200,6 +217,7 @@ public class EqubHomePanel extends JPanel {
                     }
                 }
             });
+
             panel.add(btnOpen);
             panel.add(btnDelete);
         }
@@ -210,8 +228,6 @@ public class EqubHomePanel extends JPanel {
             return panel;
         }
 
-        @Override public Object getCellEditorValue() {
-            return currentGroup;
-        }
+        @Override public Object getCellEditorValue() { return currentGroup; }
     }
 }

@@ -1,7 +1,10 @@
 package ui.edir;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.geom.RoundRectangle2D;
 import service.EdirService;
 
@@ -12,115 +15,157 @@ public class CreateEdirGroupPanel extends JPanel {
 
     private JTextField txtGroupName;
     private JTextField txtMonthlyFee;
-    private JTextField txtInitialDeposit;
     private JTextArea txtRules;
+
+    // Professional Color Palette
+    private static final Color BG_GRADIENT_START = new Color(250, 248, 245);
+    private static final Color BG_GRADIENT_END = new Color(240, 235, 225);
+    private static final Color CARD_BG = Color.WHITE;
+    private static final Color TEXT_PRIMARY = new Color(74, 38, 10);
+    private static final Color TEXT_SECONDARY = new Color(115, 105, 95);
+    private static final Color FIELD_BORDER = new Color(210, 205, 195);
+    private static final Color FIELD_FOCUS = new Color(140, 110, 80);
+
+    private static final Color BTN_PRIMARY = new Color(46, 117, 59);
+    private static final Color BTN_HOVER = new Color(36, 97, 47);
 
     public CreateEdirGroupPanel(JPanel parentWrapper, EdirService edirService, int loggedInUserId) {
         this.parentWrapper = parentWrapper;
         this.edirService = edirService;
         this.loggedInUserId = loggedInUserId;
 
-        setLayout(new BorderLayout(20, 20));
-        setBackground(new Color(253, 247, 237));
-        setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
+        setOpaque(false);
+        setLayout(new BorderLayout());
+        setBorder(BorderFactory.createEmptyBorder(30, 40, 40, 40));
 
         initMainForm();
     }
 
     private void initMainForm() {
-        JPanel formContainer = new JPanel(new GridBagLayout()) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(Color.WHITE);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 16, 16));
-                g2.setColor(new Color(235, 225, 210));
-                g2.draw(new RoundRectangle2D.Float(0, 0, getWidth()-1, getHeight()-1, 16, 16));
-                g2.dispose();
-            }
-        };
-        formContainer.setOpaque(false);
-        formContainer.setBorder(BorderFactory.createEmptyBorder(35, 35, 35, 35));
+        // --- TOP NAVIGATION BAR ---
+        JPanel headPanel = new JPanel(new BorderLayout());
+        headPanel.setOpaque(false);
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(12, 12, 12, 12);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        JLabel lblTitle = new JLabel("Create New Edir");
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 26));
+        lblTitle.setForeground(TEXT_PRIMARY);
+        headPanel.add(lblTitle, BorderLayout.WEST);
 
-        JButton btnBack = new JButton("Back");
-        btnBack.setFont(new Font("SansSerif", Font.BOLD, 12));
-        btnBack.setForeground(new Color(101, 31, 16));
+        JButton btnBack = new JButton("← Back to Home");
+        btnBack.setFont(new Font("SansSerif", Font.BOLD, 14));
+        btnBack.setForeground(TEXT_SECONDARY);
+        btnBack.setContentAreaFilled(false);
+        btnBack.setBorderPainted(false);
+        btnBack.setFocusPainted(false);
+        btnBack.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnBack.addActionListener(e -> {
             CardLayout innerLayout = (CardLayout) parentWrapper.getLayout();
             innerLayout.show(parentWrapper, "EdirHome");
         });
 
-        JLabel lblTitle = new JLabel("Create New Edir Group");
-        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 22));
-        lblTitle.setForeground(new Color(101, 31, 16));
+        btnBack.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) { btnBack.setForeground(TEXT_PRIMARY); }
+            public void mouseExited(MouseEvent e) { btnBack.setForeground(TEXT_SECONDARY); }
+        });
+        headPanel.add(btnBack, BorderLayout.EAST);
+        add(headPanel, BorderLayout.NORTH);
 
-        JPanel headerLayout = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        headerLayout.setOpaque(false);
-        headerLayout.add(btnBack);
-        headerLayout.add(lblTitle);
+        // --- CENTER CONTAINER (Form Card) ---
+        JPanel centerWrapper = new JPanel(new GridBagLayout());
+        centerWrapper.setOpaque(false);
 
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
-        formContainer.add(headerLayout, gbc);
-
-        gbwidth(); // Reset layout rules helper context
-        gbc.gridwidth = 1;
-        gbc.weightx = 0.5;
-
-        // Row 1: Group Name & Monthly Subscription Fee Labels
-        gbc.gridx = 0; gbc.gridy = 1;
-        formContainer.add(createFieldLabel("Edir Group Name"), gbc);
-        txtGroupName = new JTextField();
-        txtGroupName.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        txtGroupName.setPreferredSize(new Dimension(0, 35));
-        gbc.gridy = 2;
-        formContainer.add(txtGroupName, gbc);
-
-        gbc.gridx = 1; gbc.gridy = 1;
-        formContainer.add(createFieldLabel("Monthly Contribution Fee (ETB)"), gbc);
-        txtMonthlyFee = new JTextField("200");
-        txtMonthlyFee.setFont(new Font("SansSerif", Font.PLAIN, 14)); // ✅ Fixed argument types mismatch error
-        txtMonthlyFee.setPreferredSize(new Dimension(0, 35));
-        gbc.gridy = 2;
-        formContainer.add(txtMonthlyFee, gbc);
-
-        // Row 2: Initial Capital Pool Deposit & Terms Bylaws Labels
-        gbc.gridx = 0; gbc.gridy = 3;
-        formContainer.add(createFieldLabel("Initial Vault Starting Deposit (ETB)"), gbc);
-        txtInitialDeposit = new JTextField("5000");
-        txtInitialDeposit.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        txtInitialDeposit.setPreferredSize(new Dimension(0, 35));
-        gbc.gridy = 4;
-        formContainer.add(txtInitialDeposit, gbc);
-
-        gbc.gridx = 1; gbc.gridy = 3;
-        formContainer.add(createFieldLabel("Group Rules and Bylaws Statement"), gbc);
-        txtRules = new JTextArea("1. Members must commit to paying contributions on time.\n2. General meetings are scheduled monthly.", 3, 20);
-        txtRules.setBorder(BorderFactory.createLineBorder(new Color(210, 200, 185)));
-        txtRules.setLineWrap(true);
-        txtRules.setWrapStyleWord(true);
-        txtRules.setFont(new Font("SansSerif", Font.PLAIN, 12));
-
-        JScrollPane rulesScroll = new JScrollPane(txtRules);
-        gbc.gridy = 4; gbc.gridheight = 2; gbc.fill = GridBagConstraints.BOTH;
-        formContainer.add(rulesScroll, gbc);
-
-        // Submit Button Setup
-        gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 2; gbc.gridheight = 1;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(30, 12, 12, 12);
-
-        JButton btnSubmit = new JButton("Create Group") {
+        JPanel formCard = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(28, 85, 163));
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+                g2.setColor(new Color(0, 0, 0, 15));
+                g2.fillRoundRect(2, 2, getWidth() - 2, getHeight() - 2, 16, 16);
+                g2.setColor(CARD_BG);
+                g2.fillRoundRect(0, 0, getWidth() - 3, getHeight() - 3, 16, 16);
+                g2.setColor(new Color(230, 225, 215));
+                g2.drawRoundRect(0, 0, getWidth() - 3, getHeight() - 3, 16, 16);
+                g2.dispose();
+            }
+        };
+        formCard.setOpaque(false);
+        formCard.setLayout(new GridBagLayout());
+        formCard.setBorder(BorderFactory.createEmptyBorder(35, 40, 40, 40));
+        formCard.setPreferredSize(new Dimension(540, 440));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 0, 8, 0);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+
+        // Subtitle
+        JLabel lblSubtitle = new JLabel("Set up your new community edir group below.");
+        lblSubtitle.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        lblSubtitle.setForeground(TEXT_SECONDARY);
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        formCard.add(lblSubtitle, gbc);
+
+        // Field 1: Edir Name
+        gbc.gridy = 1; gbc.insets = new Insets(15, 0, 2, 0);
+        formCard.add(createFieldLabel("Edir Name"), gbc);
+
+        txtGroupName = createStyledTextField();
+        gbc.gridy = 2; gbc.insets = new Insets(0, 0, 12, 0);
+        formCard.add(txtGroupName, gbc);
+
+        // Field 2: Monthly Fee
+        gbc.gridy = 3; gbc.insets = new Insets(4, 0, 2, 0);
+        formCard.add(createFieldLabel("Monthly Fee (ETB)"), gbc);
+
+        txtMonthlyFee = createStyledTextField();
+        txtMonthlyFee.setText("200");
+        gbc.gridy = 4; gbc.insets = new Insets(0, 0, 12, 0);
+        formCard.add(txtMonthlyFee, gbc);
+
+        // Field 3: Rules and Bylaws
+        gbc.gridy = 5; gbc.insets = new Insets(4, 0, 2, 0);
+        formCard.add(createFieldLabel("Rules and Regulations"), gbc);
+
+        txtRules = new JTextArea("1. Members must pay contributions on time.\n2. Meetings are held monthly.", 4, 20);
+        txtRules.setLineWrap(true);
+        txtRules.setWrapStyleWord(true);
+        txtRules.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        txtRules.setForeground(new Color(50, 50, 50));
+        txtRules.setBorder(new EmptyBorder(8, 12, 8, 12));
+
+        JScrollPane rulesScroll = new JScrollPane(txtRules);
+        rulesScroll.setBorder(BorderFactory.createLineBorder(FIELD_BORDER, 1, true));
+        rulesScroll.setPreferredSize(new Dimension(0, 90));
+
+        txtRules.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                rulesScroll.setBorder(BorderFactory.createLineBorder(FIELD_FOCUS, 1, true));
+            }
+            @Override
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                rulesScroll.setBorder(BorderFactory.createLineBorder(FIELD_BORDER, 1, true));
+            }
+        });
+
+        gbc.gridy = 6; gbc.fill = GridBagConstraints.BOTH; gbc.weighty = 1.0; gbc.insets = new Insets(0, 0, 25, 0);
+        formCard.add(rulesScroll, gbc);
+
+        // Submit Button
+        JButton btnSubmit = new JButton("Create Edir") {
+            private boolean isHovered = false;
+            {
+                addMouseListener(new MouseAdapter() {
+                    public void mouseEntered(MouseEvent e) { isHovered = true; repaint(); }
+                    public void mouseExited(MouseEvent e) { isHovered = false; repaint(); }
+                });
+            }
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(isHovered ? BTN_HOVER : BTN_PRIMARY);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
                 g2.dispose();
                 super.paintComponent(g);
             }
@@ -130,7 +175,8 @@ public class CreateEdirGroupPanel extends JPanel {
         btnSubmit.setContentAreaFilled(false);
         btnSubmit.setBorderPainted(false);
         btnSubmit.setFocusPainted(false);
-        btnSubmit.setPreferredSize(new Dimension(0, 45));
+        btnSubmit.setPreferredSize(new Dimension(0, 46));
+        btnSubmit.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         btnSubmit.addActionListener(e -> {
             UIManager.put("OptionPane.messageFont", new Font("SansSerif", Font.PLAIN, 14));
@@ -138,58 +184,98 @@ public class CreateEdirGroupPanel extends JPanel {
 
             String groupName = txtGroupName.getText().trim();
             String feeStr = txtMonthlyFee.getText().trim().replace(",", "");
-            String initialPoolStr = txtInitialDeposit.getText().trim().replace(",", "");
             String rules = txtRules.getText().trim();
 
-            if(groupName.isEmpty() || feeStr.isEmpty() || initialPoolStr.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Please fill in all required form properties.", "Error", JOptionPane.ERROR_MESSAGE);
+            if (groupName.isEmpty() || feeStr.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please fill in all fields.", "Missing Information", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
             try {
                 double fee = Double.parseDouble(feeStr);
-                double initialPool = Double.parseDouble(initialPoolStr);
+                double defaultInitialPool = 0.0; // Automatically handles removed initial capital option safely
 
-                boolean success = edirService.createGroup(groupName, fee, initialPool, rules, this.loggedInUserId);
+                boolean success = edirService.createGroup(groupName, fee, defaultInitialPool, rules, this.loggedInUserId);
                 if (success) {
-                    JOptionPane.showMessageDialog(this, "Successfully created group: " + groupName, "Success", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Edir created successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
 
-                    // Clear inputs and reset defaults
                     txtGroupName.setText("");
                     txtMonthlyFee.setText("200");
-                    txtInitialDeposit.setText("5000");
-                    txtRules.setText("1. Members must commit to paying contributions on time.\n2. General meetings are scheduled monthly.");
+                    txtRules.setText("1. Members must pay contributions on time.\n2. Meetings are held monthly.");
 
-                    // Refresh database records inside home grid panel
                     for (Component viewComponent : parentWrapper.getComponents()) {
                         if (viewComponent instanceof EdirHomePanel) {
                             ((EdirHomePanel) viewComponent).loadGroups();
                         }
                     }
 
-                    // Revert UI context layout position
                     CardLayout innerLayout = (CardLayout) parentWrapper.getLayout();
                     innerLayout.show(parentWrapper, "EdirHome");
                 } else {
-                    JOptionPane.showMessageDialog(this, "Failed to write data records. Please check the database log configuration.", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Could not create the group.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Please verify financial values contain completely clean decimal numbers.", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Please enter a valid number for the fee.", "Invalid Amount", JOptionPane.ERROR_MESSAGE);
             }
         });
 
-        formContainer.add(btnSubmit, gbc);
-        add(formContainer, BorderLayout.CENTER);
+        gbc.gridy = 7; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weighty = 0.0; gbc.insets = new Insets(0, 0, 0, 0);
+        formCard.add(btnSubmit, gbc);
+
+        GridBagConstraints wrapperGbc = new GridBagConstraints();
+        wrapperGbc.gridx = 0; wrapperGbc.gridy = 0;
+        wrapperGbc.weightx = 1.0; wrapperGbc.weighty = 1.0;
+        wrapperGbc.anchor = GridBagConstraints.CENTER;
+        centerWrapper.add(formCard, wrapperGbc);
+
+        add(centerWrapper, BorderLayout.CENTER);
     }
 
-    private void gbwidth() {
-        // structural dummy configuration logic placeholder
+    @Override
+    protected void paintComponent(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        GradientPaint gradient = new GradientPaint(0, 0, BG_GRADIENT_START, 0, getHeight(), BG_GRADIENT_END);
+        g2.setPaint(gradient);
+        g2.fillRect(0, 0, getWidth(), getHeight());
+        g2.dispose();
+        super.paintComponent(g);
     }
 
     private JLabel createFieldLabel(String text) {
         JLabel lbl = new JLabel(text);
         lbl.setFont(new Font("SansSerif", Font.BOLD, 13));
-        lbl.setForeground(Color.DARK_GRAY);
+        lbl.setForeground(TEXT_PRIMARY);
         return lbl;
+    }
+
+    private JTextField createStyledTextField() {
+        JTextField field = new JTextField();
+        field.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        field.setForeground(new Color(50, 50, 50));
+        field.setPreferredSize(new Dimension(0, 40));
+        field.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(FIELD_BORDER, 1, true),
+                new EmptyBorder(8, 12, 8, 12)
+        ));
+
+        field.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                field.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(FIELD_FOCUS, 1, true),
+                        new EmptyBorder(8, 12, 8, 12)
+                ));
+            }
+            @Override
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                field.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(FIELD_BORDER, 1, true),
+                        new EmptyBorder(8, 12, 8, 12)
+                ));
+            }
+        });
+
+        return field;
     }
 }

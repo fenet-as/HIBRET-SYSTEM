@@ -274,9 +274,10 @@ public class EqubDAOImpl implements EqubDAO {
                     if (ts != null) {
                         tx.setDate(new java.util.Date(ts.getTime()));
                     }
-                    tx.setType(rs.getString("type"));
+                    String rawType = rs.getString("type");
+                    tx.setType(rawType); // Feeds the precise type directly to the UI
                     tx.setMemberName(rs.getString("full_name"));
-                    tx.setStatus(rs.getString("type").equalsIgnoreCase("PAYOUT") ? "Paid Out" : "Paid");
+                    tx.setStatus(rawType.equalsIgnoreCase("PAYOUT") ? "Paid Out" : "Paid");
                     list.add(tx);
                 }
             }
@@ -285,6 +286,9 @@ public class EqubDAOImpl implements EqubDAO {
         }
         return list;
     }
+
+
+
 
 
 
@@ -508,4 +512,39 @@ public class EqubDAOImpl implements EqubDAO {
         }
         return false;
     }
+
+
+
+    // 1. ADD this new method to your EqubDAOImpl class
+    @Override
+    public boolean removeMemberFromGroup(int groupId, int memberId) {
+        String sqlCheckTransactions = "SELECT COUNT(*) FROM transactions WHERE group_id = ? AND member_id = ?";
+        String sqlDeleteMember = "DELETE FROM group_members WHERE group_id = ? AND member_id = ?";
+
+        try (Connection conn = getConnection()) {
+            // Prevent deleting a member if they have historical records in this group
+            try (PreparedStatement checkStmt = conn.prepareStatement(sqlCheckTransactions)) {
+                checkStmt.setInt(1, groupId);
+                checkStmt.setInt(2, memberId);
+                try (ResultSet rs = checkStmt.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        return false; // Blocks removal if payment history exists
+                    }
+                }
+            }
+            // Safely remove member association if no financial history exists
+            try (PreparedStatement deleteStmt = conn.prepareStatement(sqlDeleteMember)) {
+                deleteStmt.setInt(1, groupId);
+                deleteStmt.setInt(2, memberId);
+                return deleteStmt.executeUpdate() > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // 2. REPLACE your existing getRecentPaymentsForGroup method with this updated version
+
+
 }

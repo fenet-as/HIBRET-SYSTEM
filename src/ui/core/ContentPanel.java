@@ -11,13 +11,14 @@ public class ContentPanel extends JPanel {
     private final DashboardService dashboardService;
     private final int loggedInUserId;
 
+    // Premium Color Palette
     private final Color TEXT_DARK_BROWN = new Color(101, 53, 15);
     private final Color TEXT_MUTED_GRAY = new Color(130, 125, 115);
 
-    private JLabel lblTotalMembersValue;
-    private JLabel lblEqubCirclesValue;
-    private JLabel lblEdirGroupsValue;
-    private JLabel lblTotalFundsValue;
+    private final JLabel lblTotalMembersValue;
+    private final JLabel lblEqubCirclesValue;
+    private final JLabel lblEdirGroupsValue;
+    private final JLabel lblTotalFundsValue;
 
     public ContentPanel(MainFrame frame, int loggedInUserId) {
         this.parentFrame = frame;
@@ -28,15 +29,16 @@ public class ContentPanel extends JPanel {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBorder(BorderFactory.createEmptyBorder(25, 35, 40, 35));
 
-        // Use standard Java Fonts with localized English strings
+        // --- Header Section ---
         JLabel lblHeader = new JLabel("Dashboard Overview");
         lblHeader.setFont(new Font("SansSerif", Font.BOLD, 32));
         lblHeader.setForeground(TEXT_DARK_BROWN);
         lblHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
         add(lblHeader);
-        add(Box.createVerticalStrut(20));
+        add(Box.createVerticalStrut(25));
 
-        JPanel metricsContainer = new JPanel(new GridLayout(0, 2, 20, 20)) {
+        // --- Metrics Row Block (2x2 Grid Layout) ---
+        JPanel metricsContainer = new JPanel(new GridLayout(2, 2, 20, 20)) {
             @Override
             public Dimension getMaximumSize() {
                 return new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
@@ -45,7 +47,6 @@ public class ContentPanel extends JPanel {
         metricsContainer.setOpaque(false);
         metricsContainer.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Information Metrics Cards using plain English
         lblTotalMembersValue = new JLabel("0");
         metricsContainer.add(createInfoCard("👤", "Total Members", lblTotalMembersValue, new Color(40, 40, 40)));
 
@@ -71,7 +72,7 @@ public class ContentPanel extends JPanel {
         modulesGrid.setOpaque(false);
         modulesGrid.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Module Routing Menu Tiles in English
+        // Modules Quick Routing Menu Tiles
         modulesGrid.add(createModuleTile("🏘️", "Equb Management", "Equb", new Color(46, 117, 59)));
         modulesGrid.add(createModuleTile("❤️", "Edir Management", "Edir", new Color(184, 91, 23)));
         modulesGrid.add(createModuleTile("📊", "Financial Reports", "Reports", new Color(207, 142, 19)));
@@ -89,17 +90,11 @@ public class ContentPanel extends JPanel {
         lblEqubCirclesValue.setText(String.valueOf(metrics.getTotalEqubCircles()));
         lblEdirGroupsValue.setText(String.valueOf(metrics.getTotalEdirGroups()));
 
-        // Appending default English currency suffix
         double totalCombinedFunds = metrics.getTotalEqubVaultBalance() + metrics.getTotalEdirVaultBalance();
         lblTotalFundsValue.setText(String.format("%,.2f", totalCombinedFunds) + " ETB");
 
         revalidate();
         repaint();
-    }
-
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
     }
 
     private JPanel createInfoCard(String iconSymbol, String title, JLabel lblValue, Color valueColor) {
@@ -108,22 +103,30 @@ public class ContentPanel extends JPanel {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(0, 0, 0, 12));
-                g2.fillRoundRect(2, 2, getWidth() - 4, getHeight() - 4, 14, 14);
+
+                // Card Shadow
+                g2.setColor(new Color(0, 0, 0, 10));
+                g2.fillRoundRect(2, 3, getWidth() - 4, getHeight() - 5, 16, 16);
+
+                // Solid Card Background
                 g2.setColor(Color.WHITE);
-                g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 3, 14, 14);
-                g2.setColor(new Color(235, 230, 215));
-                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 3, 14, 14);
+                g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 3, 16, 16);
+
+                // Card Border Stroke
+                g2.setColor(new Color(230, 225, 210));
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 3, 16, 16);
                 g2.dispose();
             }
         };
-        card.setLayout(new BorderLayout(15, 0));
+        card.setLayout(new BorderLayout(18, 0));
         card.setOpaque(false);
-        card.setBorder(BorderFactory.createEmptyBorder(18, 20, 18, 20));
+        card.setBorder(BorderFactory.createEmptyBorder(20, 22, 20, 22));
 
-        JLabel lblIcon = new JLabel(iconSymbol);
-        lblIcon.setFont(new Font("SansSerif", Font.PLAIN, 32));
+        // Fixed dimension container for alignment integrity
+        JLabel lblIcon = new JLabel(iconSymbol, SwingConstants.CENTER);
+        lblIcon.setFont(new Font("SansSerif", Font.PLAIN, 34));
         lblIcon.setForeground(valueColor);
+        lblIcon.setPreferredSize(new Dimension(45, 45));
         card.add(lblIcon, BorderLayout.WEST);
 
         JPanel textStack = new JPanel();
@@ -135,7 +138,7 @@ public class ContentPanel extends JPanel {
         lblTitle.setForeground(TEXT_MUTED_GRAY);
         lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        lblValue.setFont(new Font("SansSerif", Font.BOLD, 22));
+        lblValue.setFont(new Font("SansSerif", Font.BOLD, 24));
         lblValue.setForeground(valueColor);
         lblValue.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -148,22 +151,31 @@ public class ContentPanel extends JPanel {
     }
 
     private JButton createModuleTile(String iconSymbol, String title, String targetRoute, Color bgTheme) {
-        // Strip out FontManager configurations from raw HTML styling properties
         String cleanTitle = title.replaceAll("\n", "<br>");
-        String formattedTitle = "<html><body style='font-family: SansSerif; text-align: center;'><center>" + cleanTitle + "</center></body></html>";
+        String formattedTitle = "<html><body style='text-align: center;'><center>" + cleanTitle + "</center></body></html>";
 
         JButton tile = new JButton(formattedTitle) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                // Draw Rounded Colored Background
                 g2.setColor(bgTheme);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
-                g2.setFont(new Font("SansSerif", Font.PLAIN, 42));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+
+                // Draw Icon centered above the label
+                g2.setFont(new Font("SansSerif", Font.PLAIN, 44));
+                g2.setColor(Color.WHITE);
                 FontMetrics fm = g2.getFontMetrics();
-                g2.drawString(iconSymbol, (getWidth() - fm.stringWidth(iconSymbol)) / 2, (getHeight() / 2) - 10);
-                super.paintComponent(g2);
+                int iconX = (getWidth() - fm.stringWidth(iconSymbol)) / 2;
+                int iconY = (getHeight() / 2) - 10;
+                g2.drawString(iconSymbol, iconX, iconY);
+
                 g2.dispose();
+
+                // Renders the button text cleanly *over* the custom graphic elements
+                super.paintComponent(g);
             }
         };
 
@@ -172,11 +184,14 @@ public class ContentPanel extends JPanel {
         tile.setContentAreaFilled(false);
         tile.setBorderPainted(false);
         tile.setFocusPainted(false);
-        tile.setPreferredSize(new Dimension(165, 160));
+        tile.setPreferredSize(new Dimension(165, 165));
         tile.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        // Push the HTML text layout boundary strictly towards the bottom edge
         tile.setVerticalAlignment(SwingConstants.BOTTOM);
         tile.setHorizontalAlignment(SwingConstants.CENTER);
-        tile.setBorder(BorderFactory.createEmptyBorder(0, 5, 20, 5));
+        tile.setBorder(BorderFactory.createEmptyBorder(0, 8, 16, 8));
+
         tile.addActionListener(e -> parentFrame.switchDashboardView(targetRoute));
         return tile;
     }

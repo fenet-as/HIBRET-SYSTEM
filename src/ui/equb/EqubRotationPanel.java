@@ -38,7 +38,7 @@ public class EqubRotationPanel extends JPanel {
         JPanel headPanel = new JPanel(new BorderLayout());
         headPanel.setOpaque(false);
 
-        JLabel lblTitle = new JLabel("Rotational Draw Selection Wheel");
+        JLabel lblTitle = new JLabel("Pick a Winner");
         lblTitle.setFont(new Font("SansSerif", Font.BOLD, 22));
         lblTitle.setForeground(new Color(101, 53, 15));
         headPanel.add(lblTitle, BorderLayout.WEST);
@@ -70,7 +70,7 @@ public class EqubRotationPanel extends JPanel {
         cardWinnerDisplay.setLayout(new BoxLayout(cardWinnerDisplay, BoxLayout.Y_AXIS));
         cardWinnerDisplay.setBorder(BorderFactory.createEmptyBorder(25, 30, 25, 30));
 
-        lblRoundStatus = new JLabel("Evaluating cycle matrix data...");
+        lblRoundStatus = new JLabel("Checking group data...");
         lblRoundStatus.setFont(new Font("SansSerif", Font.BOLD, 13));
         lblRoundStatus.setForeground(new Color(120, 90, 40));
         lblRoundStatus.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -93,7 +93,7 @@ public class EqubRotationPanel extends JPanel {
                 FontMetrics fm = g2.getFontMetrics();
 
                 String nameStr = lblWinnerName.getText();
-                String initial = (nameStr != null && !nameStr.isEmpty() && !nameStr.startsWith("Click") && !nameStr.startsWith("Awaiting") && !nameStr.equals("N/A"))
+                String initial = (nameStr != null && !nameStr.isEmpty() && !nameStr.startsWith("Click") && !nameStr.startsWith("Waiting") && !nameStr.equals("N/A"))
                         ? nameStr.substring(0, 1).toUpperCase()
                         : "?";
 
@@ -107,7 +107,7 @@ public class EqubRotationPanel extends JPanel {
         avatarBox.setPreferredSize(new Dimension(70, 70));
         profileRow.add(avatarBox);
 
-        lblWinnerName = new JLabel("Click button below to initiate draw");
+        lblWinnerName = new JLabel("Click the button below to draw a winner");
         lblWinnerName.setFont(new Font("SansSerif", Font.BOLD, 20));
         lblWinnerName.setForeground(Color.DARK_GRAY);
         profileRow.add(lblWinnerName);
@@ -132,7 +132,7 @@ public class EqubRotationPanel extends JPanel {
         amountAlertStrip.setLayout(new BoxLayout(amountAlertStrip, BoxLayout.Y_AXIS));
         amountAlertStrip.setBorder(BorderFactory.createEmptyBorder(12, 0, 12, 0));
 
-        JLabel lblAmountTitle = new JLabel("ACCUMULATED ROUND POT SIZE");
+        JLabel lblAmountTitle = new JLabel("TOTAL MONEY TO GIVE AWAY");
         lblAmountTitle.setFont(new Font("SansSerif", Font.PLAIN, 12));
         lblAmountTitle.setForeground(new Color(120, 110, 100));
         lblAmountTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -148,7 +148,7 @@ public class EqubRotationPanel extends JPanel {
         cardWinnerDisplay.add(amountAlertStrip);
         cardWinnerDisplay.add(Box.createVerticalStrut(25));
 
-        btnDrawWinner = new JButton("Trigger Random Draw") {
+        btnDrawWinner = new JButton("Draw Winner") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -171,7 +171,7 @@ public class EqubRotationPanel extends JPanel {
 
         cardWinnerDisplay.add(Box.createVerticalStrut(10));
 
-        btnConfirmPayout = new JButton("Confirm & Disburse Funds") {
+        btnConfirmPayout = new JButton("Confirm Winner & Give Money") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -193,7 +193,7 @@ public class EqubRotationPanel extends JPanel {
         btnConfirmPayout.addActionListener(e -> commitPayoutToDatabase());
         cardWinnerDisplay.add(btnConfirmPayout);
 
-        lblNoEligibleStatus = new JLabel("Cycle rotation sequence successfully completed.");
+        lblNoEligibleStatus = new JLabel("All rounds have been successfully finished.");
         lblNoEligibleStatus.setFont(new Font("SansSerif", Font.BOLD, 13));
         lblNoEligibleStatus.setForeground(new Color(195, 40, 30));
         lblNoEligibleStatus.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -220,9 +220,9 @@ public class EqubRotationPanel extends JPanel {
             int overallCycleIteration = (totalMembers > 0) ? (completedRounds / totalMembers) + 1 : 1;
 
             if (overallCycleIteration > 1) {
-                lblRoundStatus.setText("Cycle iteration: " + overallCycleIteration + " | Active Round: " + currentRoundNumber + " of " + totalMembers);
+                lblRoundStatus.setText("Group Turn: " + overallCycleIteration + " | Current Round: " + currentRoundNumber + " of " + totalMembers);
             } else {
-                lblRoundStatus.setText("Active Rotation Round: " + currentRoundNumber + " of " + totalMembers);
+                lblRoundStatus.setText("Current Round: " + currentRoundNumber + " of " + totalMembers);
             }
 
             this.calculatedPayoutPool = service.getActualAvailableRoundPool(groupCtx.getId());
@@ -230,14 +230,14 @@ public class EqubRotationPanel extends JPanel {
 
             if (this.calculatedPayoutPool <= 0) {
                 btnDrawWinner.setEnabled(false);
-                lblWinnerName.setText("Awaiting Contribution Inflows");
+                lblWinnerName.setText("Waiting for member payments");
                 lblWinnerName.setForeground(new Color(195, 40, 30));
-                lblNoEligibleStatus.setText("Draw Locked: Zero balance available in active pool ledger.");
+                lblNoEligibleStatus.setText("Draw Locked: There is no money in the pool right now.");
                 lblNoEligibleStatus.setVisible(true);
                 return;
             } else {
                 btnDrawWinner.setEnabled(true);
-                lblWinnerName.setText("Click button below to initiate draw");
+                lblWinnerName.setText("Click the button below to draw a winner");
                 lblWinnerName.setForeground(Color.DARK_GRAY);
                 lblNoEligibleStatus.setVisible(false);
             }
@@ -245,12 +245,12 @@ public class EqubRotationPanel extends JPanel {
             boolean poolHasCandidates = service.hasEligibleUnpaidMembers(groupCtx.getId());
             if (!poolHasCandidates) {
                 btnDrawWinner.setEnabled(false);
-                lblWinnerName.setText("No candidates available");
-                lblNoEligibleStatus.setText("All registered group participants have already received payouts.");
+                lblWinnerName.setText("No names left to pick");
+                lblNoEligibleStatus.setText("Everyone in this group has already won a round.");
                 lblNoEligibleStatus.setVisible(true);
             }
         } catch (Exception ex) {
-            lblRoundStatus.setText("Tracking current status context for Round #" + currentRoundNumber);
+            lblRoundStatus.setText("Checking status for Round #" + currentRoundNumber);
         }
         avatarBox.repaint();
     }
@@ -263,8 +263,8 @@ public class EqubRotationPanel extends JPanel {
             boolean completelyPaid = service.haveAllMembersPaidCurrentRound(groupCtx.getId());
             if (!completelyPaid) {
                 JOptionPane.showMessageDialog(this,
-                        "Draw Blocked: Outstanding overdue payment obligations exist for the current round.",
-                        "Incomplete Round Contributions",
+                        "Draw Blocked: Some members still have unpaid dues for this round.",
+                        "Missing Payments",
                         JOptionPane.WARNING_MESSAGE);
                 return;
             }
@@ -277,13 +277,13 @@ public class EqubRotationPanel extends JPanel {
                 btnConfirmPayout.setEnabled(true);
                 btnDrawWinner.setEnabled(false);
             } else {
-                lblWinnerName.setText("No candidates found");
+                lblWinnerName.setText("No names found");
                 btnConfirmPayout.setEnabled(false);
-                lblNoEligibleStatus.setText("No members qualify for selection criteria constraints.");
+                lblNoEligibleStatus.setText("No members qualify to win right now.");
                 lblNoEligibleStatus.setVisible(true);
             }
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error processing selection: " + ex.getLocalizedMessage(), "Execution Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error drawing name: " + ex.getLocalizedMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
         avatarBox.repaint();
     }
@@ -293,23 +293,23 @@ public class EqubRotationPanel extends JPanel {
         UIManager.put("OptionPane.buttonFont", new Font("SansSerif", Font.PLAIN, 13));
 
         if (selectedWinner == null || calculatedPayoutPool <= 0) {
-            JOptionPane.showMessageDialog(this, "Context data parameters are empty or malformed.", "Processing Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Information is missing or incorrect.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        String descriptionText = "Round " + currentRoundNumber + " payout award distributed to " + selectedWinner.getFullName();
+        String descriptionText = "Round " + currentRoundNumber + " payment given to " + selectedWinner.getFullName();
 
         try {
             service.recordPayout(groupCtx.getId(), selectedWinner.getId(), calculatedPayoutPool, "COMPLETED", descriptionText);
 
             String formattedCash = String.format("%,.2f ETB", calculatedPayoutPool);
-            String successMsg = "Round " + currentRoundNumber + " prize value of " + formattedCash + " successfully disbursed to " + selectedWinner.getFullName() + ".";
+            String successMsg = "Round " + currentRoundNumber + " money of " + formattedCash + " successfully given to " + selectedWinner.getFullName() + ".";
 
-            JOptionPane.showMessageDialog(this, successMsg, "Payout Matrix Updated", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, successMsg, "Success", JOptionPane.INFORMATION_MESSAGE);
 
             navigateBackToDetails();
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Database entry write fail: " + ex.getLocalizedMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Could not save to database: " + ex.getLocalizedMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 

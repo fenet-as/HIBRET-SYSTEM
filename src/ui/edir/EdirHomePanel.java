@@ -1,11 +1,10 @@
 package ui.edir;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.JTableHeader;
 import java.awt.*;
-import java.awt.geom.RoundRectangle2D;
 import java.util.List;
 import java.util.Map;
 import service.EdirService;
@@ -14,20 +13,24 @@ import model.Group;
 public class EdirHomePanel extends JPanel {
     private JTable groupTable;
     private DefaultTableModel tableModel;
-    private JButton btnCreateGroup;
+    private final JPanel parentWrapper;
+    private final EdirService edirService;
+    private final int loggedInUserId;
 
-    private JPanel parentWrapper;
-    private EdirService edirService;
-    private int loggedInUserId;
+    private static final Color TEXT_DARK_BROWN = new Color(101, 53, 15);
+    private static final Color BUTTON_GREEN = new Color(46, 117, 59);
+    private static final Color BUTTON_RED = new Color(160, 40, 20);
+    private static final Color TABLE_HEADER_BG = new Color(245, 242, 235);
+    private static final Color TABLE_BORDER_COLOR = new Color(230, 225, 210);
 
     public EdirHomePanel(JPanel parentWrapper, EdirService edirService, int loggedInUserId) {
         this.parentWrapper = parentWrapper;
         this.edirService = edirService;
         this.loggedInUserId = loggedInUserId;
 
-        setLayout(new BorderLayout(20, 20));
-        setBackground(new Color(253, 247, 237));
-        setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
+        setOpaque(false);
+        setLayout(new BorderLayout(0, 22));
+        setBorder(BorderFactory.createEmptyBorder(25, 35, 40, 35));
 
         initHeader();
         initTable();
@@ -36,27 +39,21 @@ public class EdirHomePanel extends JPanel {
 
     public void loadGroups() {
         tableModel.setRowCount(0);
-
         List<Map<String, String>> rawGroups = edirService.getEdirGroupsForUser(this.loggedInUserId);
         int counter = 1;
 
         for (Map<String, String> rowMap : rawGroups) {
             Group groupObj = Group.fromMap(rowMap);
-
             String rawId = rowMap.get("id");
             int groupId = (rawId == null || rawId.trim().isEmpty()) ? 0 : Integer.parseInt(rawId.trim());
-
             double synchronizedNetLedgerBalance = edirService.getGroupBalance(groupId);
 
-            String feeStr = String.format("%,.0f", groupObj.getContributionAmount());
-            String balanceStr = String.format("%,.2f", synchronizedNetLedgerBalance);
-
             tableModel.addRow(new Object[]{
-                    String.valueOf(counter++),
+                    counter++,
                     groupObj.getName(),
-                    feeStr,
-                    String.valueOf(groupObj.getActiveMemberCount()),
-                    balanceStr,
+                    String.format("%,.0f ETB", groupObj.getContributionAmount()),
+                    groupObj.getActiveMemberCount() + " Members",
+                    String.format("%,.2f ETB", synchronizedNetLedgerBalance),
                     groupId
             });
         }
@@ -66,19 +63,18 @@ public class EdirHomePanel extends JPanel {
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
 
-        JLabel lblTitle = new JLabel("My Edir Communities");
-        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 26));
-        lblTitle.setForeground(new Color(101, 31, 16));
+        JLabel lblTitle = new JLabel("Edir Dashboard"); // Simplified from "Edir Group Dashboard"
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 32));
+        lblTitle.setForeground(TEXT_DARK_BROWN);
 
-        btnCreateGroup = new JButton("Create New Association") {
+        JButton btnCreateGroup = new JButton("Create New Edir") { // Simplified from "Create New Association"
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(28, 85, 163));
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
+                g2.setColor(BUTTON_GREEN);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
                 g2.dispose();
-
                 super.paintComponent(g);
             }
         };
@@ -87,7 +83,8 @@ public class EdirHomePanel extends JPanel {
         btnCreateGroup.setContentAreaFilled(false);
         btnCreateGroup.setBorderPainted(false);
         btnCreateGroup.setFocusPainted(false);
-        btnCreateGroup.setPreferredSize(new Dimension(200, 40));
+        btnCreateGroup.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnCreateGroup.setPreferredSize(new Dimension(180, 42));
 
         btnCreateGroup.addActionListener(e -> {
             boolean found = false;
@@ -97,11 +94,9 @@ public class EdirHomePanel extends JPanel {
                     break;
                 }
             }
-
             if (!found) {
                 parentWrapper.add(new CreateEdirGroupPanel(parentWrapper, edirService, this.loggedInUserId), "CreateEdirGroup");
             }
-
             CardLayout innerLayout = (CardLayout) parentWrapper.getLayout();
             innerLayout.show(parentWrapper, "CreateEdirGroup");
         });
@@ -112,90 +107,112 @@ public class EdirHomePanel extends JPanel {
     }
 
     private void initTable() {
+        // --- SIMPLIFIED TABLE HEADERS ---
         String[] columns = {
-                "Sequence No",
-                "Community Group Name",
-                "Required Monthly Fee (ETB)",
-                "Active Members",
-                "Total Capital Balance",
-                "Operational Actions"
+                "No.",
+                "Group Name",          // Changed from "Community Group Name"
+                "Monthly Fee",         // Changed from "Required Monthly Fee"
+                "Members",             // Changed from "Active Members"
+                "Available Money",     // Changed from "Total Capital Balance"
+                "Actions"              // Changed from "Actions Management"
         };
         tableModel = new DefaultTableModel(null, columns) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return column == 5;
-            }
+            @Override public boolean isCellEditable(int row, int column) { return column == 5; }
         };
 
         groupTable = new JTable(tableModel);
-        groupTable.setRowHeight(50);
-        groupTable.setBackground(Color.WHITE);
-        groupTable.setShowGrid(false);
-        groupTable.setIntercellSpacing(new Dimension(0, 0));
+        groupTable.setRowHeight(46);
         groupTable.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        groupTable.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 14));
-        groupTable.getTableHeader().setBackground(new Color(249, 237, 222));
-        groupTable.getTableHeader().setForeground(new Color(101, 31, 16));
+        groupTable.setForeground(new Color(40, 40, 40));
+        groupTable.setGridColor(TABLE_BORDER_COLOR);
+        groupTable.setSelectionBackground(new Color(242, 238, 228));
+        groupTable.setSelectionForeground(TEXT_DARK_BROWN);
+        groupTable.setFillsViewportHeight(true);
 
-        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
-        centerRenderer.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        JTableHeader header = groupTable.getTableHeader();
+        header.setFont(new Font("SansSerif", Font.BOLD, 14));
+        header.setBackground(TABLE_HEADER_BG);
+        header.setForeground(TEXT_DARK_BROWN);
+        header.setPreferredSize(new Dimension(header.getWidth(), 40));
+        header.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, TABLE_BORDER_COLOR));
 
-        groupTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
-        groupTable.getColumnModel().getColumn(2).setCellRenderer(centerRenderer);
-        groupTable.getColumnModel().getColumn(3).setCellRenderer(centerRenderer);
-        groupTable.getColumnModel().getColumn(4).setCellRenderer(centerRenderer);
+        groupTable.getColumnModel().getColumn(0).setPreferredWidth(50);
+        groupTable.getColumnModel().getColumn(1).setPreferredWidth(200);
+        groupTable.getColumnModel().getColumn(2).setPreferredWidth(140);
+        groupTable.getColumnModel().getColumn(3).setPreferredWidth(130);
+        groupTable.getColumnModel().getColumn(4).setPreferredWidth(140);
+        groupTable.getColumnModel().getColumn(5).setPreferredWidth(220);
 
         groupTable.getColumnModel().getColumn(5).setCellRenderer(new TableActionRenderer());
         groupTable.getColumnModel().getColumn(5).setCellEditor(new TableActionEditor(new JCheckBox()));
 
-        groupTable.getColumnModel().getColumn(5).setPreferredWidth(210);
-        groupTable.getColumnModel().getColumn(5).setMinWidth(210);
-
         JScrollPane scrollPane = new JScrollPane(groupTable);
-        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(230, 215, 195), 1));
+        scrollPane.setBorder(BorderFactory.createLineBorder(TABLE_BORDER_COLOR, 1));
         scrollPane.getViewport().setBackground(Color.WHITE);
         add(scrollPane, BorderLayout.CENTER);
     }
 
-    class TableActionRenderer extends JPanel implements TableCellRenderer {
+    private static JButton createStyledActionButton(String text, Color background) {
+        JButton button = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(background);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        button.setFont(new Font("SansSerif", Font.BOLD, 12));
+        button.setForeground(Color.WHITE);
+        button.setContentAreaFilled(false);
+        button.setBorderPainted(false);
+        button.setFocusPainted(false);
+        button.setPreferredSize(new Dimension(90, 30));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        return button;
+    }
+
+    private class TableActionRenderer extends JPanel implements TableCellRenderer {
+        private final JButton btnView;
+        private final JButton btnDelete;
+
         public TableActionRenderer() {
             setOpaque(true);
-            setBackground(Color.WHITE);
-            setLayout(new FlowLayout(FlowLayout.CENTER, 8, 10));
-            add(createActionButton("Open", new Color(46, 117, 89)));
-            add(createActionButton("Delete", new Color(217, 83, 79)));
+            setLayout(new FlowLayout(FlowLayout.CENTER, 8, 8));
+            btnView = createStyledActionButton("View", BUTTON_GREEN);
+            btnDelete = createStyledActionButton("Delete", BUTTON_RED);
+            add(btnView);
+            add(btnDelete);
         }
-        @Override
-        public Component getTableCellRendererComponent(JTable t, Object v, boolean s, boolean f, int r, int c) {
+        @Override public Component getTableCellRendererComponent(JTable t, Object v, boolean isS, boolean f, int r, int c) {
+            setBackground(isS ? t.getSelectionBackground() : Color.WHITE);
             return this;
         }
     }
 
-    class TableActionEditor extends DefaultCellEditor {
+    private class TableActionEditor extends DefaultCellEditor {
         private final JPanel panel;
         private int currentEditingRow;
 
         public TableActionEditor(JCheckBox checkBox) {
             super(checkBox);
-            panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 10));
-            panel.setBackground(Color.WHITE);
+            panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 8));
+            panel.setOpaque(true);
 
-            JButton openBtn = createActionButton("Open", new Color(46, 117, 89));
-            JButton deleteBtn = createActionButton("Delete", new Color(217, 83, 79));
+            JButton openBtn = createStyledActionButton("View", BUTTON_GREEN);
+            JButton deleteBtn = createStyledActionButton("Delete", BUTTON_RED);
 
             openBtn.addActionListener(e -> {
                 int row = currentEditingRow;
                 fireEditingStopped();
-
                 if (row >= 0 && row < groupTable.getRowCount()) {
                     Object value = groupTable.getValueAt(row, 5);
                     if (value != null && !value.toString().trim().isEmpty()) {
                         int groupId = (value instanceof Number) ? ((Number) value).intValue() : Integer.parseInt(value.toString().trim());
-
                         EdirGroupDetailPanel detailPanel = new EdirGroupDetailPanel(parentWrapper, edirService, groupId);
                         parentWrapper.add(detailPanel, "EdirDetail");
-
                         CardLayout innerLayout = (CardLayout) parentWrapper.getLayout();
                         innerLayout.show(parentWrapper, "EdirDetail");
                     }
@@ -211,23 +228,24 @@ public class EdirHomePanel extends JPanel {
 
                 if (row >= 0 && row < groupTable.getRowCount()) {
                     String groupName = (String) groupTable.getValueAt(row, 1);
-
                     Object value = groupTable.getValueAt(row, 5);
+
                     if (value != null && !value.toString().trim().isEmpty()) {
                         int groupId = (value instanceof Number) ? ((Number) value).intValue() : Integer.parseInt(value.toString().trim());
 
+                        // --- SIMPLIFIED CONFIRMATION MESSAGE ---
                         int confirm = JOptionPane.showConfirmDialog(panel,
-                                "Are you completely sure you want to permanently delete the group: " + groupName + "? All linked structural profiles and historical transaction files will be wiped.",
-                                "Confirm Dissolution Request",
+                                "Are you sure you want to delete '" + groupName + "'? This will delete all its history.",
+                                "Delete Group",
                                 JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
                         if (confirm == JOptionPane.YES_OPTION) {
                             boolean deleted = edirService.deleteGroup(groupId);
                             if (deleted) {
-                                JOptionPane.showMessageDialog(panel, "The community group profile has been deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                                JOptionPane.showMessageDialog(panel, "Group deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
                                 loadGroups();
                             } else {
-                                JOptionPane.showMessageDialog(panel, "Failed to purge database records. Please analyze error logs.", "Error", JOptionPane.ERROR_MESSAGE);
+                                JOptionPane.showMessageDialog(panel, "Could not delete the group.", "Error", JOptionPane.ERROR_MESSAGE);
                             }
                         }
                     }
@@ -238,45 +256,17 @@ public class EdirHomePanel extends JPanel {
             panel.add(deleteBtn);
         }
 
-        @Override
-        public Component getTableCellEditorComponent(JTable t, Object v, boolean s, int r, int c) {
+        @Override public Component getTableCellEditorComponent(JTable t, Object v, boolean isS, int r, int c) {
             this.currentEditingRow = r;
+            panel.setBackground(t.getSelectionBackground());
             return panel;
         }
 
-        @Override
-        public Object getCellEditorValue() {
+        @Override public Object getCellEditorValue() {
             if (currentEditingRow >= 0 && currentEditingRow < groupTable.getRowCount()) {
                 return groupTable.getValueAt(currentEditingRow, 5);
             }
             return null;
         }
-    }
-
-    private static JButton createActionButton(String text, Color color) {
-        JButton btn = new JButton(text) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                g2.setColor(getBackground());
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 1, getHeight() - 1, 8, 8));
-
-                g2.setColor(color);
-                g2.draw(new RoundRectangle2D.Float(0, 0, getWidth() - 1, getHeight() - 1, 8, 8));
-                g2.dispose();
-
-                super.paintComponent(g);
-            }
-        };
-        btn.setFont(new Font("SansSerif", Font.BOLD, 12));
-        btn.setForeground(color);
-        btn.setBackground(Color.WHITE);
-        btn.setContentAreaFilled(false);
-        btn.setBorderPainted(false);
-        btn.setFocusPainted(false);
-        btn.setPreferredSize(new Dimension(90, 30));
-        return btn;
     }
 }

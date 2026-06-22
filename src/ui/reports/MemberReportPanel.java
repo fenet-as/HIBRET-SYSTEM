@@ -12,13 +12,13 @@ import java.util.Vector;
 public class MemberReportPanel extends JPanel {
     private final ReportService reportService;
 
-    // Left-side Navigation List Components
+    // Search and list components
     private JTextField txtListSearch;
     private JList<String> memberJList;
     private DefaultListModel<String> listModel;
     private Vector<String> masterMemberList;
 
-    // Right-side Detailed Report Card Components
+    // Report details components
     private JLabel lblNameValue;
     private JLabel lblStatsSubLine;
     private DefaultTableModel tableModel;
@@ -35,12 +35,12 @@ public class MemberReportPanel extends JPanel {
         JPanel headerRow = new JPanel(new BorderLayout());
         headerRow.setOpaque(false);
 
-        JLabel lblTitle = new JLabel("Member Account Statement Report");
+        JLabel lblTitle = new JLabel("Member Reports");
         lblTitle.setFont(new Font("SansSerif", Font.BOLD, 28));
         lblTitle.setForeground(new Color(101, 53, 15));
         headerRow.add(lblTitle, BorderLayout.WEST);
 
-        JButton btnBack = new JButton("Back to Overview");
+        JButton btnBack = new JButton("Go Back");
         btnBack.setFont(new Font("SansSerif", Font.BOLD, 13));
         btnBack.setForeground(new Color(130, 90, 40));
         btnBack.setContentAreaFilled(false);
@@ -51,22 +51,22 @@ public class MemberReportPanel extends JPanel {
 
         add(headerRow, BorderLayout.NORTH);
 
-        // 2. MAIN CONTAINER SPLIT WORKSPACE
+        // 2. MAIN WORKSPACE
         JPanel workspacePanel = new JPanel(new BorderLayout(25, 0));
         workspacePanel.setOpaque(false);
         workspacePanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
 
-        // Build Left Member Selector Sidebar Panel
+        // Left Member List Panel
         JPanel leftSidebar = createLeftSidebar();
         workspacePanel.add(leftSidebar, BorderLayout.WEST);
 
-        // Build Right Detailed Data Card Viewer Panel
+        // Right Table Card Panel
         JPanel rightDetailsView = createRightDetailsView();
         workspacePanel.add(rightDetailsView, BorderLayout.CENTER);
 
         add(workspacePanel, BorderLayout.CENTER);
 
-        // Bootstrap data onto the user viewport layer
+        // Load data on start
         initializeSidebarList();
     }
 
@@ -83,7 +83,7 @@ public class MemberReportPanel extends JPanel {
         gbc.weighty = 0.0;
         gbc.insets = new Insets(0, 0, 6, 0);
 
-        JLabel lblListHeader = new JLabel("Registered System Members:");
+        JLabel lblListHeader = new JLabel("Members:");
         lblListHeader.setFont(new Font("SansSerif", Font.BOLD, 14));
         lblListHeader.setForeground(new Color(101, 53, 15));
         sidebar.add(lblListHeader, gbc);
@@ -161,15 +161,15 @@ public class MemberReportPanel extends JPanel {
         textWrapper.setOpaque(false);
         textWrapper.setLayout(new BoxLayout(textWrapper, BoxLayout.Y_AXIS));
 
-        JLabel lblStaticType = new JLabel("PARTICIPANT SUMMARY STATEMENT");
+        JLabel lblStaticType = new JLabel("MEMBER SUMMARY");
         lblStaticType.setFont(new Font("SansSerif", Font.PLAIN, 12));
         lblStaticType.setForeground(new Color(130, 125, 115));
 
-        lblNameValue = new JLabel("Select a member from sidebar");
+        lblNameValue = new JLabel("Select a member from the list");
         lblNameValue.setFont(new Font("SansSerif", Font.BOLD, 22));
         lblNameValue.setForeground(new Color(46, 117, 59));
 
-        lblStatsSubLine = new JLabel("Total Transactions: - | Value Pool Metrics Unloaded");
+        lblStatsSubLine = new JLabel("No details loaded");
         lblStatsSubLine.setFont(new Font("SansSerif", Font.BOLD, 13));
         lblStatsSubLine.setForeground(new Color(101, 53, 15));
 
@@ -182,12 +182,12 @@ public class MemberReportPanel extends JPanel {
         detailsPanel.add(profileSummaryCard);
         detailsPanel.add(Box.createVerticalStrut(20));
 
+        // Simplified Table Headers with requested removals/modifications
         String[] columnHeaders = {
-                "Transaction ID",
-                "Posting Date",
-                "Target Association Group",
-                "Flow Direction",
-                "Activity Narration / Memo"
+                "ID",
+                "Date",
+                "Group",
+                "Description"
         };
         tableModel = new DefaultTableModel(null, columnHeaders) {
             @Override
@@ -224,8 +224,8 @@ public class MemberReportPanel extends JPanel {
                 }
                 memberJList.setSelectedIndex(0);
             } else {
-                lblNameValue.setText("No Registered Members Found");
-                lblStatsSubLine.setText("Please register participants into the database to populate reports.");
+                lblNameValue.setText("No Members Found");
+                lblStatsSubLine.setText("Please register members to view records.");
                 tableModel.setRowCount(0);
             }
 
@@ -260,8 +260,8 @@ public class MemberReportPanel extends JPanel {
             memberJList.setSelectedIndex(0);
         } else {
             tableModel.setRowCount(0);
-            lblNameValue.setText("No Filter Match Found");
-            lblStatsSubLine.setText("Try adjusting spelling constraints or lookup alternative initials.");
+            lblNameValue.setText("No matching names found");
+            lblStatsSubLine.setText("Try searching with a different spelling.");
         }
 
         revalidate();
@@ -275,21 +275,21 @@ public class MemberReportPanel extends JPanel {
         if (report != null && report.name != null) {
             lblNameValue.setText(report.name);
 
-            lblStatsSubLine.setText(String.format("Total Activity Items: %d | Total Capital Outlays: %,.2f ETB | Enrolled Groups: %d",
+            lblStatsSubLine.setText(String.format("Transactions: %d | Paid: %,.2f ETB | Groups: %d",
                     report.transactionCount, report.totalPaid, report.groupsJoinedCount));
 
             if (report.transactions != null && !report.transactions.isEmpty()) {
                 for (TransactionRow tx : report.transactions) {
+                    // Only passes 4 columns now matching the updated headers array
                     tableModel.addRow(new Object[]{
                             tx.transactionId,
                             tx.date,
                             tx.groupName,
-                            tx.type,
-                            tx.description
+                            tx.type // Maps raw 'type' data seamlessly into the unified 'Description' column
                     });
                 }
             } else {
-                tableModel.addRow(new Object[]{"-", "No transaction historical logs exist for this participant statement.", "-", "-", "-"});
+                tableModel.addRow(new Object[]{"-", "No transaction logs found for this member.", "-", "-"});
             }
         }
 

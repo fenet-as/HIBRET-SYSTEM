@@ -15,7 +15,7 @@ public class EdirGroupDetailPanel extends JPanel {
     private final EdirService edirService;
 
     private final int groupId;
-    private String groupName = "Loading Group...";
+    private String groupName = "Loading...";
 
     private JLabel lblTitle;
     private JLabel lblMembersValue;
@@ -48,6 +48,7 @@ public class EdirGroupDetailPanel extends JPanel {
         return this.edirService;
     }
 
+
     public void refreshDashboardMetricsAndLedger() {
         Map<String, String> metrics = edirService.getGroupDetails(groupId);
 
@@ -75,31 +76,38 @@ public class EdirGroupDetailPanel extends JPanel {
             } catch (NumberFormatException e) {}
 
             String type = row.getOrDefault("type", "UNKNOWN");
-            String displayUser = row.getOrDefault("member_name", "SYSTEM/OFFICER");
-            String descriptionText = row.getOrDefault("description", "No details logged");
+            String displayUser = row.getOrDefault("member_name", "System");
+
+            // --- ONLY TRANSACTION TYPE SHOWS HERE ---
+            String descriptionText;
             String formattedAmount;
             String status;
 
             switch (type) {
                 case "PAYOUT":
+                    descriptionText = "Payout";
                     formattedAmount = String.format("-%,.2f ETB", amt);
-                    status = "Disbursed";
+                    status = "Paid";
                     break;
                 case "PENDING_CLAIM":
+                    descriptionText = "Pending Claim";
                     formattedAmount = String.format("%,.2f ETB", amt);
                     status = "Pending";
                     break;
                 case "APPROVED_CLAIM":
+                    descriptionText = "Approved Claim";
                     formattedAmount = String.format("%,.2f ETB", amt);
                     status = "Approved";
                     break;
                 case "REGISTRATION":
+                    descriptionText = "Registration";
                     formattedAmount = "0.00 ETB";
-                    status = "Enrolled";
+                    status = "Joined";
                     break;
                 default:
+                    descriptionText = "Contribution";
                     formattedAmount = String.format("+%,.2f ETB", amt);
-                    status = "Cleared";
+                    status = "Done";
                     break;
             }
 
@@ -120,7 +128,7 @@ public class EdirGroupDetailPanel extends JPanel {
         headerPanel.setOpaque(false);
         headerPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, 45));
 
-        JButton btnBack = new JButton("Return to Dashboard") {
+        JButton btnBack = new JButton("Back to Dashboard") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -164,26 +172,22 @@ public class EdirGroupDetailPanel extends JPanel {
     }
 
     private void initStatCards() {
-        JPanel cardsPanel = new JPanel(new GridLayout(1, 4, 20, 0));
+        JPanel cardsPanel = new JPanel(new GridLayout(1, 3, 20, 0));
         cardsPanel.setOpaque(false);
         cardsPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, 110));
 
         lblMembersValue = new JLabel("0 Active");
-        JPanel card1 = createStatCard("Total Registered Members", lblMembersValue, new Color(44, 122, 123));
+        JPanel card1 = createStatCard("Total Members", lblMembersValue, new Color(44, 122, 123));
 
         lblBalanceValue = new JLabel("0.00 ETB");
-        JPanel card2 = createStatCard("Available Vault Capital", lblBalanceValue, new Color(34, 139, 94));
+        JPanel card2 = createStatCard("Available Money", lblBalanceValue, new Color(34, 139, 94));
 
         lblCasesValue = new JLabel("0 Requests");
-        JPanel card3 = createStatCard("Active Claims Processing", lblCasesValue, new Color(197, 48, 48));
-
-        JLabel lblArrearsPlaceholder = new JLabel("No Notices");
-        JPanel card4 = createStatCard("System Alert Logs", lblArrearsPlaceholder, new Color(183, 100, 30));
+        JPanel card3 = createStatCard("Active Claims", lblCasesValue, new Color(197, 48, 48));
 
         cardsPanel.add(card1);
         cardsPanel.add(card2);
         cardsPanel.add(card3);
-        cardsPanel.add(card4);
 
         add(cardsPanel);
     }
@@ -193,12 +197,12 @@ public class EdirGroupDetailPanel extends JPanel {
         actionPanel.setOpaque(false);
         actionPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, 50));
 
-        JButton btnAddMember = createModuleButton("Add New Member", "👤");
-        JButton btnRecordContribution = createModuleButton("Collect Contributions", "💰");
-        JButton btnEmergency = createModuleButton("File Emergency Claim", "🚨");
-        JButton btnDistribute = createModuleButton("Distribute Funds", "📤");
-        JButton btnViewMembers = createModuleButton("View Members List", "👥");
-        JButton btnClearLogs = createModuleButton("Wipe Ledger History", "🗑️");
+        JButton btnAddMember = createModuleButton("Add Member", "👤");
+        JButton btnRecordContribution = createModuleButton("Collect Fees", "💰");
+        JButton btnEmergency = createModuleButton("New Claim", "🚨");
+        JButton btnDistribute = createModuleButton("Send Funds", "📤");
+        JButton btnViewMembers = createModuleButton("Members List", "👥");
+        JButton btnClearLogs = createModuleButton("Clear History", "🗑️");
         btnClearLogs.setForeground(new Color(175, 30, 20));
 
         btnAddMember.addActionListener(e -> {
@@ -212,12 +216,12 @@ public class EdirGroupDetailPanel extends JPanel {
             membersPanel.setBackground(new Color(253, 247, 237));
             membersPanel.setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
 
-            JLabel lblHeading = new JLabel("Active Membership Registry for " + groupName);
+            JLabel lblHeading = new JLabel("Members List - " + groupName);
             lblHeading.setFont(new Font("SansSerif", Font.BOLD, 18));
             lblHeading.setForeground(new Color(101, 31, 16));
             membersPanel.add(lblHeading, BorderLayout.NORTH);
 
-            String[] cols = { "Sequence No", "Full Legal Name", "Phone Contact", "Account Status", "Management Actions" };
+            String[] cols = { "No.", "Name", "Phone", "Status", "Actions" };
             DefaultTableModel membersModel = new DefaultTableModel(null, cols) {
                 @Override
                 public boolean isCellEditable(int r, int c) {
@@ -297,18 +301,18 @@ public class EdirGroupDetailPanel extends JPanel {
             UIManager.put("OptionPane.buttonFont", new Font("SansSerif", Font.PLAIN, 13));
 
             int option = JOptionPane.showConfirmDialog(this,
-                    "Are you absolutely sure you want to clear all history logs for " + groupName + "? This operation cannot be reversed.",
-                    "Confirm Ledger Reset",
+                    "Are you sure you want to clear all history for " + groupName + "? This cannot be undone.",
+                    "Clear History",
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.WARNING_MESSAGE);
 
             if (option == JOptionPane.YES_OPTION) {
                 try {
                     edirService.clearGroupTransactions(this.groupId);
-                    JOptionPane.showMessageDialog(this, "All database historical ledger transactions wiped securely.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "History cleared successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
                     refreshDashboardMetricsAndLedger();
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(this, "Failed to purge ledger entries: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Failed to clear history: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
@@ -327,13 +331,13 @@ public class EdirGroupDetailPanel extends JPanel {
         JPanel container = new JPanel(new BorderLayout());
         container.setOpaque(false);
 
-        JLabel lblSec = new JLabel("Recent Transaction Activity History Ledger");
+        JLabel lblSec = new JLabel("Recent Activity History");
         lblSec.setFont(new Font("SansSerif", Font.BOLD, 16));
         lblSec.setForeground(new Color(101, 31, 16));
         lblSec.setBorder(BorderFactory.createEmptyBorder(0, 0, 12, 0));
         container.add(lblSec, BorderLayout.NORTH);
 
-        String[] cols = { "Involved Stakeholder Party", "Financial Cash Flow", "Ledger Context Description", "Transaction Audit Status" };
+        String[] cols = { "Member / Source", "Amount", "Description", "Status" };
         ledgerTableModel = new DefaultTableModel(null, cols);
 
         recentLedgerTable = new JTable(ledgerTableModel);
@@ -411,7 +415,7 @@ public class EdirGroupDetailPanel extends JPanel {
 
     private static class DeleteButtonRenderer extends JButton implements TableCellRenderer {
         public DeleteButtonRenderer() {
-            setText("Remove Member");
+            setText("Remove");
             setFont(new Font("SansSerif", Font.BOLD, 11));
             setForeground(new Color(175, 30, 20));
             setBackground(new Color(255, 235, 235));
@@ -444,7 +448,7 @@ public class EdirGroupDetailPanel extends JPanel {
             this.reloadViewCallback = reloadViewCallback;
             this.parentCtx = parentCtx;
 
-            this.btn = new JButton("Remove Member");
+            this.btn = new JButton("Remove");
             this.btn.setFont(new Font("SansSerif", Font.BOLD, 11));
             this.btn.setForeground(Color.WHITE);
             this.btn.setBackground(new Color(175, 30, 20));
@@ -466,26 +470,26 @@ public class EdirGroupDetailPanel extends JPanel {
                     }
                 }
 
-                if (targetMemberName == null || targetMemberName.isEmpty() || targetMemberName.equalsIgnoreCase("Remove Member")) {
-                    JOptionPane.showMessageDialog(parentCtx, "Unable to extract target context record properties.", "Error", JOptionPane.ERROR_MESSAGE);
+                if (targetMemberName == null || targetMemberName.isEmpty() || targetMemberName.equalsIgnoreCase("Remove")) {
+                    JOptionPane.showMessageDialog(parentCtx, "Could not find the selected member.", "Error", JOptionPane.ERROR_MESSAGE);
                     fireEditingStopped();
                     return;
                 }
 
                 int confirm = JOptionPane.showConfirmDialog(parentCtx,
-                        "Are you absolutely certain you want to remove " + targetMemberName + " from " + groupDisplayName + "?",
-                        "Confirm Account Purge",
+                        "Are you sure you want to remove " + targetMemberName + " from " + groupDisplayName + "?",
+                        "Remove Member",
                         JOptionPane.YES_NO_OPTION,
                         JOptionPane.WARNING_MESSAGE);
 
                 if (confirm == JOptionPane.YES_OPTION) {
                     boolean ok = service.removeMemberFromGroup(this.groupId, targetMemberName);
                     if (ok) {
-                        JOptionPane.showMessageDialog(parentCtx, "Successfully unregistered member from group database: " + targetMemberName, "Success", JOptionPane.INFORMATION_MESSAGE);
+                        JOptionPane.showMessageDialog(parentCtx, "Member removed successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
                         fireEditingStopped();
                         reloadViewCallback.run();
                     } else {
-                        JOptionPane.showMessageDialog(parentCtx, "Failed to purge database reference files.", "Error", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(parentCtx, "Failed to remove member.", "Error", JOptionPane.ERROR_MESSAGE);
                         fireEditingStopped();
                     }
                 } else {

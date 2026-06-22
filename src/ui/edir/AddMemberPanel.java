@@ -1,144 +1,164 @@
 package ui.edir;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.geom.RoundRectangle2D;
 
 public class AddMemberPanel extends JPanel {
     private final JPanel parentWrapper;
-
-    // Rely strictly on structural Integer tracking primary keys
     private final int groupId;
-
     private final EdirGroupDetailPanel trackingDashboard;
 
     private JTextField txtFullName;
     private JTextField txtPhone;
+
+    // Premium Consistent Color Palette
+    private static final Color BG_GRADIENT_START = new Color(250, 248, 245);
+    private static final Color BG_GRADIENT_END = new Color(240, 235, 225);
+    private static final Color CARD_BG = Color.WHITE;
+    private static final Color TEXT_PRIMARY = new Color(74, 38, 10);
+    private static final Color TEXT_SECONDARY = new Color(115, 105, 95);
+    private static final Color FIELD_BORDER = new Color(210, 205, 195);
+    private static final Color FIELD_FOCUS = new Color(140, 110, 80);
+
+    private static final Color BTN_PRIMARY = new Color(46, 117, 59);
+    private static final Color BTN_HOVER = new Color(36, 97, 47);
+    private static final Color BTN_CANCEL = new Color(242, 238, 233);
+    private static final Color BTN_CANCEL_HOVER = new Color(230, 224, 216);
 
     public AddMemberPanel(JPanel parentWrapper, int groupId, EdirGroupDetailPanel trackingDashboard) {
         this.parentWrapper = parentWrapper;
         this.groupId = groupId;
         this.trackingDashboard = trackingDashboard;
 
-        // Use GridBagLayout on the master panel to cleanly center the inner Form card
+        setOpaque(false);
         setLayout(new GridBagLayout());
-        setBackground(new Color(253, 247, 237));
         setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
 
         initFormComponents();
     }
 
     private void initFormComponents() {
-        // Create an inner styled panel acting as a Card container for the form layout
-        JPanel cardPanel = new JPanel() {
+        // --- CENTER CONTAINER (Form Card Panel) ---
+        JPanel formCard = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                // Draw a subtle dropdown card background shadow
-                g2.setColor(new Color(225, 215, 200));
-                g2.fill(new RoundRectangle2D.Float(2, 2, getWidth() - 4, getHeight() - 4, 16, 16));
-                // Base white background canvas
-                g2.setColor(Color.WHITE);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 3, getHeight() - 3, 16, 16));
-                g2.setColor(new Color(230, 220, 205));
-                g2.draw(new RoundRectangle2D.Float(0, 0, getWidth() - 4, getHeight() - 4, 16, 16));
+                // Background shadow effect
+                g2.setColor(new Color(0, 0, 0, 12));
+                g2.fillRoundRect(2, 2, getWidth() - 2, getHeight() - 2, 16, 16);
+                // Card background
+                g2.setColor(CARD_BG);
+                g2.fillRoundRect(0, 0, getWidth() - 3, getHeight() - 3, 16, 16);
+                // Subtle card border outline
+                g2.setColor(new Color(230, 225, 215));
+                g2.drawRoundRect(0, 0, getWidth() - 3, getHeight() - 3, 16, 16);
                 g2.dispose();
             }
         };
-        cardPanel.setLayout(new GridBagLayout());
-        cardPanel.setBorder(BorderFactory.createEmptyBorder(35, 45, 35, 45));
-        cardPanel.setOpaque(false);
+        formCard.setLayout(new GridBagLayout());
+        formCard.setBorder(BorderFactory.createEmptyBorder(35, 40, 40, 40));
+        formCard.setOpaque(false);
+        formCard.setPreferredSize(new Dimension(460, 410));
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(12, 12, 12, 12);
+        gbc.insets = new Insets(6, 0, 6, 0);
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.WEST;
+        gbc.weightx = 1.0;
 
-        // 1. HEADER SECTION - Plain English with standard typography mapping
+        // Title
         JLabel lblTitle = new JLabel("Add New Member");
         lblTitle.setFont(new Font("SansSerif", Font.BOLD, 24));
-        lblTitle.setForeground(new Color(101, 31, 16));
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
-        gbc.insets = new Insets(12, 12, 20, 12); // Clean structural spacing without subheader text
-        cardPanel.add(lblTitle, gbc);
+        lblTitle.setForeground(TEXT_PRIMARY);
+        gbc.gridx = 0; gbc.gridy = 0;
+        formCard.add(lblTitle, gbc);
 
-        // Reset baseline insets for form rows
-        gbc.insets = new Insets(10, 12, 10, 12);
+        // Subtitle text description
+        JLabel lblSubtitle = new JLabel("Register a new member to this edir community.");
+        lblSubtitle.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        lblSubtitle.setForeground(TEXT_SECONDARY);
+        gbc.gridy = 1; gbc.insets = new Insets(0, 0, 15, 0);
+        formCard.add(lblSubtitle, gbc);
 
-        // 2. FULL NAME FIELD LAYOUT - Plain English with standard typography mapping
-        gbc.gridwidth = 1; gbc.gridy = 2; gbc.gridx = 0;
-        JLabel lblName = new JLabel("Full Name");
-        lblName.setFont(new Font("SansSerif", Font.BOLD, 14));
-        lblName.setForeground(new Color(70, 60, 50));
-        cardPanel.add(lblName, gbc);
+        // Field 1: Full Name Label
+        gbc.gridy = 2; gbc.insets = new Insets(8, 0, 2, 0);
+        formCard.add(createFieldLabel("Full Name"), gbc);
 
-        txtFullName = new JTextField();
-        txtFullName.setPreferredSize(new Dimension(360, 42));
-        txtFullName.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        txtFullName.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(210, 200, 185), 1, true),
-                BorderFactory.createEmptyBorder(0, 12, 0, 12)
-        ));
-        gbc.gridx = 1;
-        cardPanel.add(txtFullName, gbc);
+        // Full Name Textbox
+        txtFullName = createStyledTextField();
+        gbc.gridy = 3; gbc.insets = new Insets(0, 0, 12, 0);
+        formCard.add(txtFullName, gbc);
 
-        // 3. PHONE NUMBER FIELD LAYOUT - Plain English with standard typography mapping
-        gbc.gridx = 0; gbc.gridy = 3;
-        JLabel lblPhone = new JLabel("Phone Number");
-        lblPhone.setFont(new Font("SansSerif", Font.BOLD, 14));
-        lblPhone.setForeground(new Color(70, 60, 50));
-        cardPanel.add(lblPhone, gbc);
+        // Field 2: Phone Number Label
+        gbc.gridy = 4; gbc.insets = new Insets(4, 0, 2, 0);
+        formCard.add(createFieldLabel("Phone Number"), gbc);
 
-        txtPhone = new JTextField();
-        txtPhone.setPreferredSize(new Dimension(360, 42));
-        txtPhone.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        txtPhone.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(210, 200, 185), 1, true),
-                BorderFactory.createEmptyBorder(0, 12, 0, 12)
-        ));
-        gbc.gridx = 1;
-        cardPanel.add(txtPhone, gbc);
+        // Phone Number Textbox
+        txtPhone = createStyledTextField();
+        gbc.gridy = 5; gbc.insets = new Insets(0, 0, 25, 0);
+        formCard.add(txtPhone, gbc);
 
-        // 4. ACTION BUTTON BUTTON CONTAINER LAYOUT
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
+        // --- BUTTON ACTIONS CONTAINER ---
+        JPanel btnPanel = new JPanel(new GridLayout(1, 2, 12, 0));
         btnPanel.setOpaque(false);
 
+        // Styled Cancel Button
         JButton btnCancel = new JButton("Cancel") {
+            private boolean isHovered = false;
+            {
+                addMouseListener(new MouseAdapter() {
+                    public void mouseEntered(MouseEvent e) { isHovered = true; repaint(); }
+                    public void mouseExited(MouseEvent e) { isHovered = false; repaint(); }
+                });
+            }
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(240, 235, 225));
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+                g2.setColor(isHovered ? BTN_CANCEL_HOVER : BTN_CANCEL);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
                 g2.dispose();
                 super.paintComponent(g);
             }
         };
-        btnCancel.setPreferredSize(new Dimension(110, 40));
-        btnCancel.setFont(new Font("SansSerif", Font.BOLD, 13));
-        btnCancel.setForeground(new Color(101, 31, 16));
+        btnCancel.setPreferredSize(new Dimension(0, 44));
+        btnCancel.setFont(new Font("SansSerif", Font.BOLD, 14));
+        btnCancel.setForeground(TEXT_PRIMARY);
         btnCancel.setContentAreaFilled(false);
         btnCancel.setBorderPainted(false);
-        btnCancel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnCancel.setFocusPainted(false);
+        btnCancel.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
+        // Styled Submit Button
         JButton btnSubmit = new JButton("Add Member") {
+            private boolean isHovered = false;
+            {
+                addMouseListener(new MouseAdapter() {
+                    public void mouseEntered(MouseEvent e) { isHovered = true; repaint(); }
+                    public void mouseExited(MouseEvent e) { isHovered = false; repaint(); }
+                });
+            }
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(46, 117, 89));
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+                g2.setColor(isHovered ? BTN_HOVER : BTN_PRIMARY);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
                 g2.dispose();
                 super.paintComponent(g);
             }
         };
-        btnSubmit.setPreferredSize(new Dimension(160, 40));
-        btnSubmit.setFont(new Font("SansSerif", Font.BOLD, 13));
+        btnSubmit.setPreferredSize(new Dimension(0, 44));
+        btnSubmit.setFont(new Font("SansSerif", Font.BOLD, 14));
         btnSubmit.setForeground(Color.WHITE);
         btnSubmit.setContentAreaFilled(false);
         btnSubmit.setBorderPainted(false);
-        btnSubmit.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnSubmit.setFocusPainted(false);
+        btnSubmit.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         btnCancel.addActionListener(e -> returnToDashboardView());
 
@@ -150,7 +170,7 @@ public class AddMemberPanel extends JPanel {
             String phone = txtPhone.getText().trim();
 
             if (name.isEmpty() || phone.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Please fill in all required fields.", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Please fill in all required fields.", "Missing Fields", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
@@ -159,18 +179,17 @@ public class AddMemberPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Member added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                 returnToDashboardView();
             } else {
-                JOptionPane.showMessageDialog(this, "Failed to save member details. Please check your database connection.", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Could not save member details. Please check connection.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
         btnPanel.add(btnCancel);
         btnPanel.add(btnSubmit);
 
-        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2;
-        gbc.insets = new Insets(25, 12, 10, 12);
-        cardPanel.add(btnPanel, gbc);
+        gbc.gridy = 6; gbc.insets = new Insets(5, 0, 0, 0);
+        formCard.add(btnPanel, gbc);
 
-        // Add the styled form card cleanly right to the center anchor coordinates of the view panel
+        // Core Layout Alignment Configuration
         GridBagConstraints centerConstraints = new GridBagConstraints();
         centerConstraints.gridx = 0;
         centerConstraints.gridy = 0;
@@ -178,12 +197,60 @@ public class AddMemberPanel extends JPanel {
         centerConstraints.weighty = 1.0;
         centerConstraints.anchor = GridBagConstraints.CENTER;
 
-        add(cardPanel, centerConstraints);
+        add(formCard, centerConstraints);
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        GradientPaint gradient = new GradientPaint(0, 0, BG_GRADIENT_START, 0, getHeight(), BG_GRADIENT_END);
+        g2.setPaint(gradient);
+        g2.fillRect(0, 0, getWidth(), getHeight());
+        g2.dispose();
+        super.paintComponent(g);
     }
 
     private void returnToDashboardView() {
         trackingDashboard.refreshDashboardMetricsAndLedger();
         CardLayout cl = (CardLayout) parentWrapper.getLayout();
         cl.show(parentWrapper, "EdirDetail");
+    }
+
+    private JLabel createFieldLabel(String text) {
+        JLabel lbl = new JLabel(text);
+        lbl.setFont(new Font("SansSerif", Font.BOLD, 13));
+        lbl.setForeground(TEXT_PRIMARY);
+        return lbl;
+    }
+
+    private JTextField createStyledTextField() {
+        JTextField field = new JTextField();
+        field.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        field.setForeground(new Color(50, 50, 50));
+        field.setPreferredSize(new Dimension(0, 40));
+        field.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(FIELD_BORDER, 1, true),
+                new EmptyBorder(8, 12, 8, 12)
+        ));
+
+        field.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                field.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(FIELD_FOCUS, 1, true),
+                        new EmptyBorder(8, 12, 8, 12)
+                ));
+            }
+            @Override
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                field.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(FIELD_BORDER, 1, true),
+                        new EmptyBorder(8, 12, 8, 12)
+                ));
+            }
+        });
+
+        return field;
     }
 }

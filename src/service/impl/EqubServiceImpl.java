@@ -107,4 +107,11 @@ public class EqubServiceImpl implements EqubService {
     public boolean clearAllTransactionsForGroup(int groupId) {
         return equbDAO.clearAllTransactionsForGroup(groupId);
     }
+
+
+    // Add to your existing service.impl.EqubServiceImpl class file
+    @Override
+    public boolean removeMemberFromGroup(int groupId, int memberId) {
+        return equbDAO.removeMemberFromGroup(groupId, memberId);
+    }
 }

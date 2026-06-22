@@ -1,8 +1,10 @@
 package ui.edir;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.geom.RoundRectangle2D;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -13,128 +15,170 @@ public class EdirContributionPanel extends JPanel {
     private final EdirService edirService;
 
     private final int groupId;
-    private String groupDisplayName = "Loading Group...";
+    private String groupDisplayName = "Loading...";
 
     private JLabel lblTitle;
     private JComboBox<String> comboMember;
     private JTextField txtAmount;
-    private JTextField txtReceiptNumber;
+
+    // Matching Professional Color Palette
+    private static final Color BG_GRADIENT_START = new Color(250, 248, 245);
+    private static final Color BG_GRADIENT_END = new Color(240, 235, 225);
+    private static final Color CARD_BG = Color.WHITE;
+    private static final Color TEXT_PRIMARY = new Color(74, 38, 10);
+    private static final Color TEXT_SECONDARY = new Color(115, 105, 95);
+    private static final Color FIELD_BORDER = new Color(210, 205, 195);
+    private static final Color FIELD_FOCUS = new Color(140, 110, 80);
+
+    private static final Color BTN_PRIMARY = new Color(46, 117, 59);
+    private static final Color BTN_HOVER = new Color(36, 97, 47);
 
     public EdirContributionPanel(JPanel parentWrapper, EdirService edirService, int groupId) {
         this.parentWrapper = parentWrapper;
         this.edirService = edirService;
         this.groupId = groupId;
 
-        setLayout(new BorderLayout(20, 20));
-        setBackground(new Color(253, 247, 237));
-        setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
+        setOpaque(false);
+        setLayout(new BorderLayout());
+        setBorder(BorderFactory.createEmptyBorder(30, 40, 40, 40));
 
         initMainForm();
         loadMembersCombo();
     }
 
     private void initMainForm() {
-        JPanel formContainer = new JPanel(new GridBagLayout()) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(Color.WHITE);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 16, 16));
-                g2.setColor(new Color(235, 225, 210));
-                g2.draw(new RoundRectangle2D.Float(0, 0, getWidth()-1, getHeight()-1, 16, 16));
-                g2.dispose();
-            }
-        };
-        formContainer.setOpaque(false);
-        formContainer.setBorder(BorderFactory.createEmptyBorder(35, 45, 35, 45));
+        // --- TOP NAVIGATION BAR ---
+        JPanel headPanel = new JPanel(new BorderLayout());
+        headPanel.setOpaque(false);
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(12, 12, 12, 12);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.WEST;
+        lblTitle = new JLabel("Collect Fees - " + groupDisplayName);
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 26));
+        lblTitle.setForeground(TEXT_PRIMARY);
+        headPanel.add(lblTitle, BorderLayout.WEST);
 
-        // Top Cancel Back Button
-        JButton btnBack = new JButton("Cancel");
-        btnBack.setFont(new Font("SansSerif", Font.BOLD, 12));
+        JButton btnBack = new JButton("← Cancel");
+        btnBack.setFont(new Font("SansSerif", Font.BOLD, 14));
+        btnBack.setForeground(TEXT_SECONDARY);
+        btnBack.setContentAreaFilled(false);
+        btnBack.setBorderPainted(false);
+        btnBack.setFocusPainted(false);
+        btnBack.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnBack.addActionListener(e -> {
             CardLayout innerLayout = (CardLayout) parentWrapper.getLayout();
             innerLayout.show(parentWrapper, "EdirDetail");
         });
 
-        lblTitle = new JLabel("Record Contribution for " + groupDisplayName);
-        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 22));
-        lblTitle.setForeground(new Color(101, 31, 16));
-
-        JPanel headerLayout = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        headerLayout.setOpaque(false);
-        headerLayout.add(btnBack);
-        headerLayout.add(lblTitle);
-
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
-        gbc.insets = new Insets(12, 12, 20, 12);
-        formContainer.add(headerLayout, gbc);
-
-        // Reset base bounds
-        gbc.gridwidth = 2;
-        gbc.insets = new Insets(10, 12, 10, 12);
-
-        // Row 1: Contributor Member
-        gbc.gridy = 1;
-        formContainer.add(createFieldLabel("Select Contributor Member"), gbc);
-
-        comboMember = new JComboBox<>();
-        comboMember.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        comboMember.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                label.setFont(new Font("SansSerif", Font.PLAIN, 14));
-                return label;
-            }
+        btnBack.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) { btnBack.setForeground(TEXT_PRIMARY); }
+            public void mouseExited(MouseEvent e) { btnBack.setForeground(TEXT_SECONDARY); }
         });
-        gbc.gridy = 2;
-        formContainer.add(comboMember, gbc);
+        headPanel.add(btnBack, BorderLayout.EAST);
+        add(headPanel, BorderLayout.NORTH);
 
-        // Row 2: Amount Textbox
-        gbc.gridy = 3;
-        formContainer.add(createFieldLabel("Contribution Amount (ETB)"), gbc);
+        // --- CENTER CONTAINER (Form Card) ---
+        JPanel centerWrapper = new JPanel(new GridBagLayout());
+        centerWrapper.setOpaque(false);
 
-        txtAmount = new JTextField("200");
-        txtAmount.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        txtAmount.setPreferredSize(new Dimension(360, 42));
-        txtAmount.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(210, 200, 185), 1, true),
-                BorderFactory.createEmptyBorder(0, 12, 0, 12)
-        ));
-        gbc.gridy = 4;
-        formContainer.add(txtAmount, gbc);
-
-        // Row 3: Receipt Textbox
-        gbc.gridy = 5;
-        formContainer.add(createFieldLabel("Reference Receipt Serial Number"), gbc);
-
-        txtReceiptNumber = new JTextField("REC-" + (int)(Math.random() * 90000 + 10000));
-        txtReceiptNumber.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        txtReceiptNumber.setPreferredSize(new Dimension(360, 42));
-        txtReceiptNumber.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(210, 200, 185), 1, true),
-                BorderFactory.createEmptyBorder(0, 12, 0, 12)
-        ));
-        gbc.gridy = 6;
-        formContainer.add(txtReceiptNumber, gbc);
-
-        // Submit Button Box
-        gbc.gridy = 7;
-        gbc.insets = new Insets(30, 12, 10, 12);
-
-        JButton btnSubmit = new JButton("Submit Payment") {
+        JPanel formCard = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(28, 85, 163));
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+                g2.setColor(new Color(0, 0, 0, 15));
+                g2.fillRoundRect(2, 2, getWidth() - 2, getHeight() - 2, 16, 16);
+                g2.setColor(CARD_BG);
+                g2.fillRoundRect(0, 0, getWidth() - 3, getHeight() - 3, 16, 16);
+                g2.setColor(new Color(230, 225, 215));
+                g2.drawRoundRect(0, 0, getWidth() - 3, getHeight() - 3, 16, 16);
+                g2.dispose();
+            }
+        };
+        formCard.setOpaque(false);
+        formCard.setLayout(new GridBagLayout());
+        formCard.setBorder(BorderFactory.createEmptyBorder(35, 40, 40, 40));
+        formCard.setPreferredSize(new Dimension(500, 320));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 0, 8, 0);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+
+        // Subtitle
+        JLabel lblSubtitle = new JLabel("Log a contribution payment for a member below.");
+        lblSubtitle.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        lblSubtitle.setForeground(TEXT_SECONDARY);
+        gbc.gridx = 0; gbc.gridy = 0;
+        formCard.add(lblSubtitle, gbc);
+
+        // Field 1: Select Member Label
+        gbc.gridy = 1; gbc.insets = new Insets(15, 0, 2, 0);
+        formCard.add(createFieldLabel("Select Member"), gbc);
+
+        // Styled ComboBox
+        comboMember = new JComboBox<>();
+        comboMember.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        comboMember.setBackground(Color.WHITE);
+        comboMember.setPreferredSize(new Dimension(0, 40));
+        comboMember.setBorder(BorderFactory.createLineBorder(FIELD_BORDER, 1, true));
+        comboMember.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                label.setBorder(new EmptyBorder(5, 10, 5, 10));
+                return label;
+            }
+        });
+        gbc.gridy = 2; gbc.insets = new Insets(0, 0, 12, 0);
+        formCard.add(comboMember, gbc);
+
+        // Field 2: Amount Label
+        gbc.gridy = 3; gbc.insets = new Insets(4, 0, 2, 0);
+        formCard.add(createFieldLabel("Amount (ETB)"), gbc);
+
+        // Amount Input field
+        txtAmount = new JTextField("200");
+        txtAmount.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        txtAmount.setForeground(new Color(50, 50, 50));
+        txtAmount.setPreferredSize(new Dimension(0, 40));
+        txtAmount.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(FIELD_BORDER, 1, true),
+                new EmptyBorder(8, 12, 8, 12)
+        ));
+
+        txtAmount.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                txtAmount.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(FIELD_FOCUS, 1, true),
+                        new EmptyBorder(8, 12, 8, 12)
+                ));
+            }
+            @Override
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                txtAmount.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(FIELD_BORDER, 1, true),
+                        new EmptyBorder(8, 12, 8, 12)
+                ));
+            }
+        });
+        gbc.gridy = 4; gbc.insets = new Insets(0, 0, 30, 0);
+        formCard.add(txtAmount, gbc);
+
+        // Submit Button Setup
+        JButton btnSubmit = new JButton("Save Payment") {
+            private boolean isHovered = false;
+            {
+                addMouseListener(new MouseAdapter() {
+                    public void mouseEntered(MouseEvent e) { isHovered = true; repaint(); }
+                    public void mouseExited(MouseEvent e) { isHovered = false; repaint(); }
+                });
+            }
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(isHovered ? BTN_HOVER : BTN_PRIMARY);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
                 g2.dispose();
                 super.paintComponent(g);
             }
@@ -144,26 +188,28 @@ public class EdirContributionPanel extends JPanel {
         btnSubmit.setContentAreaFilled(false);
         btnSubmit.setBorderPainted(false);
         btnSubmit.setFocusPainted(false);
-        btnSubmit.setPreferredSize(new Dimension(200, 45));
+        btnSubmit.setPreferredSize(new Dimension(0, 46));
+        btnSubmit.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         btnSubmit.addActionListener(e -> {
             UIManager.put("OptionPane.messageFont", new Font("SansSerif", Font.PLAIN, 14));
             UIManager.put("OptionPane.buttonFont", new Font("SansSerif", Font.PLAIN, 13));
 
-            if (comboMember.getSelectedItem() == null || txtAmount.getText().trim().isEmpty() || txtReceiptNumber.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Please fill in all required operational input properties.", "Error", JOptionPane.ERROR_MESSAGE);
+            if (comboMember.getSelectedItem() == null || txtAmount.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please choose a member and enter an amount.", "Missing Fields", JOptionPane.WARNING_MESSAGE);
                 return;
             }
             try {
                 String member = comboMember.getSelectedItem().toString();
                 double amt = Double.parseDouble(txtAmount.getText().trim());
-                String receipt = txtReceiptNumber.getText().trim();
 
+                // Creates background tracking timestamp automatically without a clunky input textbox
+                String autoGeneratedReceipt = "REG-" + System.currentTimeMillis();
                 String systemMonth = LocalDate.now().getMonth().toString();
 
-                boolean ok = edirService.recordContribution(this.groupId, member, systemMonth, amt, receipt);
+                boolean ok = edirService.recordContribution(this.groupId, member, systemMonth, amt, autoGeneratedReceipt);
                 if (ok) {
-                    JOptionPane.showMessageDialog(this, "Contribution payment processed and logged successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Payment saved successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                     for (Component comp : parentWrapper.getComponents()) {
                         if (comp instanceof EdirGroupDetailPanel) {
                             ((EdirGroupDetailPanel) comp).refreshDashboardMetricsAndLedger();
@@ -171,38 +217,49 @@ public class EdirContributionPanel extends JPanel {
                     }
                     CardLayout cl = (CardLayout) parentWrapper.getLayout();
                     cl.show(parentWrapper, "EdirDetail");
+                } else {
+                    JOptionPane.showMessageDialog(this, "Failed to record payment.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Please enter a completely valid decimal number for the collection sum.", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Please enter a valid number for the amount.", "Invalid Amount", JOptionPane.ERROR_MESSAGE);
             }
         });
 
-        formContainer.add(btnSubmit, gbc);
+        gbc.gridy = 5; gbc.insets = new Insets(0, 0, 0, 0);
+        formCard.add(btnSubmit, gbc);
 
-        // To center the inner card layout smoothly within the BorderLayout constraints
-        JPanel centeringWrapper = new JPanel(new GridBagLayout());
-        centeringWrapper.setOpaque(false);
+        // Center card configuration
+        GridBagConstraints wrapperGbc = new GridBagConstraints();
+        wrapperGbc.gridx = 0; wrapperGbc.gridy = 0;
+        wrapperGbc.weightx = 1.0; wrapperGbc.weighty = 1.0;
+        wrapperGbc.anchor = GridBagConstraints.CENTER;
+        centerWrapper.add(formCard, wrapperGbc);
 
-        GridBagConstraints centerConstraints = new GridBagConstraints();
-        centerConstraints.gridx = 0;
-        centerConstraints.gridy = 0;
-        centerConstraints.anchor = GridBagConstraints.CENTER;
-        centeringWrapper.add(formContainer, centerConstraints);
+        add(centerWrapper, BorderLayout.CENTER);
+    }
 
-        add(centeringWrapper, BorderLayout.CENTER);
+    @Override
+    protected void paintComponent(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        GradientPaint gradient = new GradientPaint(0, 0, BG_GRADIENT_START, 0, getHeight(), BG_GRADIENT_END);
+        g2.setPaint(gradient);
+        g2.fillRect(0, 0, getWidth(), getHeight());
+        g2.dispose();
+        super.paintComponent(g);
     }
 
     private void loadMembersCombo() {
         Map<String, String> details = edirService.getGroupDetails(this.groupId);
         if (details != null && !details.isEmpty()) {
             this.groupDisplayName = details.getOrDefault("name", "Edir Group");
-            lblTitle.setText("Record Contribution for " + this.groupDisplayName);
+            lblTitle.setText("Collect Fees - " + this.groupDisplayName);
         }
 
         comboMember.removeAllItems();
 
         List<Map<String, String>> list = edirService.getMembersByGroup(this.groupId);
-        for(Map<String, String> m : list) {
+        for (Map<String, String> m : list) {
             comboMember.addItem(m.get("full_name"));
         }
     }
@@ -210,7 +267,7 @@ public class EdirContributionPanel extends JPanel {
     private JLabel createFieldLabel(String text) {
         JLabel lbl = new JLabel(text);
         lbl.setFont(new Font("SansSerif", Font.BOLD, 13));
-        lbl.setForeground(Color.DARK_GRAY);
+        lbl.setForeground(TEXT_PRIMARY);
         return lbl;
     }
 }
