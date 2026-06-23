@@ -14,7 +14,6 @@ public class EdirDAOImpl implements EdirDAO {
         // Core DB Initialization Hook
     }
 
-    // ✅ FIXED: Scoped explicitly to groups created/managed by the logged-in user, calculated strictly by primary key ID
     @Override
     public List<Map<String, String>> getEdirGroupsForUser(int userId) {
         List<Map<String, String>> list = new ArrayList<>();
@@ -76,40 +75,56 @@ public class EdirDAOImpl implements EdirDAO {
         return list;
     }
 
+
+
     @Override
     public boolean createGroup(String groupName, double monthlyFee, double initialPool, String rules, int creatorUserId) {
-        // ✅ USER-SCOPED HARDENING: Bound to creators' own account profile scope
         String sqlCheckName = "SELECT COUNT(*) FROM groups WHERE UPPER(TRIM(name)) = UPPER(TRIM(?)) AND type = 'EDIR' AND created_by = ?";
+        String sqlGroup = "INSERT INTO groups (name, type, created_by, contribution_amount, created_at) VALUES (?, 'EDIR', ?, ?, CURRENT_TIMESTAMP) RETURNING id";
+        String sqlEdirSettings = "INSERT INTO edir_groups (id, name, contribution_amount, created_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)";
 
-        String sqlGroup = "INSERT INTO groups (name, type, created_by) VALUES (?, 'EDIR', ?) RETURNING id";
-        String sqlEdirSettings = "INSERT INTO edir_groups (id, name, contribution_amount) VALUES (?, ?, ?)";
-        String sqlFindMember = "SELECT id FROM members WHERE user_id = ?";
-        String sqlCreateMember = "INSERT INTO members (user_id, full_name, phone) VALUES (?, ?, 'N/A') RETURNING id";
+        // FIXED UNIFORM MATCHING: Query name using user ID first, clean comparisons, and add safe phone backup checkpoints
+        String sqlFetchUserName = "SELECT full_name FROM users WHERE id = ?";
+        String sqlFindMemberByName = "SELECT id FROM members WHERE UPPER(TRIM(full_name)) = UPPER(TRIM(?)) LIMIT 1";
+        String sqlFindMemberByPhone = "SELECT id FROM members WHERE phone = 'N/A' LIMIT 1";
+
+        String sqlCreateMember = "INSERT INTO members (full_name, phone, status) VALUES (?, 'N/A', 'ACTIVE') RETURNING id";
         String sqlLinkCreator = "INSERT INTO group_members (group_id, member_id) VALUES (?, ?)";
-        String sqlInitialTransaction = "INSERT INTO transactions (group_id, member_id, amount, type, description) VALUES (?, ?, ?, 'CONTRIBUTION', 'Initial reserves deposit pool')";
+        String sqlInitialTransaction = "INSERT INTO transactions (group_id, member_id, amount, type, description, created_at) VALUES (?, ?, ?, 'CONTRIBUTION', 'Initial reserves deposit pool', CURRENT_TIMESTAMP)";
 
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
 
-            // Step 0: Block duplicate group names for THIS user context
+            // 1. Double check name availability to prevent collisions
             try (PreparedStatement psCheck = conn.prepareStatement(sqlCheckName)) {
                 psCheck.setString(1, groupName);
                 psCheck.setInt(2, creatorUserId);
                 try (ResultSet rsCheck = psCheck.executeQuery()) {
                     if (rsCheck.next() && rsCheck.getInt(1) > 0) {
-                        System.err.println("⚠️ Validation Abort: Edir Group name '" + groupName + "' already exists for User ID: " + creatorUserId);
                         conn.rollback();
                         return false;
                     }
                 }
             }
 
+            // 2. Extract Creator's full name from users via User ID
+            String creatorName = "Group Administrator";
+            try (PreparedStatement psName = conn.prepareStatement(sqlFetchUserName)) {
+                psName.setInt(1, creatorUserId);
+                try (ResultSet rs = psName.executeQuery()) {
+                    if (rs.next() && rs.getString("full_name") != null) {
+                        creatorName = rs.getString("full_name");
+                    }
+                }
+            }
+
             int generatedGroupId = -1;
 
-            // Step 1: Insert the master group recording WHO created it
+            // 3. Create core group record
             try (PreparedStatement psGroup = conn.prepareStatement(sqlGroup)) {
                 psGroup.setString(1, groupName);
                 psGroup.setInt(2, creatorUserId);
+                psGroup.setDouble(3, monthlyFee);
                 try (ResultSet rs = psGroup.executeQuery()) {
                     if (rs.next()) generatedGroupId = rs.getInt(1);
                 }
@@ -120,7 +135,7 @@ public class EdirDAOImpl implements EdirDAO {
                 return false;
             }
 
-            // Step 2: Insert Edir extension details
+            // 4. Create Edir specific subtype record
             try (PreparedStatement psEdir = conn.prepareStatement(sqlEdirSettings)) {
                 psEdir.setInt(1, generatedGroupId);
                 psEdir.setString(2, groupName);
@@ -128,41 +143,43 @@ public class EdirDAOImpl implements EdirDAO {
                 psEdir.executeUpdate();
             }
 
-            // Step 3: Find or auto-generate the structural member_id for the creator
+            // 5. Query matching member record by full name
             int memberId = -1;
-            try (PreparedStatement psFindM = conn.prepareStatement(sqlFindMember)) {
-                psFindM.setInt(1, creatorUserId);
+            try (PreparedStatement psFindM = conn.prepareStatement(sqlFindMemberByName)) {
+                psFindM.setString(1, creatorName);
                 try (ResultSet rs = psFindM.executeQuery()) {
                     if (rs.next()) memberId = rs.getInt("id");
                 }
             }
 
+            // Fallback checkpoint: If name matches failed, identify any existing placeholder member using phone 'N/A'
             if (memberId == -1) {
-                String fetchUserName = "SELECT full_name FROM users WHERE id = ?";
-                String creatorName = "Group Administrator";
-                try (PreparedStatement psName = conn.prepareStatement(fetchUserName)) {
-                    psName.setInt(1, creatorUserId);
-                    try (ResultSet rs = psName.executeQuery()) {
-                        if (rs.next()) creatorName = rs.getString("full_name");
+                try (PreparedStatement psFindPhone = conn.prepareStatement(sqlFindMemberByPhone)) {
+                    try (ResultSet rs = psFindPhone.executeQuery()) {
+                        if (rs.next()) memberId = rs.getInt("id");
                     }
                 }
-                try (PreparedStatement psNewM = conn.prepareStatement(sqlCreateMember)) {
-                    psNewM.setInt(1, creatorUserId);
-                    psNewM.setString(2, creatorName);
-                    try (ResultSet rs = psNewM.executeQuery()) {
+            }
+
+            // 6. Only insert a new member if absolutely no existing record matches
+            if (memberId == -1) {
+                try (PreparedStatement psNewM = conn.prepareStatement(sqlCreateMember, Statement.RETURN_GENERATED_KEYS)) {
+                    psNewM.setString(1, creatorName);
+                    psNewM.executeUpdate();
+                    try (ResultSet rs = psNewM.getGeneratedKeys()) {
                         if (rs.next()) memberId = rs.getInt(1);
                     }
                 }
             }
 
-            // Step 4: Link the creator to the group via group_members so it displays in their dashboard
+            // 7. Establish linkage inside junction layout
             try (PreparedStatement psLink = conn.prepareStatement(sqlLinkCreator)) {
                 psLink.setInt(1, generatedGroupId);
                 psLink.setInt(2, memberId);
                 psLink.executeUpdate();
             }
 
-            // Step 5: Record the initial deposit ledger transaction assigned to this member
+            // 8. Inject initial financial reserves if provided
             if (initialPool > 0) {
                 try (PreparedStatement psTx = conn.prepareStatement(sqlInitialTransaction)) {
                     psTx.setInt(1, generatedGroupId);
@@ -173,6 +190,7 @@ public class EdirDAOImpl implements EdirDAO {
             }
 
             conn.commit();
+            System.out.println("--> EDIR Group created cleanly via Creator User ID: " + creatorUserId);
             return true;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -180,7 +198,6 @@ public class EdirDAOImpl implements EdirDAO {
         }
     }
 
-    // ✅ FIXED: Scoped strictly to ID constraint parameters
     @Override
     public boolean deleteGroup(int groupId) {
         String sqlDelTx = "DELETE FROM transactions WHERE group_id = ?";
@@ -216,7 +233,6 @@ public class EdirDAOImpl implements EdirDAO {
         }
     }
 
-    // ✅ FIXED: Calculates and scopes strictly by Group ID
     @Override
     public Map<String, String> getGroupDetails(int groupId) {
         Map<String, String> map = new HashMap<>();
@@ -247,7 +263,7 @@ public class EdirDAOImpl implements EdirDAO {
     @Override
     public List<Map<String, String>> getMembersByGroup(int groupId) {
         List<Map<String, String>> list = new ArrayList<>();
-        String sql = "SELECT m.id, m.full_name, m.phone " +
+        String sql = "SELECT m.id, m.full_name, m.phone, m.status " +
                 "FROM members m " +
                 "JOIN group_members gm ON m.id = gm.member_id " +
                 "JOIN groups g ON gm.group_id = g.id " +
@@ -261,7 +277,8 @@ public class EdirDAOImpl implements EdirDAO {
                     map.put("id", String.valueOf(rs.getInt("id")));
                     map.put("full_name", rs.getString("full_name"));
                     map.put("phone", rs.getString("phone"));
-                    map.put("status", "Active");
+                    String status = rs.getString("status");
+                    map.put("status", status != null ? status : "Active");
                     list.add(map);
                 }
             }
@@ -273,7 +290,8 @@ public class EdirDAOImpl implements EdirDAO {
 
     @Override
     public boolean addMemberToGroup(int groupId, String fullName, String phone) {
-        String sqlInsertMember = "INSERT INTO members (full_name, phone, user_id) VALUES (?, ?, null) RETURNING id";
+        // FIXED: Removed non-existent user_id property parameter reference
+        String sqlInsertMember = "INSERT INTO members (full_name, phone, status) VALUES (?, ?, 'ACTIVE') RETURNING id";
         String sqlLinkMember = "INSERT INTO group_members (group_id, member_id) VALUES (?, ?)";
 
         try (Connection conn = DBConnection.getConnection()) {
@@ -305,7 +323,8 @@ public class EdirDAOImpl implements EdirDAO {
     @Override
     public boolean recordContribution(int groupId, String memberName, String month, double amount, String receiptNo) {
         String sqlFindMember = "SELECT id FROM members WHERE full_name = ? LIMIT 1";
-        String sqlInsertTx = "INSERT INTO transactions (member_id, group_id, amount, type, description) VALUES (?, ?, ?, 'CONTRIBUTION', ?)";
+        // FIXED: Linked insertion payload sequence tracking into schema-defined created_at
+        String sqlInsertTx = "INSERT INTO transactions (member_id, group_id, amount, type, description, created_at) VALUES (?, ?, ?, 'CONTRIBUTION', ?, CURRENT_TIMESTAMP)";
 
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
@@ -374,7 +393,8 @@ public class EdirDAOImpl implements EdirDAO {
     @Override
     public boolean registerEmergencyCase(int groupId, String memberName, String type, double amount, String description) {
         String sqlFindMember = "SELECT id FROM members WHERE full_name = ? LIMIT 1";
-        String sqlInsertCase = "INSERT INTO emergency_cases (group_id, member_id, title, description, requested_amount, status) VALUES (?, ?, ?, ?, ?, 'PENDING')";
+        // FIXED: Swapped title -> emergency_type, requested_amount -> amount_needed
+        String sqlInsertCase = "INSERT INTO emergency_cases (group_id, member_id, emergency_type, description, amount_needed, status, created_at) VALUES (?, ?, ?, ?, ?, 'PENDING', CURRENT_TIMESTAMP)";
 
         try (Connection conn = DBConnection.getConnection()) {
             int memberId = -1;
@@ -401,7 +421,8 @@ public class EdirDAOImpl implements EdirDAO {
     @Override
     public List<Map<String, String>> getPendingClaimsByGroup(int groupId) {
         List<Map<String, String>> list = new ArrayList<>();
-        String sql = "SELECT ec.id, m.full_name, ec.requested_amount, ec.description " +
+        // FIXED: Swapped out non-existent requested_amount field for amount_needed
+        String sql = "SELECT ec.id, m.full_name, ec.amount_needed, ec.description " +
                 "FROM emergency_cases ec " +
                 "JOIN members m ON ec.member_id = m.id " +
                 "WHERE ec.group_id = ? AND UPPER(TRIM(ec.status)) = 'PENDING' " +
@@ -414,7 +435,7 @@ public class EdirDAOImpl implements EdirDAO {
                     Map<String, String> map = new HashMap<>();
                     map.put("tx_id", String.valueOf(rs.getInt("id")));
                     map.put("member_name", rs.getString("full_name"));
-                    map.put("amount", String.valueOf(rs.getDouble("requested_amount")));
+                    map.put("amount", String.valueOf(rs.getDouble("amount_needed")));
                     map.put("description", rs.getString("description"));
                     list.add(map);
                 }
@@ -428,8 +449,9 @@ public class EdirDAOImpl implements EdirDAO {
     @Override
     public boolean authorizePayout(int groupId, String caseTxId, double amount, String approvedBy, String notes) {
         String sqlUpdateCase = "UPDATE emergency_cases SET status = 'APPROVED' WHERE id = ?";
-        String sqlInsertPayout = "INSERT INTO transactions (member_id, group_id, amount, type, description) VALUES " +
-                "((SELECT member_id FROM emergency_cases WHERE id = ?), ?, ?, 'PAYOUT', ?)";
+        // FIXED: Map to created_at instead of missing date tracker parameters
+        String sqlInsertPayout = "INSERT INTO transactions (member_id, group_id, amount, type, description, created_at) VALUES " +
+                "((SELECT member_id FROM emergency_cases WHERE id = ?), ?, ?, 'PAYOUT', ?, CURRENT_TIMESTAMP)";
 
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
@@ -476,7 +498,6 @@ public class EdirDAOImpl implements EdirDAO {
         return 0.0;
     }
 
-    // ✅ FIXED: Now computes balances precisely tracking unique Group ID records
     @Override
     public double getGroupBalance(int groupId) {
         String sql = "SELECT " +

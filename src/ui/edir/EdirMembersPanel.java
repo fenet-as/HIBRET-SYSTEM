@@ -205,6 +205,21 @@ public class EdirMembersPanel extends JPanel {
         add(splitPanel, BorderLayout.CENTER);
     }
 
+    /**
+     * Public utility method to be called when the custom "Actions" column triggers a deletion error.
+     * Displays a clean explicit notification explaining why the database action cannot proceed.
+     */
+    public void handleDeletionError(String memberName) {
+        UIManager.put("OptionPane.messageFont", new Font("SansSerif", Font.PLAIN, 14));
+        UIManager.put("OptionPane.buttonFont", new Font("SansSerif", Font.PLAIN, 13));
+
+        JOptionPane.showMessageDialog(this,
+                "Cannot delete member '" + memberName + "' because they have linked transaction history.\n" +
+                        "Please remove or settle their transaction records before removing them from the system directory.",
+                "Deletion Blocked",
+                JOptionPane.ERROR_MESSAGE);
+    }
+
     private void loadMembersData() {
         Map<String, String> details = edirService.getGroupDetails(this.groupId);
         if (details != null && !details.isEmpty()) {

@@ -18,16 +18,17 @@ public class EqubDAOImpl implements EqubDAO {
     @Override
     public List<Group> getEqubGroupsForUser(int userId) {
         List<Group> list = new ArrayList<>();
+        // FIXED: Swapped 't3.date' for 't3.created_at' and filtered by g.created_by instead of m.user_id (which doesn't exist)
         String sql = "SELECT DISTINCT g.id, g.name, eq.contribution_amount, " +
                 "  (SELECT COUNT(*) FROM group_members gm2 WHERE gm2.group_id = g.id) as active_members, " +
                 "  COALESCE((SELECT SUM(t2.amount) FROM transactions t2 WHERE t2.group_id = g.id AND UPPER(t2.type) IN ('PAYMENT', 'CONTRIBUTION')), 0) as total_coll, " +
                 "  (SELECT m2.full_name FROM transactions t3 JOIN members m2 ON t3.member_id = m2.id " +
-                "   WHERE t3.group_id = g.id AND UPPER(t3.type) = 'PAYOUT' ORDER BY t3.date DESC LIMIT 1) as next_payout " +
+                "   WHERE t3.group_id = g.id AND UPPER(t3.type) = 'PAYOUT' ORDER BY t3.created_at DESC LIMIT 1) as next_payout " +
                 "FROM groups g " +
                 "JOIN equb_groups eq ON g.id = eq.id " +
                 "JOIN group_members gm ON g.id = gm.group_id " +
                 "JOIN members m ON gm.member_id = m.id " +
-                "WHERE g.type = 'EQUB' AND m.user_id = ? " +
+                "WHERE g.type = 'EQUB' AND g.created_by = ? " +
                 "ORDER BY g.name ASC";
 
         try (Connection conn = getConnection();
@@ -52,21 +53,58 @@ public class EqubDAOImpl implements EqubDAO {
         return list;
     }
 
+
+
+
     @Override
     public void createEqubGroup(String name, double contributionAmount, int creatorUserId) {
-        String sqlGroups = "INSERT INTO groups (name, type, created_by) VALUES (?, 'EQUB', ?) RETURNING id";
-        String sqlEqub = "INSERT INTO equb_groups (id, name, contribution_amount) VALUES (?, ?, ?)";
-        String sqlFindMember = "SELECT id FROM members WHERE user_id = ?";
-        String sqlCreateMember = "INSERT INTO members (user_id, full_name, phone) VALUES (?, ?, 'N/A') RETURNING id";
+        // VALIDATION CHECK QUERY: Prevent duplicates by the same user
+        String sqlCheckDuplicate = "SELECT COUNT(*) FROM groups WHERE UPPER(TRIM(name)) = UPPER(TRIM(?)) AND type = 'EQUB' AND created_by = ?";
+
+        String sqlGroups = "INSERT INTO groups (name, type, created_by, contribution_amount, created_at) VALUES (?, 'EQUB', ?, ?, CURRENT_TIMESTAMP) RETURNING id";
+        String sqlEqub = "INSERT INTO equb_groups (id, name, contribution_amount, created_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)";
+
+        String sqlFetchUserName = "SELECT full_name FROM users WHERE id = ?";
+        String sqlFindMemberByName = "SELECT id FROM members WHERE UPPER(TRIM(full_name)) = UPPER(TRIM(?)) LIMIT 1";
+        String sqlFindMemberByPhone = "SELECT id FROM members WHERE phone = 'N/A' LIMIT 1";
+
+        String sqlCreateMember = "INSERT INTO members (full_name, phone) VALUES (?, 'N/A') RETURNING id";
         String sqlLinkCreator = "INSERT INTO group_members (group_id, member_id) VALUES (?, ?)";
 
         try (Connection conn = getConnection()) {
             conn.setAutoCommit(false);
+
+            // 1. DUPLICATE CHECK: Verify if this user already created a group with this name
+            try (PreparedStatement psCheck = conn.prepareStatement(sqlCheckDuplicate)) {
+                psCheck.setString(1, name);
+                psCheck.setInt(2, creatorUserId);
+                try (ResultSet rsCheck = psCheck.executeQuery()) {
+                    if (rsCheck.next() && rsCheck.getInt(1) > 0) {
+                        System.out.println("⚠️ Aborting group creation: An EQUB group named '" + name + "' already exists for this user.");
+                        conn.rollback();
+                        return; // Exit out of the method gracefully without inserting anything
+                    }
+                }
+            }
+
+            // 2. Fetch Creator's Name using their User ID
+            String creatorName = "Equb Administrator";
+            try (PreparedStatement psName = conn.prepareStatement(sqlFetchUserName)) {
+                psName.setInt(1, creatorUserId);
+                try (ResultSet rs = psName.executeQuery()) {
+                    if (rs.next() && rs.getString("full_name") != null) {
+                        creatorName = rs.getString("full_name");
+                    }
+                }
+            }
+
             int generatedGroupId = -1;
 
+            // 3. Insert into the core groups table
             try (PreparedStatement stmtG = conn.prepareStatement(sqlGroups)) {
                 stmtG.setString(1, name);
                 stmtG.setInt(2, creatorUserId);
+                stmtG.setDouble(3, contributionAmount);
                 try (ResultSet rs = stmtG.executeQuery()) {
                     if (rs.next()) {
                         generatedGroupId = rs.getInt(1);
@@ -79,6 +117,7 @@ public class EqubDAOImpl implements EqubDAO {
                 return;
             }
 
+            // 4. Insert into the equb_groups subtype table
             try (PreparedStatement stmtE = conn.prepareStatement(sqlEqub)) {
                 stmtE.setInt(1, generatedGroupId);
                 stmtE.setString(2, name);
@@ -86,39 +125,52 @@ public class EqubDAOImpl implements EqubDAO {
                 stmtE.executeUpdate();
             }
 
+            // 5. Find matching Member ID by the extracted name
             int memberId = -1;
-            try (PreparedStatement psFindM = conn.prepareStatement(sqlFindMember)) {
-                psFindM.setInt(1, creatorUserId);
+            try (PreparedStatement psFindM = conn.prepareStatement(sqlFindMemberByName)) {
+                psFindM.setString(1, creatorName);
                 try (ResultSet rs = psFindM.executeQuery()) {
-                    if (rs.next()) memberId = rs.getInt("id");
+                    if (rs.next()) {
+                        memberId = rs.getInt("id");
+                    }
                 }
             }
 
+            // Unique Constraint Safety Net
             if (memberId == -1) {
-                String fetchUserName = "SELECT full_name FROM users WHERE id = ?";
-                String creatorName = "Equb Administrator";
-                try (PreparedStatement psName = conn.prepareStatement(fetchUserName)) {
-                    psName.setInt(1, creatorUserId);
-                    try (ResultSet rs = psName.executeQuery()) {
-                        if (rs.next()) creatorName = rs.getString("full_name");
-                    }
-                }
-                try (PreparedStatement psNewM = conn.prepareStatement(sqlCreateMember)) {
-                    psNewM.setInt(1, creatorUserId);
-                    psNewM.setString(2, creatorName);
-                    try (ResultSet rs = psNewM.executeQuery()) {
-                        if (rs.next()) memberId = rs.getInt(1);
+                try (PreparedStatement psFindPhone = conn.prepareStatement(sqlFindMemberByPhone)) {
+                    try (ResultSet rs = psFindPhone.executeQuery()) {
+                        if (rs.next()) {
+                            memberId = rs.getInt("id");
+                        }
                     }
                 }
             }
 
-            try (PreparedStatement psLink = conn.prepareStatement(sqlLinkCreator)) {
-                psLink.setInt(1, generatedGroupId);
-                psLink.setInt(2, memberId);
-                psLink.executeUpdate();
+            // 6. If no member record exists, create it safely
+            if (memberId == -1) {
+                try (PreparedStatement psNewM = conn.prepareStatement(sqlCreateMember, Statement.RETURN_GENERATED_KEYS)) {
+                    psNewM.setString(1, creatorName);
+                    psNewM.executeUpdate();
+                    try (ResultSet rs = psNewM.getGeneratedKeys()) {
+                        if (rs.next()) {
+                            memberId = rs.getInt(1);
+                        }
+                    }
+                }
+            }
+
+            // 7. Link group and member records together
+            if (memberId != -1) {
+                try (PreparedStatement psLink = conn.prepareStatement(sqlLinkCreator)) {
+                    psLink.setInt(1, generatedGroupId);
+                    psLink.setInt(2, memberId);
+                    psLink.executeUpdate();
+                }
             }
 
             conn.commit();
+            System.out.println("--> EQUB Group created cleanly via Creator User ID: " + creatorUserId);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -127,10 +179,11 @@ public class EqubDAOImpl implements EqubDAO {
     @Override
     public List<Group> getAllEqubGroups() {
         List<Group> list = new ArrayList<>();
+        // FIXED: Swapped 't.date' to 't.created_at' inside structural layout lookup queries
         String sql = "SELECT g.id, g.name, eq.contribution_amount, " +
                 "COALESCE((SELECT COUNT(*) FROM group_members WHERE group_id = g.id), 0) as active_members, " +
                 "COALESCE((SELECT SUM(amount) FROM transactions WHERE group_id = g.id AND UPPER(type) IN ('PAYMENT', 'CONTRIBUTION')), 0) as total_coll, " +
-                "(SELECT m.full_name FROM transactions t JOIN members m ON t.member_id = m.id WHERE t.group_id = g.id AND UPPER(t.type) = 'PAYOUT' ORDER BY t.date DESC LIMIT 1) as next_payout " +
+                "(SELECT m.full_name FROM transactions t JOIN members m ON t.member_id = m.id WHERE t.group_id = g.id AND UPPER(t.type) = 'PAYOUT' ORDER BY t.created_at DESC LIMIT 1) as next_payout " +
                 "FROM groups g JOIN equb_groups eq ON g.id = eq.id WHERE g.type = 'EQUB' ORDER BY g.name ASC";
 
         try (Connection conn = getConnection();
@@ -226,7 +279,8 @@ public class EqubDAOImpl implements EqubDAO {
 
     @Override
     public void recordPayment(int groupId, int memberId, double amount, String date, String note) {
-        String sql = "INSERT INTO transactions (member_id, group_id, amount, type, description, date) " +
+        // FIXED: Altered column name to track timestamp into 'created_at' instead of missing 'date' column
+        String sql = "INSERT INTO transactions (member_id, group_id, amount, type, description, created_at) " +
                 "VALUES (?, ?, ?, 'PAYMENT', ?, CURRENT_TIMESTAMP)";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -242,7 +296,8 @@ public class EqubDAOImpl implements EqubDAO {
 
     @Override
     public void recordPayout(int groupId, int memberId, double amount, String date, String description) {
-        String sql = "INSERT INTO transactions (member_id, group_id, amount, type, description, date) " +
+        // FIXED: Altered column parameter assignment from 'date' to 'created_at'
+        String sql = "INSERT INTO transactions (member_id, group_id, amount, type, description, created_at) " +
                 "VALUES (?, ?, ?, 'PAYOUT', ?, CURRENT_TIMESTAMP)";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -259,7 +314,8 @@ public class EqubDAOImpl implements EqubDAO {
     @Override
     public List<Transaction> getRecentPaymentsForGroup(int groupId) {
         List<Transaction> list = new ArrayList<>();
-        String sql = "SELECT t.id, t.amount, t.date, t.type, m.full_name " +
+        // FIXED: Changed 't.date' selection properties to track 't.created_at'
+        String sql = "SELECT t.id, t.amount, t.created_at, t.type, m.full_name " +
                 "FROM transactions t JOIN members m ON t.member_id = m.id " +
                 "WHERE t.group_id = ? AND UPPER(t.type) IN ('PAYMENT', 'CONTRIBUTION', 'PAYOUT') ORDER BY t.id DESC";
         try (Connection conn = getConnection();
@@ -270,12 +326,12 @@ public class EqubDAOImpl implements EqubDAO {
                     Transaction tx = new Transaction();
                     tx.setId(rs.getInt("id"));
                     tx.setAmount(rs.getDouble("amount"));
-                    Timestamp ts = rs.getTimestamp("date");
+                    Timestamp ts = rs.getTimestamp("created_at");
                     if (ts != null) {
                         tx.setDate(new java.util.Date(ts.getTime()));
                     }
                     String rawType = rs.getString("type");
-                    tx.setType(rawType); // Feeds the precise type directly to the UI
+                    tx.setType(rawType);
                     tx.setMemberName(rs.getString("full_name"));
                     tx.setStatus(rawType.equalsIgnoreCase("PAYOUT") ? "Paid Out" : "Paid");
                     list.add(tx);
@@ -286,12 +342,6 @@ public class EqubDAOImpl implements EqubDAO {
         }
         return list;
     }
-
-
-
-
-
-
 
     @Override
     public int createNewSystemMember(Member member) {
@@ -351,9 +401,6 @@ public class EqubDAOImpl implements EqubDAO {
         return 0;
     }
 
-
-
-
     @Override
     public double getActualAvailableRoundPool(int groupId) {
         String sql = "SELECT " +
@@ -391,12 +438,9 @@ public class EqubDAOImpl implements EqubDAO {
         return false;
     }
 
-    // ✅ FIXED VALIDATION LOGIC: Properly isolates transaction verification loops to the current rotation window
     @Override
     public boolean haveAllMembersPaidCurrentRound(int groupId) {
         String sqlMembers = "SELECT COUNT(*) FROM group_members WHERE group_id = ?";
-
-        // This query identifies the unique members who contributed strictly AFTER the last payout occurred.
         String sqlCurrentPayments = "SELECT COUNT(DISTINCT member_id) FROM transactions " +
                 "WHERE group_id = ? AND UPPER(type) IN ('PAYMENT', 'CONTRIBUTION') " +
                 "AND id > COALESCE((SELECT MAX(id) FROM transactions WHERE group_id = ? AND UPPER(type) = 'PAYOUT'), 0)";
@@ -420,7 +464,6 @@ public class EqubDAOImpl implements EqubDAO {
                 if (rs2.next()) uniquePayeesThisRound = rs2.getInt(1);
             }
 
-            // Validates that every registered member has completed a payment within the current round window
             return uniquePayeesThisRound >= totalMembers;
 
         } catch (SQLException e) {
@@ -428,9 +471,6 @@ public class EqubDAOImpl implements EqubDAO {
         }
         return false;
     }
-
-
-
 
     @Override
     public boolean clearAllTransactionsForGroup(int groupId) {
@@ -446,16 +486,11 @@ public class EqubDAOImpl implements EqubDAO {
         return false;
     }
 
-
-
-
     @Override
     public Member triggerRandomRotationalDraw(int groupId) {
-        // 1. Determine how many total lifetime rounds have been completed
         int completedRounds = getCompletedRoundsCount(groupId);
         String sqlMembersCount = "SELECT COUNT(*) FROM group_members WHERE group_id = ?";
 
-        // 2. Select members who have received fewer payouts than the target threshold for this iteration
         String sqlDraw = "SELECT m.id, m.full_name FROM members m " +
                 "JOIN group_members gm ON gm.member_id = m.id " +
                 "WHERE gm.group_id = ? AND " +
@@ -473,7 +508,6 @@ public class EqubDAOImpl implements EqubDAO {
 
             if (totalMembers == 0) return null;
 
-            // Computes the current cycle sequence ceiling (e.g., Cycle 1 requires < 1 payout, Cycle 2 requires < 2 payouts)
             int currentCycleTarget = (completedRounds / totalMembers) + 1;
 
             try (PreparedStatement stmt = conn.prepareStatement(sqlDraw)) {
@@ -497,7 +531,6 @@ public class EqubDAOImpl implements EqubDAO {
 
     @Override
     public boolean hasEligibleUnpaidMembers(int groupId) {
-        // The pool dynamically cycles indefinitely as long as active members exist in the registry
         String sql = "SELECT COUNT(*) FROM group_members WHERE group_id = ?";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -513,26 +546,21 @@ public class EqubDAOImpl implements EqubDAO {
         return false;
     }
 
-
-
-    // 1. ADD this new method to your EqubDAOImpl class
     @Override
     public boolean removeMemberFromGroup(int groupId, int memberId) {
         String sqlCheckTransactions = "SELECT COUNT(*) FROM transactions WHERE group_id = ? AND member_id = ?";
         String sqlDeleteMember = "DELETE FROM group_members WHERE group_id = ? AND member_id = ?";
 
         try (Connection conn = getConnection()) {
-            // Prevent deleting a member if they have historical records in this group
             try (PreparedStatement checkStmt = conn.prepareStatement(sqlCheckTransactions)) {
                 checkStmt.setInt(1, groupId);
                 checkStmt.setInt(2, memberId);
                 try (ResultSet rs = checkStmt.executeQuery()) {
                     if (rs.next() && rs.getInt(1) > 0) {
-                        return false; // Blocks removal if payment history exists
+                        return false;
                     }
                 }
             }
-            // Safely remove member association if no financial history exists
             try (PreparedStatement deleteStmt = conn.prepareStatement(sqlDeleteMember)) {
                 deleteStmt.setInt(1, groupId);
                 deleteStmt.setInt(2, memberId);
@@ -543,8 +571,4 @@ public class EqubDAOImpl implements EqubDAO {
             return false;
         }
     }
-
-    // 2. REPLACE your existing getRecentPaymentsForGroup method with this updated version
-
-
 }

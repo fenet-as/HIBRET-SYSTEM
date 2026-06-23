@@ -14,52 +14,57 @@ public class DashboardDAOImpl implements DashboardDAO {
     public DashboardMetrics getSystemSummary(int userId) {
         DashboardMetrics metrics = new DashboardMetrics();
 
+        // UPDATED: Re-architected to fetch total distinct member headcount across ALL group types (EDIR & EQUB)
         String sql = "SELECT " +
                 "  (SELECT COUNT(*) FROM groups WHERE created_by = ? AND type = 'EDIR') as edir_count, " +
                 "  (SELECT COUNT(*) FROM groups WHERE created_by = ? AND type = 'EQUB') as equb_count, " +
-                "  (SELECT COUNT(*) FROM group_members gm " +
+
+                // 👥 COMBINED: Total unique members across both Edir and Equb groups managed by this user
+                "  (SELECT COUNT(DISTINCT gm.member_id) FROM group_members gm " +
                 "   JOIN groups g ON gm.group_id = g.id " +
-                "   WHERE g.created_by = ? AND g.type = 'EDIR') as edir_member_count, " +
+                "   WHERE g.created_by = ? AND g.type IN ('EDIR', 'EQUB')) as total_member_count, " +
 
                 // 🤝 EDIR: Permanent Remaining Ledger Balance (Contributions Pool minus absolute Payouts)
                 "  (COALESCE((SELECT SUM(t.amount) FROM transactions t " +
                 "             JOIN groups g ON t.group_id = g.id " +
-                "             WHERE g.created_by = ? AND g.type = 'EDIR' AND t.type = 'CONTRIBUTION'), 0) - " +
+                "             WHERE g.created_by = ? AND g.type = 'EDIR' AND UPPER(t.type) = 'CONTRIBUTION'), 0) - " +
                 "   COALESCE((SELECT SUM(t.amount) FROM transactions t " +
                 "             JOIN groups g ON t.group_id = g.id " +
-                "             WHERE g.created_by = ? AND g.type = 'EDIR' AND t.type = 'PAYOUT'), 0)) as edir_remaining_fund, " +
+                "             WHERE g.created_by = ? AND g.type = 'EDIR' AND UPPER(t.type) = 'PAYOUT'), 0)) as edir_remaining_fund, " +
 
-                // 🔄 EQUB: Current Vault Capital Available (Money sitting in active rounds not yet claimed/paid out)
-                "  COALESCE(( " +
-                "    SELECT SUM(t.amount) FROM transactions t " +
-                "    JOIN groups g ON t.group_id = g.id " +
-                "    WHERE g.created_by = ? " +
-                "      AND g.type = 'EQUB' " +
-                "      AND t.type = 'CONTRIBUTION' " +
-                "      AND t.description NOT LIKE '%Settled%' " +
-                "      AND t.description NOT LIKE '%Paid Out%' " +
-                "  ), 0) as equb_vault_capital";
+                // 🔄 EQUB: Current Closed-Loop Vault Capital Available (Total Incoming Money minus Paid Out Money)
+                "  (COALESCE((SELECT SUM(t.amount) FROM transactions t " +
+                "             JOIN groups g ON t.group_id = g.id " +
+                "             WHERE g.created_by = ? AND g.type = 'EQUB' AND UPPER(t.type) IN ('CONTRIBUTION', 'PAYMENT')), 0) - " +
+                "   COALESCE((SELECT SUM(t.amount) FROM transactions t " +
+                "             JOIN groups g ON t.group_id = g.id " +
+                "             WHERE g.created_by = ? AND g.type = 'EQUB' AND UPPER(t.type) = 'PAYOUT'), 0)) as equb_vault_capital";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            // Bind the parameters to the query
+            // Bind parameters to the query positions
             ps.setInt(1, userId); // edir_count
             ps.setInt(2, userId); // equb_count
-            ps.setInt(3, userId); // edir_member_count
+            ps.setInt(3, userId); // total_member_count (Combined EDIR & EQUB)
 
             ps.setInt(4, userId); // edir contributions
             ps.setInt(5, userId); // edir payouts deduction
 
-            ps.setInt(6, userId); // equb unpayout vault capital allocation
+            ps.setInt(6, userId); // equb incoming collections (payments/contributions)
+            ps.setInt(7, userId); // equb outgoing distributions (payouts)
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     metrics.setTotalEdirGroups(rs.getInt("edir_count"));
                     metrics.setTotalEqubCircles(rs.getInt("equb_count"));
-                    metrics.setTotalEdirMembers(rs.getInt("edir_member_count"));
 
-                    // Pass the metrics straight into your Dashboard model layer
+                    // Remapped to use the updated combined data column
+                    // Note: If your DashboardMetrics model still uses setTotalEdirMembers, consider renaming it
+                    // in that class to something like setTotalMembers() to match this new logic.
+                    metrics.setTotalEdirMembers(rs.getInt("total_member_count"));
+
+                    // Map values cleanly to your dashboard metric objects
                     metrics.setTotalEdirVaultBalance(rs.getDouble("edir_remaining_fund"));
                     metrics.setTotalEqubVaultBalance(rs.getDouble("equb_vault_capital"));
                 }

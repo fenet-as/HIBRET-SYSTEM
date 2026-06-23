@@ -74,6 +74,7 @@ public class MemberReportPanel extends JPanel {
         JPanel sidebar = new JPanel(new GridBagLayout());
         sidebar.setOpaque(false);
         sidebar.setPreferredSize(new Dimension(280, 0));
+        sidebar.setMinimumSize(new Dimension(280, 0)); // FIXED: Enforce absolute minimal layout boundary rules
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -112,11 +113,15 @@ public class MemberReportPanel extends JPanel {
         memberJList.setSelectionBackground(new Color(225, 212, 190));
         memberJList.setSelectionForeground(new Color(101, 53, 15));
 
+        // FIXED: Re-engineered listener constraints to prevent cross-threaded null lookup failures
         memberJList.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
-                String selectedMemberName = memberJList.getSelectedValue();
-                if (selectedMemberName != null) {
-                    loadMemberDetailedReport(selectedMemberName);
+                int selectedIndex = memberJList.getSelectedIndex();
+                if (selectedIndex >= 0 && selectedIndex < listModel.getSize()) {
+                    String selectedMemberName = listModel.getElementAt(selectedIndex);
+                    if (selectedMemberName != null) {
+                        loadMemberDetailedReport(selectedMemberName);
+                    }
                 }
             }
         });
@@ -182,13 +187,7 @@ public class MemberReportPanel extends JPanel {
         detailsPanel.add(profileSummaryCard);
         detailsPanel.add(Box.createVerticalStrut(20));
 
-        // Simplified Table Headers with requested removals/modifications
-        String[] columnHeaders = {
-                "ID",
-                "Date",
-                "Group",
-                "Description"
-        };
+        String[] columnHeaders = { "ID", "Date", "Group", "Description" };
         tableModel = new DefaultTableModel(null, columnHeaders) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
@@ -211,29 +210,35 @@ public class MemberReportPanel extends JPanel {
     }
 
     private void initializeSidebarList() {
-        java.util.List<String> allNames = reportService.getAllManagedMemberNames();
+        // Run data fetch in background worker thread to prevent freezing the layout UI
+        new Thread(() -> {
+            java.util.List<String> allNames = reportService.getAllManagedMemberNames();
 
-        SwingUtilities.invokeLater(() -> {
-            masterMemberList.clear();
-            listModel.clear();
+            SwingUtilities.invokeLater(() -> {
+                masterMemberList.clear();
+                listModel.clear();
 
-            if (allNames != null && !allNames.isEmpty()) {
-                for (String name : allNames) {
-                    masterMemberList.add(name);
-                    listModel.addElement(name);
+                if (allNames != null && !allNames.isEmpty()) {
+                    for (String name : allNames) {
+                        masterMemberList.add(name);
+                        listModel.addElement(name);
+                    }
+                    // FIXED: Safe list validation selection index placement logic
+                    if (!listModel.isEmpty()) {
+                        memberJList.setSelectedIndex(0);
+                    }
+                } else {
+                    lblNameValue.setText("No Members Found");
+                    lblStatsSubLine.setText("Please register members to view records.");
+                    tableModel.setRowCount(0);
                 }
-                memberJList.setSelectedIndex(0);
-            } else {
-                lblNameValue.setText("No Members Found");
-                lblStatsSubLine.setText("Please register members to view records.");
-                tableModel.setRowCount(0);
-            }
 
-            memberJList.revalidate();
-            memberJList.repaint();
-            revalidate();
-            repaint();
-        });
+                memberJList.revalidate();
+                memberJList.repaint();
+                revalidate();
+                repaint();
+            });
+        }).start();
     }
 
     private void filterSidebarList() {
@@ -270,31 +275,33 @@ public class MemberReportPanel extends JPanel {
 
     private void loadMemberDetailedReport(String name) {
         tableModel.setRowCount(0);
-        MemberReport report = reportService.getMemberReportData(name);
 
-        if (report != null && report.name != null) {
-            lblNameValue.setText(report.name);
+        new Thread(() -> {
+            MemberReport report = reportService.getMemberReportData(name);
 
-            lblStatsSubLine.setText(String.format("Transactions: %d | Paid: %,.2f ETB | Groups: %d",
-                    report.transactionCount, report.totalPaid, report.groupsJoinedCount));
+            SwingUtilities.invokeLater(() -> {
+                if (report != null && report.name != null) {
+                    lblNameValue.setText(report.name);
+                    lblStatsSubLine.setText(String.format("Transactions: %d | Paid: %,.2f ETB | Groups: %d",
+                            report.transactionCount, report.totalPaid, report.groupsJoinedCount));
 
-            if (report.transactions != null && !report.transactions.isEmpty()) {
-                for (TransactionRow tx : report.transactions) {
-                    // Only passes 4 columns now matching the updated headers array
-                    tableModel.addRow(new Object[]{
-                            tx.transactionId,
-                            tx.date,
-                            tx.groupName,
-                            tx.type // Maps raw 'type' data seamlessly into the unified 'Description' column
-                    });
+                    if (report.transactions != null && !report.transactions.isEmpty()) {
+                        for (TransactionRow tx : report.transactions) {
+                            tableModel.addRow(new Object[]{
+                                    tx.transactionId,
+                                    tx.date,
+                                    tx.groupName,
+                                    tx.type
+                            });
+                        }
+                    } else {
+                        tableModel.addRow(new Object[]{"-", "No transaction logs found for this member.", "-", "-"});
+                    }
                 }
-            } else {
-                tableModel.addRow(new Object[]{"-", "No transaction logs found for this member.", "-", "-"});
-            }
-        }
-
-        revalidate();
-        repaint();
+                revalidate();
+                repaint();
+            });
+        }).start();
     }
 
     public void refreshViewOnLifecycleSignal() {

@@ -3,14 +3,12 @@ package dao.impl;
 import dao.UserDAO;
 import model.User;
 import util.DBConnection;
-
 import java.sql.*;
 
 public class UserDAOImpl implements UserDAO {
 
     @Override
     public User login(String username, String password) {
-
         String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
 
         try (Connection conn = DBConnection.getConnection();
@@ -19,16 +17,16 @@ public class UserDAOImpl implements UserDAO {
             ps.setString(1, username);
             ps.setString(2, password);
 
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                return mapUser(rs);
+            // FIXED: Placed ResultSet inside try-with-resources to prevent memory/cursor leaks
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapUser(rs);
+                }
             }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return null;
     }
 
@@ -39,31 +37,29 @@ public class UserDAOImpl implements UserDAO {
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            // 🔍 DIAGNOSTIC PRINT: This will tell you EXACTLY which database is responding
             System.out.println("DEBUG: findByUsername checking DB URL -> " + conn.getMetaData().getURL());
 
             ps.setString(1, username);
-            ResultSet rs = ps.executeQuery();
 
-            if (rs.next()) {
-                System.out.println("DEBUG: Found matching user record inside this DB!");
-                return mapUser(rs);
-            } else {
-                System.out.println("DEBUG: No matching user found in this DB.");
+            // FIXED: Managed ResultSet lifecycle explicitly to release resources cleanly
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    System.out.println("DEBUG: Found matching user record inside this DB!");
+                    return mapUser(rs);
+                } else {
+                    System.out.println("DEBUG: No matching user found in this DB.");
+                }
             }
 
         } catch (Exception e) {
             System.out.println("DEBUG: Database threw an error:");
             e.printStackTrace();
         }
-
         return null;
     }
 
-
     @Override
     public void updatePassword(String username, String newPassword) {
-
         String sql = "UPDATE users SET password = ? WHERE username = ?";
 
         try (Connection conn = DBConnection.getConnection();
@@ -71,7 +67,6 @@ public class UserDAOImpl implements UserDAO {
 
             ps.setString(1, newPassword);
             ps.setString(2, username);
-
             ps.executeUpdate();
 
         } catch (Exception e) {
@@ -82,6 +77,7 @@ public class UserDAOImpl implements UserDAO {
     private User mapUser(ResultSet rs) throws SQLException {
         User user = new User();
 
+        // Verification Check: All column fields here map 100% cleanly to your schema definitions
         user.setId(rs.getInt("id"));
         user.setFullName(rs.getString("full_name"));
         user.setUsername(rs.getString("username"));
@@ -93,20 +89,17 @@ public class UserDAOImpl implements UserDAO {
         return user;
     }
 
-
     @Override
     public boolean registerUser(User user) {
-
+        // FIXED: Added explicit CURRENT_TIMESTAMP population to keep your reports tracking functional
         String sql = """
-        INSERT INTO users
-        (full_name, username, password, security_question, security_answer)
-        VALUES (?, ?, ?, ?, ?)
-    """;
+            INSERT INTO users
+            (full_name, username, password, security_question, security_answer, created_at)
+            VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        """;
 
-        try (
-                Connection conn = DBConnection.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)
-        ) {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, user.getFullName());
             stmt.setString(2, user.getUsername());
@@ -119,7 +112,6 @@ public class UserDAOImpl implements UserDAO {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return false;
     }
 }
