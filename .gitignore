@@ -14,8 +14,12 @@ Thumbs.db
 *.log
 
 # Environment / secrets
+
 .env
+.env.*
 *.properties
 
 # Java compiled files
 *.class
+
+
